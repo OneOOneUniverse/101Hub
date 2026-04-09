@@ -15,6 +15,7 @@ import {
   type SiteContent,
   type SiteFeatures,
 } from "@/lib/site-content-types";
+import { getSiteContentFromDb, saveSiteContentToDb } from "@/lib/site-content-db";
 
 const DATA_FILE_PATH = path.join(process.cwd(), "data", "site-content.json");
 const PRODUCT_IMAGE_ROOT = path.join(process.cwd(), "public", "img", "products");
@@ -250,6 +251,17 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
 // reading fresh data for every new request — no cross-request stale cache.
 export const getSiteContent = cache(async (): Promise<SiteContent> => {
   try {
+    // Try to load from Supabase first (production)
+    const dbContent = await getSiteContentFromDb();
+    if (dbContent) {
+      return dbContent;
+    }
+  } catch (error) {
+    console.error("Error loading from Supabase, falling back to JSON:", error);
+  }
+
+  // Fallback to local JSON file (local development or if Supabase fails)
+  try {
     const raw = await fs.readFile(DATA_FILE_PATH, "utf8");
     return sanitizeSiteContent(JSON.parse(raw));
   } catch {
@@ -262,8 +274,23 @@ export async function saveSiteContent(content: SiteContent): Promise<SiteContent
     ...content,
     updatedAt: new Date().toISOString(),
   });
-  await fs.mkdir(path.dirname(DATA_FILE_PATH), { recursive: true });
-  await ensureProductImageFolders(sanitized.products);
-  await fs.writeFile(DATA_FILE_PATH, `${JSON.stringify(sanitized, null, 2)}\n`, "utf8");
+
+  try {
+    // Try to save to Supabase first
+    await saveSiteContentToDb(sanitized);
+  } catch (error) {
+    console.error("Error saving to Supabase:", error);
+    // Don't fail completely - try to save locally as fallback
+  }
+
+  // Also try to save locally for development
+  try {
+    await fs.mkdir(path.dirname(DATA_FILE_PATH), { recursive: true });
+    await ensureProductImageFolders(sanitized.products);
+    await fs.writeFile(DATA_FILE_PATH, `${JSON.stringify(sanitized, null, 2)}\n`, "utf8");
+  } catch (error) {
+    console.warn("Could not write to local JSON file (expected on Vercel):", error);
+  }
+
   return sanitized;
 }

@@ -39,3 +39,21 @@ create table service_requests (
 );
 
 alter table service_requests enable row level security;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Site content (editable via admin panel)
+-- ─────────────────────────────────────────────────────────────────────────────
+create table site_content (
+  id              text primary key default 'default',
+  data            jsonb not null,
+  updated_at      timestamptz not null default now()
+);
+
+alter table site_content enable row level security;
+
+-- Only admins can read/write (via RLS and API auth)
+create policy "authenticated_admins_can_read" on site_content
+  for select to authenticated using (true);
+
+create policy "authenticated_admins_can_update" on site_content
+  for update to authenticated using (true);

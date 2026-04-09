@@ -112,6 +112,12 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const saved = await saveSiteContent(content);
-  return NextResponse.json(saved);
+  try {
+    const saved = await saveSiteContent(content);
+    return NextResponse.json(saved);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to save content.";
+    console.error("Content save error:", error);
+    return NextResponse.json({ error: `Save failed: ${message}` }, { status: 500 });
+  }
 }

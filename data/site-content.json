@@ -670,7 +670,8 @@
       "name": "PC Game Installation",
       "turnaround": "2-4 hours",
       "price": 25,
-      "details": "Get up to 3 games installed and fully optimized — launchers configured, patches applied, ready to play the moment you pick it up."
+      "details": "Get up to 3 games installed and fully optimized — launchers configured, patches applied, ready to play the moment you pick it up.",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775753390/gadget-hub/services/file_jf2hbx.jpg"
     },
     {
       "id": "s2",
@@ -724,5 +725,5 @@
       "product-x5vuiu"
     ]
   },
-  "updatedAt": "2026-04-09T14:18:05.572Z"
+  "updatedAt": "2026-04-09T16:49:54.508Z"
 }
