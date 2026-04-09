@@ -1,0 +1,23 @@
+<svg width="1200" height="480" viewBox="0 0 1200 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="promo3title promo3desc">
+  <title id="promo3title">Gaming gear spotlight</title>
+  <desc id="promo3desc">Banner showing gaming gear promotion.</desc>
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0b3b53" />
+      <stop offset="100%" stop-color="#1f2937" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#bg3)"/>
+  <g fill="none" stroke="rgba(34,211,238,0.24)" stroke-width="3">
+    <path d="M0 84 H1200"/>
+    <path d="M0 160 H1200"/>
+    <path d="M0 236 H1200"/>
+    <path d="M0 312 H1200"/>
+    <path d="M0 388 H1200"/>
+  </g>
+  <g fill="rgba(45,212,191,0.20)">
+    <rect x="84" y="74" width="240" height="340" rx="20"/>
+    <rect x="356" y="122" width="300" height="240" rx="22"/>
+    <rect x="704" y="96" width="420" height="292" rx="24"/>
+  </g>
+</svg>

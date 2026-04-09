@@ -1,0 +1,15 @@
+<svg width="1200" height="480" viewBox="0 0 1200 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="promo2title promo2desc">
+  <title id="promo2title">Accessory combo deals</title>
+  <desc id="promo2desc">Banner highlighting accessory discounts and free delivery.</desc>
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#164e63" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#bg2)"/>
+  <path d="M0 366 C 220 290, 360 448, 620 388 C 830 340, 980 426, 1200 330 L1200 480 L0 480 Z" fill="rgba(255,255,255,0.16)"/>
+  <path d="M0 300 C 180 240, 350 360, 560 320 C 780 280, 940 360, 1200 280 L1200 480 L0 480 Z" fill="rgba(16,185,129,0.30)"/>
+  <rect x="710" y="86" width="360" height="286" rx="32" fill="rgba(255,255,255,0.10)"/>
+  <circle cx="154" cy="92" r="72" fill="rgba(245,158,11,0.30)"/>
+</svg>

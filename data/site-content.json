@@ -1,0 +1,716 @@
+{
+  "storeName": "101Hub",
+  "storeDescription": "Your one-stop destination for the latest tech — shop premium gadgets and get expert tech services, all in one place.",
+  "footerText": "Level up your tech life. Shop, upgrade, and get expert support — only at 101Hub.",
+  "logoUrl": "/img/logo.png",
+  "features": {
+    "promoSlider": true,
+    "flashSale": true,
+    "services": true,
+    "wishlist": true,
+    "reviews": true,
+    "cart": true,
+    "checkout": true
+  },
+  "home": {
+    "badge": "Shop + Expert Services",
+    "title": "The Future of Tech is Here — Explore, Shop & Upgrade.",
+    "description": "Discover the hottest phones, powerhouse laptops, immersive gaming gear, and smart-home essentials — then let our experts handle setup, installation, and optimization.",
+    "primaryCtaLabel": "Shop Now",
+    "primaryCtaHref": "/products",
+    "secondaryCtaLabel": "Book a Service",
+    "secondaryCtaHref": "/services",
+    "highlights": [
+      {
+        "id": "home-highlight-1",
+        "title": "Top-Tier Tech, Always in Stock",
+        "description": "From flagship phones to pro gaming rigs — we carry what matters most."
+      },
+      {
+        "id": "home-highlight-2",
+        "title": "Fast & Hassle-Free Checkout",
+        "description": "Order in seconds with Cash on Delivery. No stress, no waiting."
+      },
+      {
+        "id": "home-highlight-3",
+        "title": "Expert Tech Support, On Demand",
+        "description": "Game installs, PC tune-ups, software setup — handled by pros."
+      }
+    ]
+  },
+  "promoSlides": [
+    {
+      "id": "promo-1",
+      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588316/gadget-hub/promo-slides/file_lryvov.png",
+      "alt": "Weekend sale banner",
+      "title": "Weekend Flash Sale — Don't Miss Out!",
+      "subtitle": "Up to 30% off laptops and smart-home bundles. Limited stock, unlimited savings."
+    },
+    {
+      "id": "promo-2",
+      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588377/gadget-hub/promo-slides/file_af6fby.png",
+      "alt": "Phone accessories promo banner",
+      "title": "Accessory Combo Deals — Double the Value!",
+      "subtitle": "Pick any 2 accessories and enjoy free delivery straight to your door."
+    },
+    {
+      "id": "promo-3",
+      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588604/gadget-hub/promo-slides/file_k6o1mp.png",
+      "alt": "Gaming setup promo banner",
+      "title": "Gaming Gear Spotlight — Play Like a Pro!",
+      "subtitle": "Score massive savings on keyboards, headsets, and controllers."
+    }
+  ],
+  "products": [
+    {
+      "id": "product-5oxd0b",
+      "slug": "product-5oxd0b",
+      "name": "Vintage Table Clock for Home, Silent Melting Clock, Kitchen, Office Table",
+      "category": "Appliances",
+      "description": "Key Features\n【Size】: 30 x 30 cm.\n【Material】: Durable metal frame with elegant transparent plastic case. Quartz movement with lower error and damage rate. The smooth movement of the clock provides you with a quiet environment without any buzzing. It will not affect your family's sleep or work efficiency.\n【OCCASION】: Suitable for living room, bedroom, office. The melting clock is not only a practical addition to your desk, shelf, table, kitchen counter, and windowsill, but also a perfect creative gift for Salvador Dali art lovers.\n【Vintage Style】It's always the small decorative details that set the tone in any family. The concave-convex dial is carefully designed and paired with Roman numerals. It features precise calibration and a very fine pointer. Our French table clocks adopt a vintage hollow design with a delicate shiny faux gold pearl, simple yet elegant luxury. Adds a rustic French Victorian touch to your home, living room, office, bedroom, or shelf.\n【Nice Gift】No one on Earth will refuse the small table clock that is both functional and antique. The rustic French appeal suits most home decor styles and tastes, our small decorative clock is sure to impress. Great gift for housewarming, wedding, birthday, Thanksgiving, and Christmas.\n\n\nSpecifications\nSKU: GE779HA4N9RBYNAFAMZ\nProduction Country: China\nSize (L x W x H cm): 30 x 20 x10\nWeight (kg): 0.8\nColor: Multicolour\nMain Material: Synthetic\nCare Label: N/A",
+      "price": 180,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649642/gadget-hub/products/product-5oxd0b/file_m2a8xt.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649648/gadget-hub/products/product-5oxd0b/file_eajizy.jpg"
+      ]
+    },
+    {
+      "id": "product-0g4pit",
+      "slug": "product-0g4pit",
+      "name": "8MP 360 Degree Smart WiFi Camera -- IP66 Waterproof Automatic Tracking IP WiFi Camera",
+      "category": "Home & Office",
+      "description": "",
+      "price": 250,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649500/gadget-hub/products/product-0g4pit/file_vmszoz.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649519/gadget-hub/products/product-0g4pit/file_xajeeg.jpg"
+      ]
+    },
+    {
+      "id": "product-uy1pgc",
+      "slug": "product-uy1pgc",
+      "name": "Roch RAC-S12R4-C – Split Air Conditioner - 1.5HP - White",
+      "category": "Home & Office",
+      "description": "Get the perfect good night's sleep and comfortable indoor environment with the Asano Air Conditioner White Wall Split Air Conditioner. Temperature is heating up every day and we are huffing and puffing under the effects of global warming. There is no need to forgo the comfort environment with Roch Split Air Conditioner Wall Split Air Conditioner as it helps to keep the temperature tolerable and comfortable.\n\nSpecifications\nKey Features\nCapacity 1.5HP\n100% Copper\nSmart Airflow\nLow Noise\nR410A Gas- Energy Saving\nVoltage: 210-240 Volts",
+      "price": 3200,
+      "stock": 4,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649325/gadget-hub/products/product-uy1pgc/file_fbdhia.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649332/gadget-hub/products/product-uy1pgc/file_u4fcix.jpg"
+      ]
+    },
+    {
+      "id": "product-43casu",
+      "slug": "product-43casu",
+      "name": "Scarlett Electric Hand Mixer Whisk Egg Beater Cake Baking Mixer Tool Plus Free Gift",
+      "category": "Appliances",
+      "description": "Specification:\n \n\nName: Household Handheld Electric Egg Beater\nFunction: beat eggs, flour play\nPower: 180W\nVoltage: 220-240V\nFrequency: 50/60Hz\nPlug: EU plug\nWork stalls: 1-7 speed gear\nEgg beater placed: handheld\nMaterial: ABS Plastic + Stainless steel\nLength:18cm/7.029'' Height:13cm/5.12'' Width:7cm/2.76''\nCable length:100cm/39.4''\nPackage size:19x7.5x15.5cm/7.48x2.95x6.1''\nColor: White \n\nNote:\nNever wash mixer in water.\nTransition: 1cm=10mm=0.39inch\nWith retail package.\nPlease allow 1-3mm error due to manual measurement. pls make sure you do not mind before you bid.\nDue to the difference between different monitors, the picture may not reflect  the actual color of the item. Thank you!\n \nPackage Includes :\n1 x Handheld Electric Egg Beater (With 4 different types stirrers:)\n1 x Mini Power Supply Adapter (Comes according to your country)",
+      "price": 170,
+      "stock": 4,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649188/gadget-hub/products/product-43casu/file_wv10w0.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649207/gadget-hub/products/product-43casu/file_c6tuzn.jpg"
+      ]
+    },
+    {
+      "id": "product-ghc87f",
+      "slug": "product-ghc87f",
+      "name": "AMU ITALIANO AMU-GS2B Auto ignition 2 Burner Gas Cooker - Black",
+      "category": "Appliances",
+      "description": "Specifications:\n\nBurner : 2\nNon - Rust Stainless Steel Burner \nTop Quality Product\nEasy Setup\nSave money and Save time\nTwo Adjustable Knobs\nLow Gas Consumption\nCompact and Stylish\nAutomatic Ignition\nEasy to Clean\nSafe and Durable\nBeautiful Design\nFlame Stability\nBlue Flame with High Efficiency\nQuality Assured\n ",
+      "price": 200,
+      "stock": 8,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649087/gadget-hub/products/product-ghc87f/file_pqfd3h.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649093/gadget-hub/products/product-ghc87f/file_dwlzlv.jpg"
+      ]
+    },
+    {
+      "id": "product-wxmya9",
+      "slug": "product-wxmya9",
+      "name": "DIY Wall Clock 3D Mirror Stickers Large Wall Clock",
+      "category": "Home & Office",
+      "description": "Features:\nDecor - Clock is a modern frameless wall clock, decor wall clock, ideal for decorating living rooms, bedrooms, restaurants, offices, hotels. Equipped with exquisite packaging, it is a wonderful gift for family and friends.\n\nDIY -  Complete accessories,Easy to install (please follow the instructions). Enjoy the happy time of DIY with your family.\n\nSilent - Wall Clock , CE、FCC Certified, Which Can Effectively Reduce Energy Consumption And Prolong Service Life. Farmhouse Wall Clock Quiet And Silent When Operating.\n\nEnvironmental - The frameless wall clock are made of acrylic, which is wear-resistant, environmentally friendly, not easily deformed, and easy to install and remove. \n\nLong service life - Long pointer, fine quality metal material, strong and not easy to deformation.\n\nEasy to install - Light weight, easy to firmly adhere to the wall does not drop.Can be used for decorating living room, bedroom, bathroom and kitchen, very beautiful.\n\nSpecifications:\nColor: Black\nMaterial: Acrylic\nPackage size: 150 * 100 * 40mm\n\nPackage list:\n1 * Set of wall clock",
+      "price": 80,
+      "stock": 10,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648836/gadget-hub/products/product-wxmya9/file_joyhkg.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648854/gadget-hub/products/product-wxmya9/file_wddvv4.jpg"
+      ]
+    },
+    {
+      "id": "product-ab9u8k",
+      "slug": "product-ab9u8k",
+      "name": "Yaticrab 300ml Humidifier with Colorful Running Lights, 2-Speed Mist Mode, 30-35dB Quiet Operation & Auto-Shut Off - Sleek Minimalist Cool Mist Humidifier for Home/Office",
+      "category": "Home & Office",
+      "description": "Product details\nElevate your living or working space with our compact yet powerful cool mist humidifier, designed to bring comfort, style, and convenience to every corner. Whether you're looking to relieve dry air discomfort, add a touch of ambiance, or enjoy a quiet environment, this humidifier checks all the boxes with its thoughtful features and minimalist design.\n\nKey Features That Make a Difference\n300ml Large Capacity for Long-Lasting Comfort: Equipped with a 180ml water tank, this humidifier can provide continuous mist for up to 4-6 hours (depending on mist mode), eliminating the need for frequent refills. Perfect for small to medium spaces like bedrooms, offices, desks, or baby rooms—keep the air moist and refreshing all day or night.\n\nVibrant Colorful Running Lights: Add a playful yet elegant vibe to your space with the built-in colorful running lights. The lights cycle smoothly through a spectrum of vivid hues, creating a dynamic and cozy atmosphere. Great for setting the mood during relaxation, work, or even as a nightlight for kids—you can also turn the lights off if you prefer a more understated look.\n\nDual Mist Modes: Continuous & Intermittent: Customize your humidifying experience with two adjustable mist modes. Choose Continuous Mist for steady, consistent moisture output when the air is extremely dry, or Intermittent Mist (cycles on/off) for energy-saving and long-term use. Easily switch between modes with a simple touch button.\n\nFine & Powerful Cool Mist: Adopting advanced ultrasonic atomization technology, the humidifier produces ultra-fine mist particles (≤5μm) that spread evenly in the air without wetting surfaces. The mist is gentle yet effective, quickly relieving dry skin, chapped lips, dry throat, and static electricity—ideal for seasonal changes or air-conditioned/heated rooms.\n\nUltra-Quiet Operation (30-35dB): Enjoy a peaceful environment without annoying noise. With a noise level as low as 30-35dB (equivalent to a whisper), this humidifier won’t disturb your sleep, work, study, or conversations. It’s the perfect companion for bedrooms and home offices where quiet is a priority.\n\nAuto-Shut Off for Safe Use: Safety is our top concern. The humidifier automatically shuts off when the water tank is empty, preventing dry burning and damage to the device. You can leave it running overnight or when you’re away with complete peace of mind, especially for families with kids or pets.\n\nSleek & Minimalist Design: Featuring a clean, cylindrical shape and neutral color palette, this humidifier blends seamlessly with any home or office decor—from modern minimalist to Scandinavian styles. Its compact size (small enough to fit on a desk or nightstand) saves space while adding a touch of sophistication to your surroundings.\n\nWhy Choose Our Humidifier?\nIt’s not just a humidifier—it’s a combination of functionality and aesthetics. We’ve focused on every detail, from the quiet motor to the colorful lights and safe auto-shutoff, to create a product that enhances your daily life. Whether you need to combat dry air, create a relaxing ambiance, or simply add a practical yet stylish gadget to your space, this 180ml cool mist humidifier is the perfect choice.\n\nIdeal for Every Scenario\nBedroom: Enjoy a quiet, moist sleep without dryness or noise.\n\nOffice: Stay focused and comfortable during long work hours.\n\nBaby Room: Provide a gentle, safe environment for your little one (with auto-shutoff and quiet operation).\n\nLiving Room: Add ambiance with colorful lights while keeping the air fresh.\n\nSpecifications\nKey Features\n180ml large capacity for long use\nColorful running lights for ambiance\n2-speed mist (continuous/intermittent)\n30-35dB ultra-quiet operation\nAuto-shut off for safe protection\nSpecifications\nSKU: YA712HA3PQCMANAFAMZ\nWeight (kg): 0.3\nColor: white",
+      "price": 120,
+      "stock": 2,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648681/gadget-hub/products/product-ab9u8k/file_qu5eqg.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648697/gadget-hub/products/product-ab9u8k/file_ohbtn3.jpg"
+      ]
+    },
+    {
+      "id": "product-eh8kef",
+      "slug": "product-eh8kef",
+      "name": "SILVER CREST 1.5L Quality Long Lasting High Powerful Blender 2 In 1 with 2 jar- White/Grey",
+      "category": "Home & Office",
+      "description": "Key Features\nMultipurpose grinder attachment.\n4 speed and pulse switch\nPlastic jar 1.5 capacity\nLong life stainless steel dotting blades.\nBlades unscrew for easy cleaning\n220V-240V 50 Hzl60hz300W\nBlender and Grinder - 2 in 1",
+      "price": 190,
+      "stock": 4,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648528/gadget-hub/products/product-eh8kef/file_uqm8wh.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648544/gadget-hub/products/product-eh8kef/file_tcugtu.jpg"
+      ]
+    },
+    {
+      "id": "product-ethc34",
+      "slug": "product-ethc34",
+      "name": "SCALITT LM-2 Litre - Electric Kettle - Black/Sliver",
+      "category": "Home & Office",
+      "description": "Product details\nEcommendation index: ⭐⭐⭐⭐⭐\nWelcome to LEIMAX. We are committed to creating the best quality life for you, allowing you to purchase the most cost-effective items at the lowest prices!\nAbout LEIMAX: LEIMAX focuses on the quality life of African families, with innovation, energy conservation and quality life experience as its core pursuits. Our main products include small household appliances, home living items, and fashionable daily necessities. We integrate intelligent technology, energy-saving efficiency, and youthful fashion design concepts, making them suitable for diverse living scenarios. Integrate practicality with creativity to create a smarter and more flexible quality life for young families.\n*Regarding this 2 Litre - Electric Kettle\n\nThis quality kettle is a smart and practical kitchen assistant. The elegant , glossy white kettle will give you the style and practicality you need.. Stop waiting 10minutes for water on the stove to get hot. This quality kettle brings the heat quicker than any stove-top kettle. And with our automatic shut-off, it’s perfect for offices or homes.\n\nIt's Safe , Fast , Hygienic!\n\nBuy now this quality Kettle from Jumia Ghana and have it delivered right at your doorstep.\n\n*FEATURES\n\nHeat or boil water faster than in a microwave and safer than in a stove\nat the press of a button.\nThe powerful rapid boil system provides heat quickly , so you will have boiling water ready in minutes.\nServing without wires with an easy spout makes sharing simple and convenient.\nWith a capacity of 2L , enough for the whole family.\nThe automatic power off function with dry boil protection prevents the kettle from burning.\nDimension: 21*17*23.5 cm\nThank you for choosing us, for which we promise:\n1. Purchased goods in our store, as long as they meet the conditions, can be returned within the validity period\n2. All products in our store are delivered to your home by JUMIA express for free, safe and fast\n3. In order to make your shopping experience more enjoyable, our store has carried out strict quality control on all products, please feel free to buy\n4. We have different promotions every day, please pay more attention to our store\n5. Every month we will have new products online, adding fun to your life\n6. If you have suggestions for our products, please let us know in the review after receipt.\n\nWe look forward to your five-star review...",
+      "price": 100,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648379/gadget-hub/products/product-ethc34/file_zlnhwg.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648395/gadget-hub/products/product-ethc34/file_maayov.jpg"
+      ]
+    },
+    {
+      "id": "product-qm4gja",
+      "slug": "product-qm4gja",
+      "name": "CYFAZA Shoe Rack Organizer 9 Tiers Dust-proof Durable & Stainless Steel",
+      "category": "Home & Office",
+      "description": "Product details\nMaterial: Eco-friendly fabric, non-woven fabric, high-density polyethylene (HDPE), and metal\nColor Options: Dustproof cover in black, gray, navy blue, and brown, with white trim\nFrame: Chrome-finished metal\nConnectors: White\nDescription:\n\nCyfaza brings you innovative, practical, and reliable products that adapt to your lifestyle. We offer the best solutions for your needs in both function and design, making your home the best place in the world!\n\n\nThis 9-shelf shoe rack/organizer features a dust-proof cover with a zipper. It can hold up to 27 pairs of shoes or be used to store seasonal clothing, blankets, towels, bedding, and more.\n\nKeep your footwear organized and dust-free.\nYou can use it with or without the dust-proof cover, adjusting the height to suit your needs.\nWaterproof and easy to clean.\nTool-free assembly – no tools required.\nThe eco-friendly fabric cover and zipper ensure a perfect seal.\nThe curtain door rolls up and is secured with Velcro.\nFully disassemblable and lightweight, making it easy to move and change its location.\nFeatures:\n\nRemovable shoe rack organizer.\nChrome-finished metal frame.\nHigh-density polyethylene connectors.\nEco-friendly fabric dustproof cover with trim.\nSide zippers.\nRoll-up curtain door with Velcro fastening.\nProduct Dimensions:\n\nWidth: 57 cm\nHeight: 155 cm\nDepth: 27 cm\nShelf Dimensions:\n\n47 x 26 cm\nSpace between shelves: 16 cm\nPackaging Dimensions:\n\nWidth: 17.5 cm\nHeight: 54 cm\nDepth: 7.5 cm\nWarnings:\n\nBefore use, ensure all components are properly adjusted and in the correct position.\nDistribute weight evenly to avoid instability, placing heavier items on the lower shelves.\nAvoid placing sharp objects that may damage the fabric walls.",
+      "price": 0,
+      "stock": 2,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648048/gadget-hub/products/product-qm4gja/file_xzc5cw.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648071/gadget-hub/products/product-qm4gja/file_zpfwoe.jpg"
+      ]
+    },
+    {
+      "id": "product-s3dmbl",
+      "slug": "product-s3dmbl",
+      "name": "12 Cubes Plastic Wardrobe - Black/White",
+      "category": "Home & Office",
+      "description": "Product details\nThis Plastic Portable Collapsible Wardrobe will take care of your storage neediness.‎‎ This mobile wardrobe is versatile, durable and environmentally friendly. ‎ The structure and design of this closet includes hanging spaceship.‎‎ It has front panel roll up for fast and easy access to your clothes and shoes.\n\nThis closet will help you organised and ensure all your shoes and clothes are well-arranged in your room.‎‎ This will help you create a mess-free and neat look for your bedroom.‎‎ The wardrobe is so versatile that it can easily be moved around your room if you want to change its position.\n\nBuy now online from Jumia Ghana at the best price and have it delivered right at your doorstep.\nSpecifications\nKey Features\nColour: Black/White\nStrong and Sturdy\nStyle Contemporary and Modern\nCare Instructions: Do not iron, Hand wash only\nSuitable For Bedroom",
+      "price": 550,
+      "stock": 2,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647914/gadget-hub/products/product-s3dmbl/file_scrwnx.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647916/gadget-hub/products/product-s3dmbl/file_tdae5q.jpg"
+      ]
+    },
+    {
+      "id": "product-71r3g1",
+      "slug": "product-71r3g1",
+      "name": "5-Tier Shoe Rack with Dust Cover – Grey",
+      "category": "Home & Office",
+      "description": "Product details\nThis 5-tier Dustproof Shoe Wardrobe is designed to provide great storage solution for your collection of favorite footwear. This innovative, lightweight space saving shoe rack can be positioned anywhere at home to keep shoes or accessories accessible. Each shelf holds up to 3 or 4 pairs of full-size shoes and can be closed to prevent shoes from getting dusty. Excellent selection, strong and durable. Simple installation. It's portability allows you to move storage space between rooms or for a change in your room’s layout easily.\n\nColor : Grey\nMaterial : Metal/Fabric\nNumber of Tiers : 5 Tiers\nDurable and Strong\nSimple and easy to use\n\n",
+      "price": 120,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647812/gadget-hub/products/product-71r3g1/file_xbinoj.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647814/gadget-hub/products/product-71r3g1/file_vqsnad.jpg"
+      ]
+    },
+    {
+      "id": "product-sl4jx8",
+      "slug": "product-sl4jx8",
+      "name": "Genetic Waterproof Cotton Fitted Sheet Matress Cover Protector - Gray",
+      "category": "Home & Office",
+      "description": "Key Features\nSize : 1.5*2 meter , or 1.8*2meter \n\nColor : Gray\n\nWaterproof \n\nCotton fitted \n\nPillow is not included\n\nProduct details\nUse our waterproof mattress cover to protect your mattress from leaks, stains, and bacteria.\nAnti mite and antibacterial: Knowing that our mattress covers are designed to prevent mites and bacteria, we sleep soundly.\nEmbossed design: Our fashionable embossed design adds a touch of elegance to your bedroom while providing excellent protection.\nEasy to use: Cotton clips make it easy to secure the bedspread to the mattress, ensuring a comfortable fit.\nComfortable: Our mattress covers are designed to be comfortable and breathable, so you can sleep soundly without feeling hot or uncomfortable. Ultimate Protection: Use our waterproof mattress cover to protect your mattress from leaks, stains, and bacteria.\nMulti functional: Perfect for bedrooms, guest rooms, apartments, and even schools.\nHigh quality: Our mattress covers are made of high-quality materials, which are durable and provide long-lasting protection.\n\n ",
+      "price": 280,
+      "stock": 2,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647692/gadget-hub/products/product-sl4jx8/file_prp9c7.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647705/gadget-hub/products/product-sl4jx8/file_fcgy7l.jpg"
+      ]
+    },
+    {
+      "id": "product-4tnqyj",
+      "slug": "product-4tnqyj",
+      "name": "redbeat D5 Smartphone, 6.52-inch - 4GB RAM + 64GB ROM - 13MP Rear/8MP Front - 5000mAh - Black",
+      "category": "Phones & Tablets",
+      "description": "Key Features\nOS: Android 14\nProcessor: UNISOC, Octa-Core 1.6GHz\nDisplay: 6.52-inch IPS screen\nSIM card size: dual Nano Sim or one nano sim+ one Micro SD\nBattery: 5000mAh strong battery life\nmemory: 64GB+4GB RAM, Supports expanded virtual memory, up to 1TB MicroSD\nCamera: Rear 13MP, 4X digital zoom, 0.3MP macro; front 8MP\nNetwork: 4G LTE\nUSB Type-C charging port\nFace unlock and side fingerprint unlock",
+      "price": 980,
+      "stock": 2,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647568/gadget-hub/products/product-4tnqyj/file_gryesu.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647584/gadget-hub/products/product-4tnqyj/file_prmukq.jpg"
+      ]
+    },
+    {
+      "id": "product-z2www2",
+      "slug": "product-z2www2",
+      "name": "ZAOPAI 7inch Kids Educational Tablet - 4GB RAM + 64GB ROM - 4000mAh Long Battery - Android 8.1 Learning & Games Tab - School Students Kiddy Tablets - Large Storage Kids Tab - Blue",
+      "category": "Phones & Tablets",
+      "description": "15-day ultra-long standby autonomy\nMemory: 4 GB\nFlash memory: 64 GB\nScreen pixels: 1024 x 600\nModel: Android 8.1\nType: EU plug\nBattery: 4000 mAh\n\n【Massive 64GB Storage - No Internet? No Problem!】\n\nHuge 64GB memory allows you to download many educational videos, cartoons, and songs. Keep your kids entertained during long travels or in areas with no Wi-Fi. It's a library in their hands!\n\n【Powerful 4000mAh Battery - All Day Fun】\nEquipped with a large 4000mAh battery, this tablet provides hours of continuous learning and play on a single charge. No more worrying about power cuts or frequent charging.\n\n【High Speed 4GB RAM - Smooth & No Lagging】\nWith 4GB RAM and a Quad-Core processor, this tablet runs smoothly without freezing. Your child can switch between learning apps and games easily.  High performance at an affordable price!\n\n【Versatile Connectivity】\n\nSupports Wi-Fi, Bluetooth for mouse/keyboard connection.\n\n【Great Birthday & School Gift】\n\nLooking for the nice gift for your child? This 7-inch tablet is the ideal choice for birthdays, holidays, or  school rewards. Make your child happy and help them grow with the great tech gift!\n\n \n\n7-inch kids' tablet with eye protection screen: Featuring a high-end Full HD 1920 x 1200 display, this children's tablet delivers sharper, crisper images and more vibrant colors than standard HD tablets. It safeguards your child's eyes while allowing them to enjoy their games anytime, anywhere.\nLong-lasting Android Tablet: Equipped with a 4000mAh battery, this kids' tablet offers up to 5 hours of reading time on a full charge. Ideal for camping, travel, and long flights, it features 4GB of RAM, 128GB of storage, and a 128GB TF card. You can store a large number of your child's favorite cartoons, e-books, movies, songs, and photos, ensuring ample storage space for your little treasure. 【Parental Control Mode】Specifically designed for children aged 2 to 12, this kids' tablet includes a Secure Kids Mode and standard Android. Parents can easily customize screen time limits, filter age-appropriate content, download new apps, and manage playtime as their child grows.\n【Multifunctional Tablet for Kids】Children can read, watch videos, play games, and learn. Google Play offers a wide selection of recent educational apps that parents can download. Examples include YouTube Kids, Khan Academy Kids, Duolingo, ABC Mouse, Minecraft, and Hulu. This fantastic tablet will entertain and educate your child for hours— they'll love it!\nDurable Tablet with Anti-Shock Case】Food-grade silicone case and stand, hands-free for children. The case protects the tablet from damage while keeping it portable. The stand behind the tablet allows children to watch videos and talk hands-free. It's an excellent gift for children to help them develop their skills and imagination through joyful play.",
+      "price": 590,
+      "stock": 0,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647389/gadget-hub/products/product-z2www2/file_cjczrn.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647404/gadget-hub/products/product-z2www2/file_mph6qe.jpg"
+      ]
+    },
+    {
+      "id": "product-ez7uc5",
+      "slug": "product-ez7uc5",
+      "name": "LESIA Young 2 - 2GB + 2GB RAM/64GB ROM Rear 8MP AF Front 5MP - Dark Blue",
+      "category": "Phones & Tablets",
+      "description": "Color - dark Blue\nModel - YOUNG 2\nCPU - Quad core\nDisplay - 6.56'' incell HD\nBattery - 5000mAh\nMemory - 2GB + 2GB RAM / 64GB ROM\nCamera Rear 8MP AF Front 5MP\nConnectivity - Bluetooth / WIFI / GPS G sensor / 3G",
+      "price": 750,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647157/gadget-hub/products/product-ez7uc5/file_zzgb2b.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647173/gadget-hub/products/product-ez7uc5/file_rukxtj.jpg"
+      ]
+    },
+    {
+      "id": "product-y2fw6n",
+      "slug": "product-y2fw6n",
+      "name": "Wudytim Bluetooth Earphone With phone tablet stand- White",
+      "category": "Phones & Tablets",
+      "description": "High-quality audio combined with powerful battery life makes these earbuds an indispensable smart accessory, whether you're commuting, working out, or traveling.\n\nAll-in-One Bluetooth Earbuds: See Your Power, Charge with Ease!\nTired of the awkwardness of low battery? Our All-in-One Bluetooth Earbuds keep you in control. The multi-color display screen clearly shows the earbud case's battery level, so you always know how much power you have left.\n\nThese earbuds don't just offer excellent sound quality; they also integrate a 1200mAh high-capacity power bank function, easily giving your phone a \"new life.\" And we've got you covered! The earbud case comes with three common charging cables, saving you the hassle of carrying extra wires and truly making your travel 1ighter.\n\nOne device, multiple uses, extreme convenience – letting your life be filled with endless possibilities!\n\nYour Exclusive Mobile Energy Station: Colorful Display Bluetooth Earbuds\nSay goodbye to battery anxiety and welcome a smart new experience! Our Colorful Display Bluetooth Earbuds bring you convenience with innovative technology. The earbud case features an intuitive multi-color display screen, keeping you fully informed about your battery level so you'll never worry about running out of power again.\n\nEven more surprisingly, it has a built-in 1200mAh emergency power bank, effortlessly boosting the power of your other devices. Most thoughtfully, the earbud case directly integrates three charging cables, adapting to various devices and eliminating the frustration of tangles and forgotten wires.",
+      "price": 100,
+      "stock": 7,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646988/gadget-hub/products/product-y2fw6n/file_soyu3f.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647004/gadget-hub/products/product-y2fw6n/file_vxsd4m.jpg"
+      ]
+    },
+    {
+      "id": "product-x5vuiu",
+      "slug": "product-x5vuiu",
+      "name": "Black Gooseneck Mobile Phone Holder 360-Degree Rotation, Flexible Adjustment, Ergonomic Design - 65cm",
+      "category": "Phones & Tablets",
+      "description": "",
+      "price": 80,
+      "stock": 0,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646839/gadget-hub/products/product-x5vuiu/file_usd9nt.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646856/gadget-hub/products/product-x5vuiu/file_jjftrt.jpg"
+      ]
+    },
+    {
+      "id": "product-8gh5qa",
+      "slug": "product-8gh5qa",
+      "name": "Mobile phone holder, tablet holder,foldable 360-degree rotating all-metal holder",
+      "category": "Phones & Tablets",
+      "description": "Key Features\nProduction Country: China\nSize (L x W x H cm): 11.81 x 10.21 x 3.91 cm\nWeight (kg): 0.14\nColor: purple\nMain Material: aluminium\nShop Type: Jumia Mall\nWarranty Type: Replacement by Vendor\nThe phone holder is marked by non-slip pad design, no wobble anti-slip base, adjustable heat-dissipating & foldable iPhone stand holder, wide compatibility.",
+      "price": 45,
+      "stock": 4,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646696/gadget-hub/products/product-8gh5qa/file_zfrs7s.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646717/gadget-hub/products/product-8gh5qa/file_jryydl.jpg"
+      ]
+    },
+    {
+      "id": "product-s7huz7",
+      "slug": "product-s7huz7",
+      "name": "TiLECC TiLECC Ultra 7-in-1 Watch Band Smart Watch 49mm Series 8 Ultra Smart Watch 49mm",
+      "category": "Phones & Tablets",
+      "description": "",
+      "price": 180,
+      "stock": 10,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646559/gadget-hub/products/product-s7huz7/file_toinfz.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646568/gadget-hub/products/product-s7huz7/file_unh61x.jpg"
+      ]
+    },
+    {
+      "id": "product-1i89px",
+      "slug": "product-1i89px",
+      "name": "ACE-240 Smart Watch Ultra 10 in1 Waterproof 7 Straps + Protective Case + Earphones - Black",
+      "category": "Phones & Tablets",
+      "description": "Smart Watch Ultra 10 In 1 Waterproof 7 Straps +Protective case+Earphones Men Women 49MM Bluetooth Call Heart Rate Wireless Charging Fitness Bracelet Smartwatch Set True Screw, True Buckle\n\n1.APP:WearFit Pro\n2.Size:38.5*45*14mm\n3.Strap meterial:Silica gel\n4.Main screen:2.09-inch LCD 320*240\n5.BT 3.0 4.0 5.0 support bluetooth call\n6.Charging mode:wireless charging\n7.Touch Screen:Full touch screen\n8.Color:Black white,orange\n9.Battery:200mAh\n10.Waterproof:IP65(Can't put into the water)\n11.Appearance material:Zinc alloy\n\nSelling Point\n\n1.2.02 Inches full screen\n2.Bluetooth call\n3.Music control\n4.ECG monitoring\n5.200mAh.\n6.Wireless charger\n7.Alpine loop strap.Steel Strap.Silicone strap total 7 straps.\n\nWatch Function:\n\n1. Call function:Bluetooth dialing, common contact list, call log, caller ID, answer/reject\n\n2.Motion monitoring:Pedometer (exercise time, mileage, calories), exercise mode (walking, running, climbing, cycling, indoor running)\n\n3.Health monitoring:Heart rate/blood pressure/blood oxygen/measurement, sedentary reminder, sleep monitoring, drinking water reminder, breathing exercise\n\n4.Smart reminder:Caller ID/Reminder, Information Push (SMS/QQ/WeChat/Skype/Facebook/Twitter/Line/WhatsApp)\n\n5.Other functions:Turn the wrist to brighten the screen, low power mode, silent mode, anti-lost, control photo, music control, stopwatch, alarm\n\nApp Language\n\nEnglish (default), Simplified Chinese, French, Spanish, Polish, Portuguese, Italian, German, Turkish, Russian, Czech, Arabic, Hungarian, Greek, Persian, Filipino, Malay, Indonesian, Vietnamese, Swedish.\n\nNote\n\n1.Charge for 2 hours when using for the first time.\n2.Please download the APP before use.\n3.We will test before shipping",
+      "price": 220,
+      "stock": 4,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646216/gadget-hub/products/product-1i89px/file_aj01sg.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646223/gadget-hub/products/product-1i89px/file_nmynlq.jpg"
+      ]
+    },
+    {
+      "id": "product-9qseps",
+      "slug": "product-9qseps",
+      "name": "Smart Watch Ultra 7 in1 Straps Bluetooth Call Heart Rate Wireless Charging - Black",
+      "category": "Phones & Tablets",
+      "description": "Smart watch Ultra 7 in1 Waterproof 7 Straps Men Women 49MM Bluetooth Call Heart rate Wireless Charging Fitness Bracelet Smartwatch set True screw, true buckle\n\n1.APP:WearFit Pro\n2.Size:38.5*45*14mm\n3.Strap meterial:Silica gel\n4.Main screen:2.09-inch LCD 320*240\n5.BT 3.0 4.0 5.0 support bluetooth call\n6.Charging mode:wireless charging\n7.Touch Screen:Full touch screen\n8.Color:Black white,orange\n9.Battery:200mAh\n10.Waterproof:IP65(Can't put into the water)\n11.Appearance material:Zinc alloy\n\nSelling Point\n\n1.2.02 Inches full screen\n2.Bluetooth call\n3.Music control\n4.ECG monitoring\n5.200mAh.\n6.Wireless charger\n7.Alpine loop strap.Steel Strap.Silicone strap total 3 straps.\n\nWatch Function:\n\n1. Call function:Bluetooth dialing, common contact list, call log, caller ID, answer/reject\n\n2.Motion monitoring:Pedometer (exercise time, mileage, calories), exercise mode (walking, running, climbing, cycling, indoor running)\n\n3.Health monitoring:Heart rate/blood pressure/blood oxygen/measurement, sedentary reminder, sleep monitoring, drinking water reminder, breathing exercise\n\n4.Smart reminder:Caller ID/Reminder, Information Push (SMS/QQ/WeChat/Skype/Facebook/Twitter/Line/WhatsApp)\n\n5.Other functions:Turn the wrist to brighten the screen, low power mode, silent mode, anti-lost, control photo, music control, stopwatch, alarm\n\nApp Language\n\nEnglish (default), Simplified Chinese, French, Spanish, Polish, Portuguese, Italian, German, Turkish, Russian, Czech, Arabic, Hungarian, Greek, Persian, Filipino, Malay, Indonesian, Vietnamese, Swedish.\n\nNote\n\n1.Charge for 2 hours when using for the first time.\n2.Please download the APP before use.\n3.We will test before shipping",
+      "price": 190,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646049/gadget-hub/products/product-9qseps/file_p8lhhf.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646080/gadget-hub/products/product-9qseps/file_dh078z.jpg"
+      ]
+    },
+    {
+      "id": "product-tk9yu7",
+      "slug": "product-tk9yu7",
+      "name": "VIC ♛20000mAh Power Banks Portable Charger Ultra Light Battery Pack - Black",
+      "category": "Phones & Tablets",
+      "description": "Massive 20000mAh Capacity – Charge your phone multiple times before needing a recharge.\nFast Charging Technology – Equipped with high-speed output for quick and efficient charging.\nUltra-Slim & Lightweight Design – Easy to carry, perfect for travel and daily use.\nUniversal Compatibility – Works with smartphones, tablets, and other USB-powered devices.\nMulti-Protection System – Ensures safe charging with overcharge, short-circuit, and temperature protection.\n\n",
+      "price": 140,
+      "stock": 3,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645958/gadget-hub/products/product-tk9yu7/file_yzlvci.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645976/gadget-hub/products/product-tk9yu7/file_kpoeep.jpg"
+      ]
+    },
+    {
+      "id": "product-xtkv03",
+      "slug": "product-xtkv03",
+      "name": "Cell Phone Desktop Stand Folding Lifting Tablet Stand",
+      "category": "Phones & Tablets",
+      "description": "Key Features\nApplicability: 2023\nProduct weight: 105 grams\nCategory: Tablet Dock/Stand\nStyle: Folding\nColor: Black\n\nWhat’s in the box\n1*Mobile Phone Holder\n\nThe cell phone desktop stand is a practical goodie designed to meet the needs of modern life.\n\nIt has the characteristic of folding and portability, easy to store without taking up too much space, whether at home, office or traveling, you can carry it with you, so that you can enjoy a comfortable experience at any time and anywhere. The liftable design is even more thoughtful, able to adjust the height according to your needs, to meet different viewing angles, to protect your cervical spine health. Whether it's live broadcasting or daily drama, reading, it is your right-hand man. Suitable for cell phones and tablets, strong versatility, to provide you with stable support for a variety of devices. As a gift, it is even more thoughtful. You can customize the exclusive logo, highlighting the unique personality and taste, whether it is given to friends and relatives or as a gift for corporate activities, can show your heart and care. Stylish and simple appearance, not only practical, but also add a sense of beauty to your desktop. Choose this cell phone desktop stand to make your life more convenient and comfortable.",
+      "price": 50,
+      "stock": 10,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645704/gadget-hub/products/product-xtkv03/file_uiocne.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645712/gadget-hub/products/product-xtkv03/file_ulxfye.jpg"
+      ]
+    },
+    {
+      "id": "product-ddofqw",
+      "slug": "product-ddofqw",
+      "name": "Cell Phone Stand - Black",
+      "category": "Phones & Tablets",
+      "description": "Key Features\nApplicability: 2023\nProduct weight: 105 grams\nCategory: Tablet Dock/Stand\nStyle: Folding\nColor: Black",
+      "price": 45,
+      "stock": 10,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645450/gadget-hub/products/product-ddofqw/file_ohvbly.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645480/gadget-hub/products/product-ddofqw/file_ea2zat.jpg"
+      ]
+    },
+    {
+      "id": "product-7wl9on",
+      "slug": "product-7wl9on",
+      "name": "Guixia GUIXIA T528mini - 1.77\" - 800mAh - Black",
+      "category": "Phones & Tablets",
+      "description": "Key Features\nHuxin 8851 New CPU\n1.77-inch display screen 128 * 160\nWith camera without GPRS\nBluetooth MP3 external radio flashlight\nSupport expandable memory card 32GB\nBattery 800mAh actual capacity",
+      "price": 95,
+      "stock": 15,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644614/gadget-hub/products/product-7wl9on/file_kaangl.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644672/gadget-hub/products/product-7wl9on/file_rabbqo.jpg"
+      ]
+    },
+    {
+      "id": "product-rkd694",
+      "slug": "product-rkd694",
+      "name": "Rechargeable wrist blood pressure monitor, tonometer, tensiometer, automatic digital pulse monitor, blood pressure measuring device, LED screen voice broadcast",
+      "category": "Health & Beauty",
+      "description": "features:\nClock function intelligent pressure LCD digital display, clear and distinguishable heartbeat irregular prompt WHO warning information function overvoltage protection function. Voltage and power detection, low-power dual-mode, each of the 90 sets of memory measurement values\nIntelligent pressurization, real-time non voice (optional), serial port (optional)\nAccurately measure blood pressure using oscilloscope blood pressure measurement method\nstandard:\nProduct size: 71 * 73 * 32mm\nWristband range: 135-195mm\nDisplay: LCD digital display screen\nMeasurement range: blood pressure 0~280mmHg, pulse 40~199 beats per minute\nCompression method: automatic pressure pump\nPressure reduction method: Electromagnetic valve controls pressure\nMeasurement error: blood pressure+3% heart rate+5%\nStorage capacity: 90 sets of measurement data and time\nPressure Sensor: Semiconductor Pressure Sensor\nMeasurement interval: 1mmHg\nWorking temperature and humidity:+40 ℃+10 ℃/40%~85% relative humidity.\nTemperature and humidity storage:+ 50 ℃ -20~C/15% -90% relative humidity.\nDear customer:\nHello, I'm glad to serve you, although I'm not sure who can see these words. Although we are in the distant East, we always pay attention to the needs of our African friends.\nTherefore, we hope to obtain more authentic product reviews from you, whether good or bad, so that we can promptly eliminate bad products and upgrade more high-quality products to meet your needs. Please believe that we are carefully reviewing your feedback.\nWe are striving to create high-quality and reasonably priced products, hoping to gain the trust of more friends. Thank you to all those who have followed and trusted us.\nBlessings to everyone.",
+      "price": 200,
+      "stock": 3,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644458/gadget-hub/products/product-rkd694/file_mli6hk.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644478/gadget-hub/products/product-rkd694/file_ysckii.jpg"
+      ]
+    },
+    {
+      "id": "product-4sbr15",
+      "slug": "product-4sbr15",
+      "name": "Automatic Toothpaste Dispenser & 5 - Tooth Brush Holder - Black/White",
+      "category": "Health & Beauty",
+      "description": "Key Features\nAnti-dust\nHealthy Cleaning\nVacuum Extrusion Pump \nLarge Capacity\nWaterproof 3M Double-sided Tape \n\nWhat’s in the box\n1 × Automatic toothpaste dispenser \n1 × Toothbrush Holder\n\nSKU: WH489ST10WIJLNAFAMZ\nSize (L x W x H cm): 6 x 4 x 3 cm\nWeight (kg): 0.26\nColor: Black/White\nMain Material: Plastic",
+      "price": 150,
+      "stock": 2,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644240/gadget-hub/products/product-4sbr15/file_bdpdln.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644274/gadget-hub/products/product-4sbr15/file_jxvodr.jpg"
+      ]
+    },
+    {
+      "id": "product-ejka6d",
+      "slug": "product-ejka6d",
+      "name": "Mouth Strap 1pcs × Original Conshon-Effective Permanent Pink Lips Balm/Cream - Baby Pink Lips Balm 50ml*1",
+      "category": "Health & Beauty",
+      "description": "This product is Zie-Mak Pink Lips balm, designed to moisturize and help brighten the appearance of lips. \nBrand: Zie-Mak Cosmetics\nProduct Type: Lip balm/cream\nThis powerful product contains Vitamin E and is formulated to exfoliate and cleanse for a pinker look.\nThis product gives you a pink looking lips \nIt gives you a soft silky lips\nIt prevents lip cracks \nThis magical balm prevents lip dryness.\nIt comes with great smell and convenient for trip \n\nDESCRIPTION:\n\nZie-Mak Original Most Permanent Most Effective Pink Lips Balm/Cream - EFFECTIVE PINKLIPSCARE\n\n \n\nThis product is a pink lips cream which specifically targets your lips taking off the ununiform dark layer giving you a lovely looking pink lips.This cream works within 1 week of continuous usage.It has no adverse effects or sides effect.\n\nApplication twice to 3 times daily for quick effects.\n\n \n\nUsage: Recommended to be applied 2 to 3 times daily.\n\n               Get your desired pink lips like newly baby within 10days.",
+      "price": 90,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643992/gadget-hub/products/product-ejka6d/file_iia1ld.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644020/gadget-hub/products/product-ejka6d/file_wfhars.jpg"
+      ]
+    },
+    {
+      "id": "product-83kkaf",
+      "slug": "product-83kkaf",
+      "name": "Effective Pink lips Cream,Balm Pinklips 50ml (1Pcs)",
+      "category": "Health & Beauty",
+      "description": "Gives you a pink looking lips \n\n•Gives you a soft silky lips\n\n•Prevents lip cracks \n\n•Prevents lip dryness.\n\n•volume:50ml",
+      "price": 120,
+      "stock": 0,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643765/gadget-hub/products/product-83kkaf/file_lueeej.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643776/gadget-hub/products/product-83kkaf/file_l2irdg.jpg"
+      ]
+    },
+    {
+      "id": "p13",
+      "slug": "weyon-32-32wsa-hd-smart-tv-black-1-years-warranty",
+      "name": "WEYON 32\" 32WSA HD Smart TV - Black +1 Years Warranty",
+      "category": "Home & Office",
+      "description": "WEYON 32 Inches HD Smart TV  +1 Years Warranty - Black \n\nAndroid Smart TV, an easier way to the entertainment your love\n\nA variety of ways to cast the screen, a key to cast the screen, play a large screen interaction\n\n \n\nWant to see more cool, try a key cast screen, small screen immediately into a large screen, home, office can easily cast\n\nClear, detailed picture:\n\nSee every image as the director intended with enriched colors.\nUltra clean view:\n\nAnalyzing original content with an advanced algorithm, Ultra Clean View gives you higher quality images with less distortion. Enjoy the clear picture.\nHD picture quality:\n\nLED distributes the LED lights on the back of the panel, so that the backlight can be evenly transmitted to the entire screen, the brightness and color gamut are guaranteed, the backlight rendering image is more accurate, and the picture details are more delicate and realistic. LED technology allows you to go beyond the screen into a fully immersive world. \n\n\n \n\nAccurate color reproduction ：\n\nThe 1366*768 high-definition resolution makes the image lifelike and restores natural and true colors, so you can enjoy a colorful viewing experience. ",
+      "price": 1350,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639611/gadget-hub/products/weyon-32-32wsa-hd-smart-tv-black-1-years-warranty/file_sy5yoy.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639633/gadget-hub/products/weyon-32-32wsa-hd-smart-tv-black-1-years-warranty/file_t6gzie.jpg"
+      ]
+    },
+    {
+      "id": "TECNO Spark 40 - 128GB + 4GB RAM - 50MP Rear/50MP Front - 5200mAh - Ink Black - 13 Months Warranty",
+      "slug": "tecno-spark-40-128gb-4gb-ram-50mp-rear-50mp-front-5200mah-ink-black-13-months-warranty",
+      "name": "TECNO Spark 40 - 128GB + 4GB RAM - 50MP Rear/50MP Front - 5200mAh - Ink Black - 13 Months Warranty",
+      "category": "Phones & Tablets",
+      "description": "Unleash power and style with the all-new Tecno Spark 40 – built for speed, style, and smart performance.\n\n \n\n• Memory: 128GB + 4GB RAM (+4GB extended)\n\n \n\n• Processor: Powerful MediaTek Helio G81\n\n \n\n• Display: Smooth 6.67\" Hole Screen, 120Hz refresh rate\n\n \n\n• OS: Android 15 – next-gen performance\n\n \n\n• Network: 2G/3G/4G – stay connected\n\n \n\n• Camera: 50MP Rear + 8MP Front, Dual Flash both sides\n\n \n\n• Battery: Long-lasting 5200mAh with blazing 45W Super Charge\n\n \n\n• Infrared Remote Control – smart convenience\n\n \n\n• FreeLink: Make calls even without network signal\n\n \n\n• Security: Side Fingerprint Unlock\n\n \n\n• Durability: Drop-resistant up to 1.5m, IP64 water/dustproof\n\n \n\n• Audio: Dual speakers with immersive full-screen sound\n\n \n\n• Dual SIM for flexible connectivity",
+      "price": 1850,
+      "stock": 4,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639594/gadget-hub/products/tecno-spark-40-128gb-4gb-ram-50mp-rear-50mp-front-5200mah-ink-black-13-months-warranty/file_h9ok3l.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639588/gadget-hub/products/tecno-spark-40-128gb-4gb-ram-50mp-rear-50mp-front-5200mah-ink-black-13-months-warranty/file_nmtvf4.jpg"
+      ]
+    },
+    {
+      "id": "DIY Wall Clock 3D Mirror Stickers Large Wall Clock",
+      "slug": "diy-wall-clock-3d-mirror-stickers-large-wall-clock",
+      "name": "DIY Wall Clock 3D Mirror Stickers Large Wall Clock",
+      "category": "Home & Office",
+      "description": "Features:\nDecor - Clock is a modern frameless wall clock, decor wall clock, ideal for decorating living rooms, bedrooms, restaurants, offices, hotels. Equipped with exquisite packaging, it is a wonderful gift for family and friends.\n\nDIY -  Complete accessories,Easy to install (please follow the instructions). Enjoy the happy time of DIY with your family.\n\nSilent - Wall Clock , CE、FCC Certified, Which Can Effectively Reduce Energy Consumption And Prolong Service Life. Farmhouse Wall Clock Quiet And Silent When Operating.\n\nEnvironmental - The frameless wall clock are made of acrylic, which is wear-resistant, environmentally friendly, not easily deformed, and easy to install and remove. \n\nLong service life - Long pointer, fine quality metal material, strong and not easy to deformation.\n\nEasy to install - Light weight, easy to firmly adhere to the wall does not drop.Can be used for decorating living room, bedroom, bathroom and kitchen, very beautiful.\n\nSpecifications:\nColor: Black\nMaterial: Acrylic\nPackage size: 150 * 100 * 40mm\n\nPackage list:\n1 * Set of wall clock\n\n\nFeatures:\nNo harm to the environment and health.\nLong pointer, fine quality metal material, strong and not easy to deformation.\nSilent sweep second movement, placed in the bedroom will not affect your sleep.\nLet you have a chance to get the fun of DIY.\nEasy and convenient to install.\nLight weight, easy to firmly adhere to the wall does not drop.\nCan be used for decorating living room, bedroom, bathroom and kitchen, very beautiful.\n\nSpecifications:\nColor: Black\nMaterial: Acrylic\nPackage size: 150 * 100 * 40mm\n\nPackage list:\n1 * Set of wall clock",
+      "price": 55,
+      "stock": 20,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588517/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_pntf31.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588532/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_rexalk.jpg"
+      ]
+    },
+    {
+      "id": "Samsung Galaxy A07 - 64GB + 4GB RAM - 50MP Rear - 8MP Front - 6.7\" - 5000 mAh - Black (24 Months Warranty)",
+      "slug": "samsung-galaxy-a07-64gb-4gb-ram-50mp-rear-8mp-front-6-7-5000-mah-black-24-months-warranty",
+      "name": "Samsung Galaxy A07 - 64GB + 4GB RAM - 50MP Rear - 8MP Front - 6.7\" - 5000 mAh - Black (24 Months Warranty)",
+      "category": "Phones & Tablets",
+      "description": "Upgrade your smartphone experience with the Samsung Galaxy A07 designed to deliver smooth performance, stunning visuals, and long-lasting battery life—all at an affordable price.\nSPECIFICATIONS\n\nNetwork Technology: GSM / HSPA / LTE\n\nBody:\n\nDimensions:6.7 inches, 108.4 cm2 (~83.8% screen-to-body ratio)\nWeight: 189 g (6.67 oz)\nBuild: Glass front, plastic back, plastic frame\nSIM: Single SIM (Nano-SIM) or Dual SIM (Nano-SIM, dual stand-by)\nDisplay:\n\nType: PLS LCD\nSize: 6.7 inches (~83.8% screen-to-body ratio)\nResolution: 720 x 1600 pixels, 20:9 ratio (~262 ppi density)\nPlatform:\n\nOS: Android 15, up to 6 major Android upgrades, One UI 7\nChipset: Mediatek Helio G99 (6 nm)\nCPU: Octa-core (2x2.2 GHz Cortex-A76 & 6x2.0 GHz Cortex-A55)\nGPU: Mali-G57 MC2\nMemory:\n\nCard Slot: microSDXC (dedicated slot)\nInternal Storage: 64GB 4GB RAM\nStorage Type: eMMC 5.1\nMain Camera:\n\nDual Setup: 50 MP, f/1.8, (wide), 1/2.76\", 0.64µm, PDAF\n2 MP, f/2.4, (depth)\nFeatures: LED flash\nVideo: 1080p@30/60fps\nSelfie Camera:\n\nSingle: 8 MP, f/2.0, (wide), 1/4.0\", 1.12µm\nVideo: Yes\nSound:\n\nLoudspeaker: Yes\n3.5mm jack: Yes\nCommunications:\n\nWLAN: Wi-Fi 802.11 a/b/g/n/ac, dual-band, Wi-Fi Direct \nBluetooth: 5.3, A2DP, LE\nPositioning: GPS, GLONASS, GALILEO, BDS\nNFC: No\nRadio: FM radio\nUSB: USB Type-C 2.0\nSensors: Fingerprint (side-mounted), accelerometer, proximity\n\nBattery:\n\nType: 5000 mAh\nCharging: 15W wired\n ",
+      "price": 1300,
+      "stock": 5,
+      "rating": 4.5,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588459/gadget-hub/products/samsung-galaxy-a07-64gb-4gb-ram-50mp-rear-8mp-front-6-7-5000-mah-black-24-months-warranty/file_xdwk18.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588477/gadget-hub/products/samsung-galaxy-a07-64gb-4gb-ram-50mp-rear-8mp-front-6-7-5000-mah-black-24-months-warranty/file_ml3jo0.jpg"
+      ]
+    },
+    {
+      "id": "product-vgaljv",
+      "slug": "product-vgaljv",
+      "name": "Westpool WP-7003/3P - 1000W - Dry Pressing Iron - White/Blue",
+      "category": "Home & Office",
+      "description": "Product details\nWP-7003/3P Westpol Dry Pressing Iron with British standard plug (3pin) with a superb 1000 Wattage easily removes creases from your rumpled clothes. Comes with a non-stick sole plate for smooth ironing and a stable heel rest with integrated cord storage. It also features an adjustable temperature control knob and temperature indication that lets you iron those precious clothes without hampering the fabric. \n\nLight weight and portable, WESTPOOL Dry Iron helps you look tidy even when you are travelling for a day or a month. This dry Iron is more a necessity than a luxury for every modern household.\n\nThe sole plate of WESTPOOL Dry Iron 1100 watts is coated with a special non-stick layer for good gliding performance on all fabrics. The indicator light goes off when the required ironing temperature has been reached. \n\n \n\nOrder the WESTPOOL DRY PRESSING Iron online from Jumia Ghana and have it delivered to your doorstep. \n\n\n\n\nSPECIFICATIONS\n\nColour: White/Blue\nPower: 1000 Watts\nNon-Stick Soleplate\nIndicator Light\nLightweight and Durable\nAdjustable temperature control knob\nStandard British plug (3pin)\n\n\n",
+      "price": 199,
+      "stock": 2,
+      "rating": 4,
+      "badge": "Limited",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775590576/gadget-hub/products/product-vgaljv/file_p0p9uu.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775590593/gadget-hub/products/product-vgaljv/file_v7d0p7.jpg"
+      ]
+    },
+    {
+      "id": "product-ak6l4h",
+      "slug": "product-ak6l4h",
+      "name": "Bluetooth 2.4G Silent Illuminated Office Wireless Mouse",
+      "category": "Computing",
+      "description": "Bluetooth 2.4G mute luminous office wireless mouse\nApplicable scene: office\nConnection mode: Bluetooth Bluetooth, 2.4G wireless dual mode\nProduct features\nDual-mode connection: Bluetooth and 2.4G wireless free switching to meet the needs of different devices and scenarios.\nSilent design: special micro switch, effectively reduce the clicking sound.\nLighting design: soft backlight, both beautiful and practical, adjustable light colour.\nErgonomics: Fits the curve of the palm, skin-friendly and non-slip material, comfortable for long time use.\nFunction: Provide precise, quiet, comfortable and personalised working experience for office scene",
+      "price": 60,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775640081/gadget-hub/products/product-ak6l4h/file_scn9si.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775640092/gadget-hub/products/product-ak6l4h/file_dbxqmo.jpg"
+      ]
+    },
+    {
+      "id": "product-3egcxg",
+      "slug": "product-3egcxg",
+      "name": "Ghandour Cosmetics BO -16 Hair Mist Original - 40ml x 3",
+      "category": "Health & Beauty",
+      "description": "Key Features\nVolume: 40ml x 3\nApply Daily To Keep You Looking Good All Day. \nSofter and shinier. hair\nGreat feeling\nTakes away ichy and dandroff ",
+      "price": 70,
+      "stock": 2,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775641815/gadget-hub/products/product-3egcxg/file_tkd1ee.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775641849/gadget-hub/products/product-3egcxg/file_cdzd6y.jpg"
+      ]
+    },
+    {
+      "id": "product-u66xmm",
+      "slug": "product-u66xmm",
+      "name": "Derma Roller 1Piece Derma Roller System - Black/Red",
+      "category": "Health & Beauty",
+      "description": "Specifications\nSKU: DE277HB1B60DBNAFAMZ\nModel: WOWvskjofrp29\nProduction Country: China\nSize (L x W x H cm): 5*5*15\nWeight (kg): 0.278\nColor: Black/Red\nMain Material: Stainless Steel\n\nDerma Roller System\nMicroneedle Length:0.5mm\nPower Source: None Electric\nNeedle number: Stainless Steel",
+      "price": 60,
+      "stock": 5,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775641956/gadget-hub/products/product-u66xmm/file_dzcnic.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775642007/gadget-hub/products/product-u66xmm/file_grglhw.jpg"
+      ]
+    },
+    {
+      "id": "product-be32ui",
+      "slug": "product-be32ui",
+      "name": "LM-Voice Blood Pressure Meter & Digital BP Pulse Health Heartbeat Monitor - White",
+      "category": "Health & Beauty",
+      "description": "Professional-grade accuracy\nIntellisense comfort\nLarge, clear display\nDual user memory\nEasy USB charging\n\n1 X Blood Pressure Monitor\n1 X Upper Arm Cuff Strap\n1 X User Manual(English)\n\nThis advanced upper arm blood pressure monitor delivers professional-grade accuracy with user-friendly convenience, making it the perfect solution for reliable home health monitoring. Featuring cutting-edge Intellisense technology, this fully automatic device provides comfortable, precise readings while eliminating the guesswork from blood pressure management.\n\nThe monitor's smart sensing technology automatically adjusts cuff inflation to your individual blood pressure levels, ensuring optimal comfort during each measurement while maintaining clinical accuracy. This personalized approach prevents over-inflation discomfort while guaranteeing reliable results every time you use the device.\n\nThe large, clear LCD digital display presents all vital information simultaneously, showing systolic and diastolic pressure, pulse rate, and heartbeat detection on three separate lines for easy reading and interpretation. The intuitive interface makes monitoring effortless, even for users who aren't technically inclined or have vision concerns.\n\nDual user design accommodates two people with 99 measurement memory slots per user, storing a total of 198 readings. The intelligent memory system automatically saves each measurement and calculates rolling averages of your last three readings when you press the memory button, helping you track trends and share meaningful data with healthcare providers. Individual stored readings can be accessed sequentially for detailed historical review.\n\nThe monitor utilizes advanced oscillometric measurement principles through the upper arm cuff, providing hospital-grade accuracy in a compact home device. The proprietary denoising filter algorithm and specialized hardware work together to optimize system performance, ensuring consistent, reliable measurements that you can trust for important health decisions.\n\nConvenient USB charging eliminates the hassle of battery replacement while making the device environmentally friendly and cost-effective over time. The durable plastic construction ensures longevity while maintaining a lightweight, portable design that's perfect for home use or travel.\n\nSimple operation requires no special training or technical knowledge. Just wrap the cuff around your upper arm, press the start button, and let the monitor do the rest. The device guides you through proper positioning and automatically delivers fast, comfortable, and accurate readings that meet medical standards, making professional-quality blood pressure monitoring accessible to everyone in the comfort of their own home.",
+      "price": 90,
+      "stock": 3,
+      "rating": 4,
+      "badge": "New",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775642649/gadget-hub/products/product-be32ui/file_s7z3ui.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775642684/gadget-hub/products/product-be32ui/file_fh9l1g.jpg"
+      ]
+    },
+    {
+      "id": "product-2ok3yz",
+      "slug": "product-2ok3yz",
+      "name": "EAGEAT Unisex Anti Blue Light Protective Computer Screen Glasses",
+      "category": "Health & Beauty",
+      "description": "Protection for your eyes\nBlock harmful blue light\nReduce Eye Strain\nComfortable design\nUltra light weight and flexible material\nHigh Quality Material\nPerfect Gift\n\nWe live totally surrounded by screens, spending almost nine hours a day, on average, in front of digital devices. All these devices emit blue light, and since our eyes aren't protected against this overexposure, the light can be detrimental.\nWHAT IS BLUE LIGHT?Blue light is a harmful portion of light emitted by digital screens. According to the Paris Vision Institute, younger people exposed to an excess amount of blue light can start to experience age-related macular degeneration at an earlier stage. Other research states that excess exposure is also the leading cause of vision loss for people over 50.\n\nHOW TO PROTECT YOUR EYESBlue light blocking glasses from our store are specially designed to filter out harmful blue-violet light. This makes screen time more comfortable and help eliminate symptoms of digital eyestrain. Simultaneously, this Blu-ray filter glasses will improve your sleep and make you fall asleep.\n\nFEATURES:\nPROTECTION FOR YOUR EYES -Alleviates visual fatigue and discomfort from long periods of web surfing, gaming and working under fluorescent lights with UV400 protection and glare reduction.REDUCE EYESTRAIN -Enjoy your digital time, No worry about eye fatigue, blurred vision and headache.BETTER SLEEP-Amber tint lenses block more blue rays than others and see more realistic. You'll never have trouble with sleeping again.EXCELLENT TR90 MATERIAL-Ultra-lightweight and flexible TR90 nylon frame material for durability and comfortable long-term wearing. Casual frame design keeps you looking professional and stylish while working or playing video games.\n\n\n\nProtection for your eyesReduce Eye StrainComfortable designUltra light weight and flexible materialBetter SleepHigh Quality Material\n\nFeatures:★ UV400 Protection Lens: offers a maximum protection with our multi-layer coating designed specifically to reduce glare, reflect blue rays away from the user and relieve long term eye strain caused by excess electronic device use★Function of Anti-Blue Rays: at least 90 minutes’ wearing of Anti-Blue Rays Glasses before bedtime leaves you free to watch TV and use devices without ruining your sleep★Durable and Bendable Lightweight Frame★Scratch Resistant Lens",
+      "price": 40,
+      "stock": 4,
+      "rating": 4,
+      "badge": "Verified",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643095/gadget-hub/products/product-2ok3yz/file_tvquhw.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643103/gadget-hub/products/product-2ok3yz/file_t7c1qr.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643601/gadget-hub/products/product-2ok3yz/file_kh7dff.jpg"
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": "s1",
+      "name": "PC Game Installation",
+      "turnaround": "2-4 hours",
+      "price": 25,
+      "details": "Get up to 3 games installed and fully optimized — launchers configured, patches applied, ready to play the moment you pick it up."
+    },
+    {
+      "id": "s2",
+      "name": "Console Setup and Updates",
+      "turnaround": "Same day",
+      "price": 35,
+      "details": "Your console, fully ready — account setup, latest firmware, and network tuning for the smoothest online experience possible."
+    },
+    {
+      "id": "s3",
+      "name": "Software Bundle Setup",
+      "turnaround": "3-6 hours",
+      "price": 45,
+      "details": "Power up your device with a curated suite of productivity, security, and media tools — all installed, activated, and ready to go."
+    },
+    {
+      "id": "s4",
+      "name": "Performance Tune-Up",
+      "turnaround": "1 day",
+      "price": 55,
+      "details": "Breathe new life into your machine — deep cleanup, startup boost, thermal optimization, and a full performance health check."
+    },
+    {
+      "id": "s5",
+      "name": "Windows Installation",
+      "turnaround": "Same day",
+      "price": 30,
+      "details": "Fresh start, zero hassle — get the latest Windows OS installed clean and fast, so your PC runs like it just came out of the box."
+    }
+  ],
+  "flashSale": {
+    "bannerEyebrow": "Limited-Time Flash Sale — Act Fast!",
+    "bannerTitle": "Unbeatable Deals Dropping Now — Grab Yours Before They're Gone!",
+    "bannerDescription": "These prices won't last. Open the Flash Sale page and lock in your savings before the countdown hits zero.",
+    "pageEyebrow": "Live Now — Limited Stock Alert",
+    "pageTitle": "Flash Sale: Biggest Deals of the Day",
+    "pageDescription": "This is your moment. Jaw-dropping discounts on top-rated tech — add to cart before time runs out and stock disappears.",
+    "durationHours": 12,
+    "discountPercentage": 20,
+    "featuredProductIds": []
+  },
+  "updatedAt": "2026-04-08T13:05:06.959Z"
+}
