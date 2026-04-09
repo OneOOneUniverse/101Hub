@@ -21,6 +21,7 @@ export function getProductBySlug(products: Product[], slug: string): Product | u
 }
 
 const categoryPalette: Record<Product["category"], [string, string]> = {
+  "New Drops": ["#fda4af", "#ec4899"],
   "Phones & Tablets": ["#22d3ee", "#0ea5e9"],
   "Health & Beauty": ["#f9a8d4", "#ec4899"],
   "Home & Office": ["#fbbf24", "#f59e0b"],
