@@ -12,6 +12,7 @@ import {
 } from "@/lib/site-content-types";
 import PendingPaymentsDashboard from "@/components/PendingPaymentsDashboard";
 import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
+import ServiceRequestsDashboard from "@/components/ServiceRequestsDashboard";
 import ImageUploadButton from "@/components/ImageUploadButton";
 
 function createId(prefix: string) {
@@ -390,6 +391,8 @@ export default function AdminPage() {
           <PendingPaymentsDashboard />
 
           <ActiveOrdersDashboard />
+
+          <ServiceRequestsDashboard />
         </>
       ) : null}
 
@@ -1099,6 +1102,28 @@ export default function AdminPage() {
                     }}
                     className={inputClassName()}
                   />
+                </Field>
+                <Field label="Discount % (optional)">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="1"
+                    value={product.discount ?? ""}
+                    placeholder="Leave empty for no discount"
+                    onChange={(event) => {
+                      const products = [...content.products];
+                      const discountValue = event.target.value ? Number(event.target.value) : undefined;
+                      products[index] = { ...product, discount: discountValue };
+                      setContent({ ...content, products });
+                    }}
+                    className={inputClassName()}
+                  />
+                  {product.discount ? (
+                    <p className="mt-1 text-xs text-green-700">
+                      🏷️ Sale price: GHS {(product.price * ((100 - product.discount) / 100)).toFixed(2)} (saves GHS {(product.price * (product.discount / 100)).toFixed(2)})
+                    </p>
+                  ) : null}
                 </Field>
               </div>
 

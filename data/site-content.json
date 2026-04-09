@@ -710,7 +710,19 @@
     "pageDescription": "This is your moment. Jaw-dropping discounts on top-rated tech — add to cart before time runs out and stock disappears.",
     "durationHours": 12,
     "discountPercentage": 20,
-    "featuredProductIds": []
+    "featuredProductIds": [
+      "product-5oxd0b",
+      "product-ghc87f",
+      "product-0g4pit",
+      "product-ab9u8k",
+      "product-eh8kef",
+      "product-ethc34",
+      "product-s3dmbl",
+      "product-4tnqyj",
+      "product-z2www2",
+      "product-y2fw6n",
+      "product-x5vuiu"
+    ]
   },
-  "updatedAt": "2026-04-08T13:05:06.959Z"
+  "updatedAt": "2026-04-09T14:18:05.572Z"
 }

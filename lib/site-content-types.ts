@@ -28,6 +28,7 @@ export type Product = {
   image?: string;
   images?: string[];
   dateAdded?: string; // ISO 8601 timestamp for sorting (newest first)
+  discount?: number; // Optional discount percentage (0-100)
 };
 
 export type ServicePackage = {

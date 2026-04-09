@@ -179,90 +179,141 @@ function ProductsPageContent() {
       </section>
 
       <section className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
-        {filtered.map((item) => (
-          <article key={item.id} className="product-card">
-            <div className="product-card__shine" />
-            <div className="product-card__glow" />
-            <div className="product-card__content">
-              {item.badge ? <p className="product-card__badge">{item.badge}</p> : null}
-              {item.image ? (
-                <div
-                  className="h-24 overflow-hidden rounded-lg border border-black/10 bg-cover bg-center sm:h-32 md:h-40"
-                  style={{ backgroundImage: `url('${item.image}')` }}
-                  role="img"
-                  aria-label={`${item.name} image`}
-                >
-                  <span className="sr-only">{item.name} image</span>
-                </div>
-              ) : (
-                <div className="product-card__image" aria-hidden="true" />
-              )}
-              {content.features.wishlist ? (
-                <div className="mt-1 flex justify-end sm:mt-2">
-                  <span className="sm:hidden">
-                    <WishlistButton productId={item.id} iconOnly />
-                  </span>
-                  <span className="hidden sm:inline-flex">
-                    <WishlistButton productId={item.id} compact />
-                  </span>
-                </div>
-              ) : null}
+        {filtered.map((item) => {
+          // Product-specific discount takes priority
+          const hasProductDiscount = item.discount && item.discount > 0;
+          const discountPercent = hasProductDiscount ? item.discount : 0;
+          
+          // Check if product is in flash sale (but only if no product-specific discount)
+          const isFlashSale = !hasProductDiscount && content.features.flashSale && content.flashSale.featuredProductIds.includes(item.id);
+          const flashSalePercent = isFlashSale ? content.flashSale.discountPercentage : 0;
+          
+          // Determine which discount to show
+          const totalDiscount = discountPercent || flashSalePercent;
+          const salePrice = totalDiscount > 0
+            ? Number((item.price * ((100 - totalDiscount) / 100)).toFixed(2))
+            : item.price;
+          const displayPrice = salePrice;
+          const savings = item.price - salePrice;
+          const isOnSale = totalDiscount > 0;
+          const discountSource = hasProductDiscount ? "product" : isFlashSale ? "flash" : null;
 
-              <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
-                {item.category}
-              </p>
-              <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
-                <Link href={`/products/${item.slug}`}>{item.name}</Link>
-              </h2>
-
-              <div className="mt-2 grid grid-cols-[1fr_auto] items-end gap-2 sm:mt-4">
-                <p className="text-sm font-black leading-none product-card__price sm:text-lg">
-                  GHS {item.price.toFixed(2)}
-                </p>
-                <div className="text-right">
-                  <p className="text-[10px] text-[var(--ink-soft)] sm:text-sm">Stock: {item.stock}</p>
-                  {content.features.reviews ? (
-                    <p className="text-[10px] text-[var(--ink-soft)] sm:text-sm">
-                      Rating {((reviewSummaryByProduct[item.id]?.average ?? item.rating)).toFixed(1)} / 5
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-              {content.features.reviews ? (
-                <p className="hidden text-[10px] text-[var(--ink-soft)] sm:block sm:text-xs">
-                  {reviewSummaryByProduct[item.id]?.count ?? 0} user reviews
-                </p>
-              ) : null}
-
-              <div className="mt-2 grid grid-cols-[1fr_auto] gap-1.5 sm:mt-4 sm:flex sm:flex-wrap sm:gap-2">
-                {content.features.cart ? (
-                  <button
-                    onClick={() => {
-                      addToCart(item.id);
-                      setAddedId(item.id);
-                      setTimeout(() => setAddedId(""), 1200);
-                    }}
-                    className="product-card__action rounded-full bg-[var(--brand)] px-2 py-1.5 text-[11px] font-bold text-white hover:bg-[var(--brand-deep)] sm:px-4 sm:py-2 sm:text-sm"
-                  >
-                    {addedId === item.id ? "Added" : "Add to Cart"}
-                  </button>
+          return (
+            <article key={item.id} className="product-card">
+              <div className="product-card__shine" />
+              <div className="product-card__glow" />
+              <div className="product-card__content">
+                {/* Show discount badge if on sale */}
+                {isOnSale ? (
+                  <div className="absolute inset-x-3 top-3 z-10">
+                    <div className="flex items-end justify-between gap-2">
+                      <p className={`rounded-lg px-2 py-1 text-[10px] font-black text-white ${hasProductDiscount ? "bg-purple-600" : "bg-red-600"}`}>
+                        -{totalDiscount}%
+                      </p>
+                      {item.badge ? (
+                        <p className="product-card__badge">{item.badge}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : item.badge ? (
+                  <p className="product-card__badge">{item.badge}</p>
                 ) : null}
-                <Link
-                  href={`/products/${item.slug}`}
-                  className="inline-flex items-center justify-center rounded-full border border-[var(--brand)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:hidden"
-                >
-                  View
-                </Link>
-                <Link
-                  href={`/products/${item.slug}`}
-                  className="hidden rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:inline-flex"
-                >
-                  View Details
-                </Link>
+
+                {item.image ? (
+                  <div
+                    className="h-24 overflow-hidden rounded-lg border border-black/10 bg-cover bg-center sm:h-32 md:h-40"
+                    style={{ backgroundImage: `url('${item.image}')` }}
+                    role="img"
+                    aria-label={`${item.name} image`}
+                  >
+                    <span className="sr-only">{item.name} image</span>
+                  </div>
+                ) : (
+                  <div className="product-card__image" aria-hidden="true" />
+                )}
+                {content.features.wishlist ? (
+                  <div className="mt-1 flex justify-end sm:mt-2">
+                    <span className="sm:hidden">
+                      <WishlistButton productId={item.id} iconOnly />
+                    </span>
+                    <span className="hidden sm:inline-flex">
+                      <WishlistButton productId={item.id} compact />
+                    </span>
+                  </div>
+                ) : null}
+
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
+                  {item.category}
+                </p>
+                <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
+                  <Link href={`/products/${item.slug}`}>{item.name}</Link>
+                </h2>
+
+                <div className="mt-2 sm:mt-4">
+                  <div className="flex items-baseline gap-2">
+                    <p className={`text-sm font-black leading-none sm:text-lg ${isFlashSale ? "text-red-600" : "product-card__price"}`}>
+                      GHS {displayPrice.toFixed(2)}
+                    </p>
+                    {isFlashSale && (
+                      <p className="text-sm text-[var(--ink-soft)] line-through">
+                        GHS {item.price.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
+                  {isFlashSale && (
+                    <p className="mt-1 text-xs font-bold text-green-700">
+                      Save GHS {savings.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-2 grid grid-cols-[1fr_auto] items-end gap-2 sm:mt-3">
+                  <div />
+                  <div className="text-right">
+                    <p className="text-[10px] text-[var(--ink-soft)] sm:text-sm">Stock: {item.stock}</p>
+                    {content.features.reviews ? (
+                      <p className="text-[10px] text-[var(--ink-soft)] sm:text-sm">
+                        Rating {((reviewSummaryByProduct[item.id]?.average ?? item.rating)).toFixed(1)} / 5
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+                {content.features.reviews ? (
+                  <p className="hidden text-[10px] text-[var(--ink-soft)] sm:block sm:text-xs">
+                    {reviewSummaryByProduct[item.id]?.count ?? 0} user reviews
+                  </p>
+                ) : null}
+
+                <div className="mt-2 grid grid-cols-[1fr_auto] gap-1.5 sm:mt-4 sm:flex sm:flex-wrap sm:gap-2">
+                  {content.features.cart ? (
+                    <button
+                      onClick={() => {
+                        addToCart(item.id);
+                        setAddedId(item.id);
+                        setTimeout(() => setAddedId(""), 1200);
+                      }}
+                      className="product-card__action rounded-full bg-[var(--brand)] px-2 py-1.5 text-[11px] font-bold text-white hover:bg-[var(--brand-deep)] sm:px-4 sm:py-2 sm:text-sm"
+                    >
+                      {addedId === item.id ? "Added" : "Add to Cart"}
+                    </button>
+                  ) : null}
+                  <Link
+                    href={`/products/${item.slug}`}
+                    className="inline-flex items-center justify-center rounded-full border border-[var(--brand)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:hidden"
+                  >
+                    View
+                  </Link>
+                  <Link
+                    href={`/products/${item.slug}`}
+                    className="hidden rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:inline-flex"
+                  >
+                    View Details
+                  </Link>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </section>
     </div>
   );

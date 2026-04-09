@@ -11,13 +11,76 @@ type VerifyPaymentPayload = {
 function buildTransporter() {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST ?? "smtp.gmail.com",
-    port: Number(process.env.SMTP_PORT ?? 465),
-    secure: true,
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_PORT === "465" ? true : false, // Use secure for 465, TLS for 587
     auth: {
       user: process.env.SMTP_USER,
       pass: (process.env.SMTP_PASS ?? "").replace(/\s/g, ""),
     },
   });
+}
+
+async function sendPaymentVerificationSms(opts: {
+  phone: string;
+  customerName: string;
+  orderRef: string;
+  action: "approve" | "reject";
+  reason?: string;
+}) {
+  const apiKey = process.env.AFRICASTALKING_API_KEY;
+  const username = process.env.AFRICASTALKING_USERNAME;
+
+  if (!apiKey || apiKey === "atsk_" || !username) {
+    console.warn("[verify-payment] SMS skipped: Africa's Talking not configured properly");
+    return;
+  }
+
+  try {
+    // Normalize phone number to E.164 format
+    let normalised = opts.phone.replace(/\s/g, "");
+    if (normalised.startsWith("0") && normalised.length === 10) {
+      normalised = `+233${normalised.slice(1)}`;
+    } else if (normalised.startsWith("233") && !normalised.startsWith("+")) {
+      normalised = `+${normalised}`;
+    } else if (!normalised.startsWith("+")) {
+      normalised = `+${normalised}`;
+    }
+
+    const message =
+      opts.action === "approve"
+        ? `Hi ${opts.customerName}, your 101Hub payment for order ${opts.orderRef} is verified! We're now processing your order. You'll receive a call/text soon with delivery details.`
+        : `Hi ${opts.customerName}, we couldn't verify your payment for order ${opts.orderRef}. Please contact us. ${opts.reason ? `Reason: ${opts.reason}` : ""}`;
+
+    const truncatedMessage = message.slice(0, 160);
+
+    const response = await fetch("https://api.africastalking.com/version1/messaging", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        apiKey: apiKey,
+      } as Record<string, string>,
+      body: `username=${username}&to=${normalised}&message=${encodeURIComponent(truncatedMessage)}`,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("[verify-payment] SMS send failed:", error);
+      return;
+    }
+
+    const result = (await response.json()) as {
+      SMSMessageData?: { Recipients?: Array<{ status: string }> };
+    };
+
+    const recipients = result.SMSMessageData?.Recipients ?? [];
+    const sent = recipients.filter((r) => r.status === "Success").length;
+    if (sent > 0) {
+      console.log(`[verify-payment] SMS sent successfully to ${normalised}`);
+    }
+  } catch (err) {
+    console.error("[verify-payment] SMS error:", err);
+  }
 }
 
 export async function POST(request: Request) {
@@ -35,7 +98,7 @@ export async function POST(request: Request) {
     // 1. Fetch the order from Supabase
     const { data: order, error: fetchError } = await supabaseAdmin
       .from("orders")
-      .select("customer_email, customer_name, order_ref, total")
+      .select("customer_email, customer_name, customer_phone, order_ref, total")
       .eq("order_ref", body.orderRef)
       .single();
 
@@ -59,12 +122,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not update order status" }, { status: 500 });
     }
 
-    // 3. Send email to customer if SMTP is configured
+    // 3. Send email and SMS to customer if configured
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
     const customerEmail = order.customer_email as string;
+    const customerPhone = order.customer_phone as string;
     const customerName = order.customer_name as string;
     const orderRef = order.order_ref as string;
+
+    // Send SMS notification
+    if (customerPhone) {
+      void sendPaymentVerificationSms({
+        phone: customerPhone,
+        customerName,
+        orderRef,
+        action: body.action,
+        reason: body.reason,
+      });
+    }
 
     if (smtpUser && smtpPass && smtpPass !== "YOUR_GMAIL_APP_PASSWORD_HERE" && customerEmail) {
       const transporter = buildTransporter();

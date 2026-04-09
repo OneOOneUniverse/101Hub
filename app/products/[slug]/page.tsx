@@ -44,6 +44,23 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
   const gallery = await getResolvedProductGallery(product, 4);
   const related = getRelatedProducts(content.products, slug, 3);
 
+  // Product-specific discount takes priority
+  const hasProductDiscount = product.discount && product.discount > 0;
+  const discountPercent = hasProductDiscount ? product.discount : 0;
+  
+  // Check if product is in flash sale (but only if no product-specific discount)
+  const isFlashSale = !hasProductDiscount && content.features.flashSale && content.flashSale.featuredProductIds.includes(product.id);
+  const flashSalePercent = isFlashSale ? content.flashSale.discountPercentage : 0;
+  
+  // Determine which discount to show
+  const totalDiscount = discountPercent || flashSalePercent;
+  const salePrice = totalDiscount > 0
+    ? Number((product.price * ((100 - totalDiscount) / 100)).toFixed(2))
+    : product.price;
+  const displayPrice = salePrice;
+  const savings = product.price - salePrice;
+  const isOnSale = totalDiscount > 0;
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <section className="panel p-4 sm:p-6 md:p-8">
@@ -104,10 +121,34 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
             </div>
 
             <div className="rounded-xl border border-black/10 bg-white p-3 sm:p-4">
+              {isOnSale && (
+                <div className={`mb-3 flex items-center justify-between rounded-lg px-3 py-2 ${hasProductDiscount ? "bg-purple-50" : "bg-red-50"}`}>
+                  <p className={`text-xs font-bold ${hasProductDiscount ? "text-purple-700" : "text-red-700"}`}>
+                    {hasProductDiscount ? "💜 Product Discount" : "🔥 Flash Sale"}
+                  </p>
+                  <p className={`text-sm font-black ${hasProductDiscount ? "text-purple-600" : "text-red-600"}`}>-{totalDiscount}%</p>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <p className="text-xs text-[var(--ink-soft)] sm:text-sm">Price</p>
-                <p className="text-xl font-black sm:text-2xl">GHS {product.price.toFixed(2)}</p>
+                <div>
+                  <p className={`text-xl font-black sm:text-2xl ${isOnSale ? (hasProductDiscount ? "text-purple-600" : "text-red-600") : ""}`}>
+                    GHS {displayPrice.toFixed(2)}
+                  </p>
+                  {isOnSale && (
+                    <p className="mt-1 text-xs text-[var(--ink-soft)] line-through">
+                      GHS {product.price.toFixed(2)}
+                    </p>
+                  )}
+                </div>
               </div>
+              {isOnSale && (
+                <div className={`mt-2 rounded-lg px-3 py-2 ${hasProductDiscount ? "bg-purple-50" : "bg-green-50"}`}>
+                  <p className={`text-xs font-bold ${hasProductDiscount ? "text-purple-700" : "text-green-700"}`}>
+                    Save GHS {savings.toFixed(2)}
+                  </p>
+                </div>
+              )}
               <div className="mt-2 flex items-center justify-between">
                 <p className="text-xs text-[var(--ink-soft)] sm:text-sm">Availability</p>
                 <p className="text-xs font-semibold sm:text-sm">{product.stock} units in stock</p>
@@ -148,36 +189,68 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
         </div>
 
         <div className="grid grid-cols-2 items-start gap-2 sm:gap-4 xl:grid-cols-3">
-          {related.map((item) => (
-            <article key={item.id} className="product-card">
-              <div className="product-card__shine" />
-              <div className="product-card__glow" />
-              <div className="product-card__content">
-                <p className="text-xs font-bold uppercase tracking-wide text-[var(--ink-soft)]">
-                  {item.category}
-                </p>
-                <h3 className="text-xl font-black product-card__title">{item.name}</h3>
-                <p className="text-sm text-[var(--ink-soft)] product-card__description">
-                  {item.description}
-                </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-lg font-black product-card__price">GHS {item.price.toFixed(2)}</p>
-                  <p className="text-sm text-[var(--ink-soft)]">{item.rating.toFixed(1)} rating</p>
-                </div>
-                <Link
-                  href={`/products/${item.slug}`}
-                  className="mt-4 inline-flex w-fit rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
-                >
-                  View Product
-                </Link>
-                {content.features.wishlist ? (
-                  <div className="mt-2">
-                    <WishlistButton productId={item.id} />
+          {related.map((item) => {
+            // Product-specific discount takes priority
+            const relatedHasProductDiscount = item.discount && item.discount > 0;
+            const relatedDiscountPercent = relatedHasProductDiscount ? item.discount : 0;
+            
+            // Check if product is in flash sale (but only if no product-specific discount)
+            const relatedIsFlashSale = !relatedHasProductDiscount && content.features.flashSale && content.flashSale.featuredProductIds.includes(item.id);
+            const relatedFlashSalePercent = relatedIsFlashSale ? content.flashSale.discountPercentage : 0;
+            
+            // Determine which discount to show
+            const relatedTotalDiscount = relatedDiscountPercent || relatedFlashSalePercent;
+            const relatedSalePrice = relatedTotalDiscount > 0
+              ? Number((item.price * ((100 - relatedTotalDiscount) / 100)).toFixed(2))
+              : item.price;
+            const relatedDisplayPrice = relatedSalePrice;
+            const relatedIsOnSale = relatedTotalDiscount > 0;
+
+            return (
+              <article key={item.id} className="product-card">
+                <div className="product-card__shine" />
+                <div className="product-card__glow" />
+                <div className="product-card__content">
+                  {relatedIsOnSale && (
+                    <p className={`absolute right-3 top-3 z-10 rounded-lg px-2 py-1 text-[10px] font-black text-white ${relatedHasProductDiscount ? "bg-purple-600" : "bg-red-600"}`}>
+                      -{relatedTotalDiscount}%
+                    </p>
+                  )}
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--ink-soft)]">
+                    {item.category}
+                  </p>
+                  <h3 className="text-xl font-black product-card__title">{item.name}</h3>
+                  <p className="text-sm text-[var(--ink-soft)] product-card__description">
+                    {item.description}
+                  </p>
+                  <div className="mt-4">
+                    <div className="flex items-baseline gap-2">
+                      <p className={`text-lg font-black product-card__price ${relatedIsOnSale ? (relatedHasProductDiscount ? "text-purple-600" : "text-red-600") : ""}`}>
+                        GHS {relatedDisplayPrice.toFixed(2)}
+                      </p>
+                      {relatedIsOnSale && (
+                        <p className="text-sm text-[var(--ink-soft)] line-through">
+                          GHS {item.price.toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-[var(--ink-soft)]">{item.rating.toFixed(1)} rating</p>
                   </div>
-                ) : null}
-              </div>
-            </article>
-          ))}
+                  <Link
+                    href={`/products/${item.slug}`}
+                    className="mt-4 inline-flex w-fit rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                  >
+                    View Product
+                  </Link>
+                  {content.features.wishlist ? (
+                    <div className="mt-2">
+                      <WishlistButton productId={item.id} />
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
     </div>

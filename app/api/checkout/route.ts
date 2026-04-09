@@ -40,8 +40,8 @@ type OrderLine = { name: string; qty: number; unitPrice: number; lineTotal: numb
 function buildTransporter() {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST ?? "smtp.gmail.com",
-    port: Number(process.env.SMTP_PORT ?? 465),
-    secure: true, // SSL on port 465 — most reliable for Gmail
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_PORT === "465" ? true : false, // Use secure for 465, TLS for 587
     auth: {
       user: process.env.SMTP_USER,
       // Strip spaces Google sometimes includes in displayed app passwords
@@ -115,6 +115,73 @@ function orderEmailHtml(opts: {
 </html>`;
 }
 
+async function sendCustomerSms(opts: {
+  orderRef: string;
+  customerName: string;
+  phone: string;
+  total: number;
+  downpayment: number;
+  paymentMethod: string;
+}) {
+  const apiKey = process.env.AFRICASTALKING_API_KEY;
+  const username = process.env.AFRICASTALKING_USERNAME;
+
+  if (!apiKey || apiKey === "atsk_" || !username) {
+    console.warn("[checkout] SMS skipped: Africa's Talking not configured properly");
+    return;
+  }
+
+  try {
+    // Normalize phone number to E.164 format
+    let normalised = opts.phone.replace(/\s/g, "");
+    if (normalised.startsWith("0") && normalised.length === 10) {
+      normalised = `+233${normalised.slice(1)}`;
+    } else if (normalised.startsWith("233") && !normalised.startsWith("+")) {
+      normalised = `+${normalised}`;
+    } else if (!normalised.startsWith("+")) {
+      normalised = `+${normalised}`;
+    }
+
+    const message =
+      opts.paymentMethod === "paystack"
+        ? `Hi ${opts.customerName}, your 101Hub order ${opts.orderRef} confirmed! Total: GHS ${opts.total.toFixed(2)}. Complete payment (GHS ${opts.downpayment.toFixed(2)} now) via Paystack link in your email. Track: https://gadget-hub.vercel.app/orders/${opts.orderRef}`
+        : `Hi ${opts.customerName}, your 101Hub order ${opts.orderRef} received! Total: GHS ${opts.total.toFixed(2)}. Please send GHS ${opts.downpayment.toFixed(2)} via manual transfer. We'll verify & confirm soon. Track: https://gadget-hub.vercel.app/orders/${opts.orderRef}`;
+
+    // Truncate to 160 characters if needed
+    const truncatedMessage = message.slice(0, 160);
+
+    const response = await fetch("https://api.africastalking.com/version1/messaging", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        apiKey: apiKey,
+      } as Record<string, string>,
+      body: `username=${username}&to=${normalised}&message=${encodeURIComponent(truncatedMessage)}`,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("[checkout] SMS send failed:", error);
+      return;
+    }
+
+    const result = (await response.json()) as {
+      SMSMessageData?: { Recipients?: Array<{ status: string }> };
+    };
+
+    const recipients = result.SMSMessageData?.Recipients ?? [];
+    const sent = recipients.filter((r) => r.status === "Success").length;
+    if (sent > 0) {
+      console.log(`[checkout] SMS sent successfully to ${normalised}`);
+    } else {
+      console.error("[checkout] SMS delivery failed");
+    }
+  } catch (err) {
+    console.error("[checkout] SMS error:", err);
+  }
+}
+
 async function sendEmails(opts: {
   orderRef: string;
   customerName: string;
@@ -166,22 +233,17 @@ async function sendEmails(opts: {
     transporter.sendMail(ownerMail).catch((err: unknown) => {
       console.error("[checkout] Failed to send owner email:", err);
     }),
+    transporter
+      .sendMail({
+        from: `"101Hub" <${smtpUser}>`,
+        to: opts.customerEmail,
+        subject: `Your 101Hub order ${opts.orderRef} is confirmed!`,
+        html,
+      })
+      .catch((err: unknown) => {
+        console.error("[checkout] Failed to send customer email:", err);
+      }),
   ];
-
-  if (opts.customerEmail) {
-    promises.push(
-      transporter
-        .sendMail({
-          from: `"101Hub" <${smtpUser}>`,
-          to: opts.customerEmail,
-          subject: `Your 101Hub order ${opts.orderRef} is confirmed!`,
-          html,
-        })
-        .catch((err: unknown) => {
-          console.error("[checkout] Failed to send customer email:", err);
-        })
-    );
-  }
 
   await Promise.allSettled(promises);
 }
@@ -196,9 +258,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
   }
 
-  if (!body.customerName || !body.phone || !body.address || !body.items?.length) {
+  if (!body.customerName || !body.email || !body.phone || !body.address || !body.items?.length) {
     return NextResponse.json(
-      { error: "customerName, phone, address and items are required" },
+      { error: "customerName, email, phone, address and items are required" },
       { status: 400 }
     );
   }
@@ -246,7 +308,7 @@ export async function POST(request: Request) {
       ? "Payment processing via Paystack..."
       : "⏳ Awaiting admin verification";
 
-  // Fire-and-forget — never block the response on email
+  // Fire-and-forget — never block the response on email/SMS
   void sendEmails({
     orderRef,
     customerName: body.customerName,
@@ -261,6 +323,16 @@ export async function POST(request: Request) {
     downpayment,
     paymentMethod,
     paymentStatus,
+  });
+
+  // Fire-and-forget — send SMS notification
+  void sendCustomerSms({
+    orderRef,
+    customerName: body.customerName,
+    phone: body.phone,
+    total,
+    downpayment,
+    paymentMethod,
   });
 
   // Save order to Supabase (awaited so it completes before response)

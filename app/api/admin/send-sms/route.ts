@@ -2,14 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const AfricasTalking = require("africastalking") as (opts: { apiKey: string; username: string }) => {
-  SMS: {
-    send: (opts: { to: string[]; message: string; from?: string }) => Promise<{
-      SMSMessageData: { Recipients: Array<{ status: string; number: string }> };
-    }>;
-  };
-};
 
 type SendSmsPayload = {
   message?: string;
@@ -29,7 +21,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.AFRICASTALKING_API_KEY;
   const username = process.env.AFRICASTALKING_USERNAME;
 
-  if (!apiKey || apiKey === "your-africastalking-api-key-here" || !username) {
+  if (!apiKey || apiKey === "atsk_" || !username) {
     return NextResponse.json(
       { error: "Africa's Talking is not configured. Add AFRICASTALKING_API_KEY and AFRICASTALKING_USERNAME to .env.local." },
       { status: 503 }
@@ -89,22 +81,51 @@ export async function POST(request: Request) {
   }
 
   try {
-    const AT = AfricasTalking({ apiKey, username });
-    const result = await AT.SMS.send({ to: recipients, message });
-    const recipients_result = result.SMSMessageData.Recipients ?? [];
-    const sent = recipients_result.filter((r) => r.status === "Success").length;
-    const failed = recipients_result.length - sent;
+    // Use Africa's Talking REST API directly (more reliable on serverless platforms)
+    const recipientList = recipients.join(",");
+    const response = await fetch("https://api.africastalking.com/version1/messaging", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        apiKey: apiKey,
+      } as Record<string, string>,
+      body: `username=${username}&to=${recipientList}&message=${encodeURIComponent(message)}`,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("[send-sms] Africa's Talking API error:", error);
+      return NextResponse.json(
+        { error: `Africa's Talking API error: ${error.error || "Unknown error"}` },
+        { status: 500 }
+      );
+    }
+
+    const result = (await response.json()) as {
+      SMSMessageData?: {
+        Message: string;
+        Recipients?: Array<{ status: string; number: string; messageId: string }>;
+      };
+    };
+
+    const recipientResults = result.SMSMessageData?.Recipients ?? [];
+    const sent = recipientResults.filter((r) => r.status === "Success").length;
+    const failed = recipientResults.length - sent;
+
+    console.log(`[send-sms] Broadcast sent: ${sent}/${recipientResults.length} recipients`);
 
     return NextResponse.json({
       success: true,
       total: recipients.length,
       sent,
       failed,
+      message: `SMS broadcast sent to ${sent} recipients`,
     });
   } catch (err) {
-    console.error("[send-sms] Africa's Talking error:", err);
+    console.error("[send-sms] Error:", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "SMS send failed." },
+      { error: err instanceof Error ? err.message : "SMS broadcast failed." },
       { status: 500 }
     );
   }

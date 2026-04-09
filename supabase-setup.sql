@@ -20,3 +20,22 @@ create table orders (
 );
 
 alter table orders enable row level security;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Service requests tracking (for booking setup, installation, tune-ups)
+-- ─────────────────────────────────────────────────────────────────────────────
+create table service_requests (
+  id              bigint generated always as identity primary key,
+  ticket_ref      text not null unique,
+  package_id      text not null,
+  package_name    text not null,
+  customer_name   text not null,
+  customer_phone  text not null,
+  issue           text not null,
+  preferred_time  text,
+  status          text not null default 'pending',
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz
+);
+
+alter table service_requests enable row level security;

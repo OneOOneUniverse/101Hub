@@ -89,7 +89,11 @@ export default function ServicesPage() {
       }
 
       setResult(data);
+      // Reset form after success
+      setCustomerName("");
+      setPhone("");
       setIssue("");
+      setPreferredTime("");
     } catch {
       setSubmitError("Network error. Please try again.");
     } finally {
