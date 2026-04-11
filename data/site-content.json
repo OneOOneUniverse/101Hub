@@ -2,7 +2,11 @@
   "storeName": "101Hub",
   "storeDescription": "Your one-stop destination for the latest tech — shop premium gadgets and get expert tech services, all in one place.",
   "footerText": "Level up your tech life. Shop, upgrade, and get expert support — only at 101Hub.",
-  "logoUrl": "/img/logo.png",
+  "logoUrl": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903108/gadget-hub/logo/file_prqvle.png",
+  "footer": {
+    "phone": "+233 548656980",
+    "whatsapp": "https://wa.me/0548656980"
+  },
   "features": {
     "promoSlider": true,
     "flashSale": true,
@@ -41,27 +45,81 @@
   "promoSlides": [
     {
       "id": "promo-1",
-      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588316/gadget-hub/promo-slides/file_lryvov.png",
+      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909508/gadget-hub/promo-slides/file_sijjfs.png",
       "alt": "Weekend sale banner",
       "title": "Weekend Flash Sale — Don't Miss Out!",
-      "subtitle": "Up to 30% off laptops and smart-home bundles. Limited stock, unlimited savings."
+      "subtitle": "Up to 30% off laptops and smart-home bundles. Limited stock, unlimited savings.",
+      "eventName": "summer",
+      "actionUrl": "/cart"
     },
     {
       "id": "promo-2",
-      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588377/gadget-hub/promo-slides/file_af6fby.png",
+      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909575/gadget-hub/promo-slides/file_lthgxt.png",
       "alt": "Phone accessories promo banner",
       "title": "Accessory Combo Deals — Double the Value!",
-      "subtitle": "Pick any 2 accessories and enjoy free delivery straight to your door."
+      "subtitle": "Pick any 2 accessories and enjoy free delivery straight to your door.",
+      "actionUrl": "/products"
     },
     {
       "id": "promo-3",
-      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588604/gadget-hub/promo-slides/file_k6o1mp.png",
+      "src": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909543/gadget-hub/promo-slides/file_kd50sq.png",
       "alt": "Gaming setup promo banner",
       "title": "Gaming Gear Spotlight — Play Like a Pro!",
       "subtitle": "Score massive savings on keyboards, headsets, and controllers."
     }
   ],
   "products": [
+    {
+      "id": "product-d2rbcz",
+      "slug": "product-d2rbcz",
+      "name": "Very Neat Dell Precision 7750 ",
+      "category": "Laptops & Accessories",
+      "description": "For Heavy duty Workloads,  3D Rendering , 4K Video Editing , Engeering, Gaming.\n- i7-10850H (5.10Ghz Turbo) 12CPUs \n- 10th Generation H varient\n- 16Gb Dedicated Q. Rtx 5000\n- 4k Ultra HDR  Display Antiglare, Anti-Ghosting. 500nits\n- 512Gb M.2 Nvme (Extra slots available)\n- 32Gb Ddr4 Ram ( Upto 128gb )\n- Face ID Scanner \n- Fingerprint Scanner \n- HD Camera\n- 2 × Thunderbolt 3 / USB-C (40 Gbps + DisplayPort)\n- Wi-Fi 6 (802.11ax)\n- 95wah Battery , Excellent Health.\n- Original 240w Charger Added",
+      "price": 16000,
+      "stock": 1,
+      "rating": 4,
+      "badge": "Available",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775907399/gadget-hub/products/product-d2rbcz/file_uqxp36.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775907427/gadget-hub/products/product-d2rbcz/file_bequfx.jpg"
+      ],
+      "deliveryFee": 15
+    },
+    {
+      "id": "product-a973nv",
+      "slug": "product-a973nv",
+      "name": "Mortal Kombat 1 (Console)",
+      "category": "Games",
+      "description": "",
+      "price": 0,
+      "stock": 0,
+      "rating": 4,
+      "badge": "Available",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775863416/gadget-hub/products/product-a973nv/file_cac0j0.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775863425/gadget-hub/products/product-a973nv/file_vmm4d3.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775863436/gadget-hub/products/product-a973nv/file_cexffx.jpg"
+      ],
+      "deliveryFee": 15
+    },
+    {
+      "id": "product-741mxj",
+      "slug": "product-741mxj",
+      "name": "FC 26 (Console & PC)",
+      "category": "Games",
+      "description": "",
+      "price": 300,
+      "stock": 10,
+      "rating": 4,
+      "badge": "Available",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775861572/gadget-hub/products/product-741mxj/file_wro7t9.jpg",
+      "images": [
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775861590/gadget-hub/products/product-741mxj/file_wzwfwe.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775861591/gadget-hub/products/product-741mxj/file_gf90rq.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775861593/gadget-hub/products/product-741mxj/file_oaa3gw.jpg"
+      ],
+      "deliveryFee": 15
+    },
     {
       "id": "product-5oxd0b",
       "slug": "product-5oxd0b",
@@ -72,10 +130,13 @@
       "stock": 5,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649642/gadget-hub/products/product-5oxd0b/file_m2a8xt.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892234/gadget-hub/products/product-5oxd0b/file_gzo7if.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649648/gadget-hub/products/product-5oxd0b/file_eajizy.jpg"
-      ]
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892250/gadget-hub/products/product-5oxd0b/file_t6dwv1.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892252/gadget-hub/products/product-5oxd0b/file_r2n7ob.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892253/gadget-hub/products/product-5oxd0b/file_r3bmm5.jpg"
+      ],
+      "deliveryFee": 15
     },
     {
       "id": "product-0g4pit",
@@ -87,9 +148,15 @@
       "stock": 5,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649500/gadget-hub/products/product-0g4pit/file_vmszoz.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892297/gadget-hub/products/product-0g4pit/file_uu67rd.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649519/gadget-hub/products/product-0g4pit/file_xajeeg.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892315/gadget-hub/products/product-0g4pit/file_hpn0o8.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892317/gadget-hub/products/product-0g4pit/file_roxadj.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892318/gadget-hub/products/product-0g4pit/file_xadaw8.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892320/gadget-hub/products/product-0g4pit/file_qdzj7w.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892321/gadget-hub/products/product-0g4pit/file_wq9tzs.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892322/gadget-hub/products/product-0g4pit/file_ncgkga.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892324/gadget-hub/products/product-0g4pit/file_n5uk9v.jpg"
       ]
     },
     {
@@ -102,9 +169,10 @@
       "stock": 4,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649325/gadget-hub/products/product-uy1pgc/file_fbdhia.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892694/gadget-hub/products/product-uy1pgc/file_lkrjrp.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649332/gadget-hub/products/product-uy1pgc/file_u4fcix.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892711/gadget-hub/products/product-uy1pgc/file_mdpffu.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892712/gadget-hub/products/product-uy1pgc/file_mawh0p.jpg"
       ]
     },
     {
@@ -117,9 +185,10 @@
       "stock": 4,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649188/gadget-hub/products/product-43casu/file_wv10w0.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893216/gadget-hub/products/product-43casu/file_kxwtaq.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649207/gadget-hub/products/product-43casu/file_c6tuzn.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893230/gadget-hub/products/product-43casu/file_lywbkp.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893232/gadget-hub/products/product-43casu/file_sqlhda.jpg"
       ]
     },
     {
@@ -132,9 +201,11 @@
       "stock": 8,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649087/gadget-hub/products/product-ghc87f/file_pqfd3h.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893253/gadget-hub/products/product-ghc87f/file_oembcc.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775649093/gadget-hub/products/product-ghc87f/file_dwlzlv.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893266/gadget-hub/products/product-ghc87f/file_snhoqq.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893268/gadget-hub/products/product-ghc87f/file_llf1jm.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893269/gadget-hub/products/product-ghc87f/file_i7sroq.jpg"
       ]
     },
     {
@@ -149,7 +220,12 @@
       "badge": "New",
       "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648836/gadget-hub/products/product-wxmya9/file_joyhkg.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648854/gadget-hub/products/product-wxmya9/file_wddvv4.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648854/gadget-hub/products/product-wxmya9/file_wddvv4.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893298/gadget-hub/products/product-wxmya9/file_lpxlnb.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893300/gadget-hub/products/product-wxmya9/file_jlvmlr.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893301/gadget-hub/products/product-wxmya9/file_jzckt0.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893303/gadget-hub/products/product-wxmya9/file_efju8w.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893305/gadget-hub/products/product-wxmya9/file_rrfnjx.jpg"
       ]
     },
     {
@@ -162,9 +238,15 @@
       "stock": 2,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648681/gadget-hub/products/product-ab9u8k/file_qu5eqg.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893322/gadget-hub/products/product-ab9u8k/file_xygzko.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648697/gadget-hub/products/product-ab9u8k/file_ohbtn3.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893346/gadget-hub/products/product-ab9u8k/file_ztp1qi.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893347/gadget-hub/products/product-ab9u8k/file_hll9cd.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893349/gadget-hub/products/product-ab9u8k/file_sfljch.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893351/gadget-hub/products/product-ab9u8k/file_seexww.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893353/gadget-hub/products/product-ab9u8k/file_uuyw7s.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893355/gadget-hub/products/product-ab9u8k/file_vagepc.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893357/gadget-hub/products/product-ab9u8k/file_tgc253.jpg"
       ]
     },
     {
@@ -177,9 +259,11 @@
       "stock": 4,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648528/gadget-hub/products/product-eh8kef/file_uqm8wh.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893391/gadget-hub/products/product-eh8kef/file_gaag1k.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648544/gadget-hub/products/product-eh8kef/file_tcugtu.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893411/gadget-hub/products/product-eh8kef/file_zcgjcj.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893413/gadget-hub/products/product-eh8kef/file_j7ujms.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893414/gadget-hub/products/product-eh8kef/file_qruylh.jpg"
       ]
     },
     {
@@ -192,9 +276,16 @@
       "stock": 5,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648379/gadget-hub/products/product-ethc34/file_zlnhwg.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893452/gadget-hub/products/product-ethc34/file_w4ckhm.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648395/gadget-hub/products/product-ethc34/file_maayov.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893474/gadget-hub/products/product-ethc34/file_upmmf3.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893476/gadget-hub/products/product-ethc34/file_puwtde.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893477/gadget-hub/products/product-ethc34/file_uwgjqc.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893478/gadget-hub/products/product-ethc34/file_qzwnqy.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893480/gadget-hub/products/product-ethc34/file_gg1xoo.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893481/gadget-hub/products/product-ethc34/file_ndomdm.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893483/gadget-hub/products/product-ethc34/file_ss1m5a.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893484/gadget-hub/products/product-ethc34/file_u2orxb.jpg"
       ]
     },
     {
@@ -207,9 +298,13 @@
       "stock": 2,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648048/gadget-hub/products/product-qm4gja/file_xzc5cw.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893525/gadget-hub/products/product-qm4gja/file_xp1upc.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775648071/gadget-hub/products/product-qm4gja/file_zpfwoe.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893548/gadget-hub/products/product-qm4gja/file_umnlwr.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893550/gadget-hub/products/product-qm4gja/file_ylzesa.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893553/gadget-hub/products/product-qm4gja/file_ahv4vo.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893555/gadget-hub/products/product-qm4gja/file_kzx4y1.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775893557/gadget-hub/products/product-qm4gja/file_vcpoxt.jpg"
       ]
     },
     {
@@ -224,7 +319,8 @@
       "badge": "New",
       "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647914/gadget-hub/products/product-s3dmbl/file_scrwnx.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647916/gadget-hub/products/product-s3dmbl/file_tdae5q.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647916/gadget-hub/products/product-s3dmbl/file_tdae5q.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775825115/gadget-hub/products/product-s3dmbl/file_ygxcvi.jpg"
       ]
     },
     {
@@ -252,9 +348,13 @@
       "stock": 2,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647692/gadget-hub/products/product-sl4jx8/file_prp9c7.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909125/gadget-hub/products/product-sl4jx8/file_uc2zq1.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647705/gadget-hub/products/product-sl4jx8/file_fcgy7l.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909160/gadget-hub/products/product-sl4jx8/file_eiul3z.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909161/gadget-hub/products/product-sl4jx8/file_ybjii0.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909163/gadget-hub/products/product-sl4jx8/file_ty9szs.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909165/gadget-hub/products/product-sl4jx8/file_k0gwmo.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909166/gadget-hub/products/product-sl4jx8/file_fnddwc.jpg"
       ]
     },
     {
@@ -267,9 +367,16 @@
       "stock": 2,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647568/gadget-hub/products/product-4tnqyj/file_gryesu.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909059/gadget-hub/products/product-4tnqyj/file_fq1z1y.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647584/gadget-hub/products/product-4tnqyj/file_prmukq.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909084/gadget-hub/products/product-4tnqyj/file_vsuu7w.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909085/gadget-hub/products/product-4tnqyj/file_wksntm.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909087/gadget-hub/products/product-4tnqyj/file_lnzjkr.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909089/gadget-hub/products/product-4tnqyj/file_vlnbuj.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909090/gadget-hub/products/product-4tnqyj/file_ppwbd2.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909092/gadget-hub/products/product-4tnqyj/file_rugmex.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909094/gadget-hub/products/product-4tnqyj/file_dg4pq6.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909095/gadget-hub/products/product-4tnqyj/file_kes8wj.jpg"
       ]
     },
     {
@@ -282,9 +389,16 @@
       "stock": 0,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647389/gadget-hub/products/product-z2www2/file_cjczrn.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908943/gadget-hub/products/product-z2www2/file_o5lt5b.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647404/gadget-hub/products/product-z2www2/file_mph6qe.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908987/gadget-hub/products/product-z2www2/file_qwmakr.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908989/gadget-hub/products/product-z2www2/file_gslva4.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908991/gadget-hub/products/product-z2www2/file_lzcp4m.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908992/gadget-hub/products/product-z2www2/file_y4zjao.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908994/gadget-hub/products/product-z2www2/file_im8tbp.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908995/gadget-hub/products/product-z2www2/file_exsvzo.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908997/gadget-hub/products/product-z2www2/file_im8qoe.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775908998/gadget-hub/products/product-z2www2/file_lqkfji.jpg"
       ]
     },
     {
@@ -297,9 +411,13 @@
       "stock": 5,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647157/gadget-hub/products/product-ez7uc5/file_zzgb2b.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909018/gadget-hub/products/product-ez7uc5/file_wmgxko.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647173/gadget-hub/products/product-ez7uc5/file_rukxtj.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775647173/gadget-hub/products/product-ez7uc5/file_rukxtj.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775825143/gadget-hub/products/product-ez7uc5/file_loflyc.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775825146/gadget-hub/products/product-ez7uc5/file_coaybh.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775825147/gadget-hub/products/product-ez7uc5/file_y6zjgs.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775825150/gadget-hub/products/product-ez7uc5/file_hpbol6.jpg"
       ]
     },
     {
@@ -374,7 +492,7 @@
       "badge": "New",
       "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646216/gadget-hub/products/product-1i89px/file_aj01sg.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646223/gadget-hub/products/product-1i89px/file_nmynlq.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775757487/gadget-hub/products/product-1i89px/file_cwafji.jpg"
       ]
     },
     {
@@ -387,9 +505,11 @@
       "stock": 5,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646049/gadget-hub/products/product-9qseps/file_p8lhhf.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903210/gadget-hub/products/product-9qseps/file_ngjvln.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775646080/gadget-hub/products/product-9qseps/file_dh078z.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903232/gadget-hub/products/product-9qseps/file_xl2cyu.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903234/gadget-hub/products/product-9qseps/file_unr6ma.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903235/gadget-hub/products/product-9qseps/file_gw0kp2.jpg"
       ]
     },
     {
@@ -402,9 +522,15 @@
       "stock": 3,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645958/gadget-hub/products/product-tk9yu7/file_yzlvci.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903325/gadget-hub/products/product-tk9yu7/file_wk4fcy.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775645976/gadget-hub/products/product-tk9yu7/file_kpoeep.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903299/gadget-hub/products/product-tk9yu7/file_drq5kr.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903301/gadget-hub/products/product-tk9yu7/file_g0fcef.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903303/gadget-hub/products/product-tk9yu7/file_ma0sad.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903304/gadget-hub/products/product-tk9yu7/file_o2gg1w.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903305/gadget-hub/products/product-tk9yu7/file_idfijf.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903307/gadget-hub/products/product-tk9yu7/file_o31yrt.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903308/gadget-hub/products/product-tk9yu7/file_qe8tqc.jpg"
       ]
     },
     {
@@ -494,7 +620,9 @@
       "badge": "New",
       "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643992/gadget-hub/products/product-ejka6d/file_iia1ld.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644020/gadget-hub/products/product-ejka6d/file_wfhars.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775644020/gadget-hub/products/product-ejka6d/file_wfhars.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775823730/gadget-hub/products/product-ejka6d/file_qmrzky.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775823759/gadget-hub/products/product-ejka6d/file_dj3ar7.jpg"
       ]
     },
     {
@@ -507,39 +635,12 @@
       "stock": 0,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643765/gadget-hub/products/product-83kkaf/file_lueeej.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841841/gadget-hub/products/product-83kkaf/file_ldjxdf.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643776/gadget-hub/products/product-83kkaf/file_l2irdg.jpg"
-      ]
-    },
-    {
-      "id": "p13",
-      "slug": "weyon-32-32wsa-hd-smart-tv-black-1-years-warranty",
-      "name": "WEYON 32\" 32WSA HD Smart TV - Black +1 Years Warranty",
-      "category": "Home & Office",
-      "description": "WEYON 32 Inches HD Smart TV  +1 Years Warranty - Black \n\nAndroid Smart TV, an easier way to the entertainment your love\n\nA variety of ways to cast the screen, a key to cast the screen, play a large screen interaction\n\n \n\nWant to see more cool, try a key cast screen, small screen immediately into a large screen, home, office can easily cast\n\nClear, detailed picture:\n\nSee every image as the director intended with enriched colors.\nUltra clean view:\n\nAnalyzing original content with an advanced algorithm, Ultra Clean View gives you higher quality images with less distortion. Enjoy the clear picture.\nHD picture quality:\n\nLED distributes the LED lights on the back of the panel, so that the backlight can be evenly transmitted to the entire screen, the brightness and color gamut are guaranteed, the backlight rendering image is more accurate, and the picture details are more delicate and realistic. LED technology allows you to go beyond the screen into a fully immersive world. \n\n\n \n\nAccurate color reproduction ：\n\nThe 1366*768 high-definition resolution makes the image lifelike and restores natural and true colors, so you can enjoy a colorful viewing experience. ",
-      "price": 1350,
-      "stock": 5,
-      "rating": 4,
-      "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639611/gadget-hub/products/weyon-32-32wsa-hd-smart-tv-black-1-years-warranty/file_sy5yoy.jpg",
-      "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639633/gadget-hub/products/weyon-32-32wsa-hd-smart-tv-black-1-years-warranty/file_t6gzie.jpg"
-      ]
-    },
-    {
-      "id": "TECNO Spark 40 - 128GB + 4GB RAM - 50MP Rear/50MP Front - 5200mAh - Ink Black - 13 Months Warranty",
-      "slug": "tecno-spark-40-128gb-4gb-ram-50mp-rear-50mp-front-5200mah-ink-black-13-months-warranty",
-      "name": "TECNO Spark 40 - 128GB + 4GB RAM - 50MP Rear/50MP Front - 5200mAh - Ink Black - 13 Months Warranty",
-      "category": "Phones & Tablets",
-      "description": "Unleash power and style with the all-new Tecno Spark 40 – built for speed, style, and smart performance.\n\n \n\n• Memory: 128GB + 4GB RAM (+4GB extended)\n\n \n\n• Processor: Powerful MediaTek Helio G81\n\n \n\n• Display: Smooth 6.67\" Hole Screen, 120Hz refresh rate\n\n \n\n• OS: Android 15 – next-gen performance\n\n \n\n• Network: 2G/3G/4G – stay connected\n\n \n\n• Camera: 50MP Rear + 8MP Front, Dual Flash both sides\n\n \n\n• Battery: Long-lasting 5200mAh with blazing 45W Super Charge\n\n \n\n• Infrared Remote Control – smart convenience\n\n \n\n• FreeLink: Make calls even without network signal\n\n \n\n• Security: Side Fingerprint Unlock\n\n \n\n• Durability: Drop-resistant up to 1.5m, IP64 water/dustproof\n\n \n\n• Audio: Dual speakers with immersive full-screen sound\n\n \n\n• Dual SIM for flexible connectivity",
-      "price": 1850,
-      "stock": 4,
-      "rating": 4,
-      "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639594/gadget-hub/products/tecno-spark-40-128gb-4gb-ram-50mp-rear-50mp-front-5200mah-ink-black-13-months-warranty/file_h9ok3l.jpg",
-      "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775639588/gadget-hub/products/tecno-spark-40-128gb-4gb-ram-50mp-rear-50mp-front-5200mah-ink-black-13-months-warranty/file_nmtvf4.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841825/gadget-hub/products/product-83kkaf/file_wwjl3o.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841826/gadget-hub/products/product-83kkaf/file_igceco.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841827/gadget-hub/products/product-83kkaf/file_edfrmx.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841829/gadget-hub/products/product-83kkaf/file_jbjfcd.jpg"
       ]
     },
     {
@@ -552,39 +653,15 @@
       "stock": 20,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588517/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_pntf31.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841696/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_nrildk.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588532/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_rexalk.jpg"
-      ]
-    },
-    {
-      "id": "Samsung Galaxy A07 - 64GB + 4GB RAM - 50MP Rear - 8MP Front - 6.7\" - 5000 mAh - Black (24 Months Warranty)",
-      "slug": "samsung-galaxy-a07-64gb-4gb-ram-50mp-rear-8mp-front-6-7-5000-mah-black-24-months-warranty",
-      "name": "Samsung Galaxy A07 - 64GB + 4GB RAM - 50MP Rear - 8MP Front - 6.7\" - 5000 mAh - Black (24 Months Warranty)",
-      "category": "Phones & Tablets",
-      "description": "Upgrade your smartphone experience with the Samsung Galaxy A07 designed to deliver smooth performance, stunning visuals, and long-lasting battery life—all at an affordable price.\nSPECIFICATIONS\n\nNetwork Technology: GSM / HSPA / LTE\n\nBody:\n\nDimensions:6.7 inches, 108.4 cm2 (~83.8% screen-to-body ratio)\nWeight: 189 g (6.67 oz)\nBuild: Glass front, plastic back, plastic frame\nSIM: Single SIM (Nano-SIM) or Dual SIM (Nano-SIM, dual stand-by)\nDisplay:\n\nType: PLS LCD\nSize: 6.7 inches (~83.8% screen-to-body ratio)\nResolution: 720 x 1600 pixels, 20:9 ratio (~262 ppi density)\nPlatform:\n\nOS: Android 15, up to 6 major Android upgrades, One UI 7\nChipset: Mediatek Helio G99 (6 nm)\nCPU: Octa-core (2x2.2 GHz Cortex-A76 & 6x2.0 GHz Cortex-A55)\nGPU: Mali-G57 MC2\nMemory:\n\nCard Slot: microSDXC (dedicated slot)\nInternal Storage: 64GB 4GB RAM\nStorage Type: eMMC 5.1\nMain Camera:\n\nDual Setup: 50 MP, f/1.8, (wide), 1/2.76\", 0.64µm, PDAF\n2 MP, f/2.4, (depth)\nFeatures: LED flash\nVideo: 1080p@30/60fps\nSelfie Camera:\n\nSingle: 8 MP, f/2.0, (wide), 1/4.0\", 1.12µm\nVideo: Yes\nSound:\n\nLoudspeaker: Yes\n3.5mm jack: Yes\nCommunications:\n\nWLAN: Wi-Fi 802.11 a/b/g/n/ac, dual-band, Wi-Fi Direct \nBluetooth: 5.3, A2DP, LE\nPositioning: GPS, GLONASS, GALILEO, BDS\nNFC: No\nRadio: FM radio\nUSB: USB Type-C 2.0\nSensors: Fingerprint (side-mounted), accelerometer, proximity\n\nBattery:\n\nType: 5000 mAh\nCharging: 15W wired\n ",
-      "price": 1300,
-      "stock": 5,
-      "rating": 4.5,
-      "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588459/gadget-hub/products/samsung-galaxy-a07-64gb-4gb-ram-50mp-rear-8mp-front-6-7-5000-mah-black-24-months-warranty/file_xdwk18.jpg",
-      "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775588477/gadget-hub/products/samsung-galaxy-a07-64gb-4gb-ram-50mp-rear-8mp-front-6-7-5000-mah-black-24-months-warranty/file_ml3jo0.jpg"
-      ]
-    },
-    {
-      "id": "product-vgaljv",
-      "slug": "product-vgaljv",
-      "name": "Westpool WP-7003/3P - 1000W - Dry Pressing Iron - White/Blue",
-      "category": "Home & Office",
-      "description": "Product details\nWP-7003/3P Westpol Dry Pressing Iron with British standard plug (3pin) with a superb 1000 Wattage easily removes creases from your rumpled clothes. Comes with a non-stick sole plate for smooth ironing and a stable heel rest with integrated cord storage. It also features an adjustable temperature control knob and temperature indication that lets you iron those precious clothes without hampering the fabric. \n\nLight weight and portable, WESTPOOL Dry Iron helps you look tidy even when you are travelling for a day or a month. This dry Iron is more a necessity than a luxury for every modern household.\n\nThe sole plate of WESTPOOL Dry Iron 1100 watts is coated with a special non-stick layer for good gliding performance on all fabrics. The indicator light goes off when the required ironing temperature has been reached. \n\n \n\nOrder the WESTPOOL DRY PRESSING Iron online from Jumia Ghana and have it delivered to your doorstep. \n\n\n\n\nSPECIFICATIONS\n\nColour: White/Blue\nPower: 1000 Watts\nNon-Stick Soleplate\nIndicator Light\nLightweight and Durable\nAdjustable temperature control knob\nStandard British plug (3pin)\n\n\n",
-      "price": 199,
-      "stock": 2,
-      "rating": 4,
-      "badge": "Limited",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775590576/gadget-hub/products/product-vgaljv/file_p0p9uu.jpg",
-      "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775590593/gadget-hub/products/product-vgaljv/file_v7d0p7.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841729/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_kbyisk.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841732/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_z7ivi1.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841734/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_pwd7qp.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841736/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_gh45bw.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841737/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_fsz9wl.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841739/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_ms0vvf.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841741/gadget-hub/products/diy-wall-clock-3d-mirror-stickers-large-wall-clock/file_lsu7s2.jpg"
       ]
     },
     {
@@ -597,9 +674,13 @@
       "stock": 5,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775640081/gadget-hub/products/product-ak6l4h/file_scn9si.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841551/gadget-hub/products/product-ak6l4h/file_zme424.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775640092/gadget-hub/products/product-ak6l4h/file_dbxqmo.jpg"
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841556/gadget-hub/products/product-ak6l4h/file_cpf8sk.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841571/gadget-hub/products/product-ak6l4h/file_ojnv46.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841573/gadget-hub/products/product-ak6l4h/file_cwccrc.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841574/gadget-hub/products/product-ak6l4h/file_en6je5.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841576/gadget-hub/products/product-ak6l4h/file_s5yvio.jpg"
       ]
     },
     {
@@ -612,10 +693,12 @@
       "stock": 2,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775641815/gadget-hub/products/product-3egcxg/file_tkd1ee.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841470/gadget-hub/products/product-3egcxg/file_yagg2f.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775641849/gadget-hub/products/product-3egcxg/file_cdzd6y.jpg"
-      ]
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841490/gadget-hub/products/product-3egcxg/file_gupuml.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841491/gadget-hub/products/product-3egcxg/file_y5kanv.jpg"
+      ],
+      "noDeliveryFee": true
     },
     {
       "id": "product-u66xmm",
@@ -627,10 +710,14 @@
       "stock": 5,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775641956/gadget-hub/products/product-u66xmm/file_dzcnic.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841421/gadget-hub/products/product-u66xmm/file_iwpeu5.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775642007/gadget-hub/products/product-u66xmm/file_grglhw.jpg"
-      ]
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841438/gadget-hub/products/product-u66xmm/file_yydkvt.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841440/gadget-hub/products/product-u66xmm/file_p6j5mv.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841441/gadget-hub/products/product-u66xmm/file_zoqhwm.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841443/gadget-hub/products/product-u66xmm/file_zdrobj.jpg"
+      ],
+      "noDeliveryFee": true
     },
     {
       "id": "product-be32ui",
@@ -642,10 +729,14 @@
       "stock": 3,
       "rating": 4,
       "badge": "New",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775642649/gadget-hub/products/product-be32ui/file_s7z3ui.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841354/gadget-hub/products/product-be32ui/file_ni8yiz.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775642684/gadget-hub/products/product-be32ui/file_fh9l1g.jpg"
-      ]
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841380/gadget-hub/products/product-be32ui/file_pofan4.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841382/gadget-hub/products/product-be32ui/file_wgwvne.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841386/gadget-hub/products/product-be32ui/file_mnhuat.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775841390/gadget-hub/products/product-be32ui/file_auwksn.jpg"
+      ],
+      "noDeliveryFee": true
     },
     {
       "id": "product-2ok3yz",
@@ -657,21 +748,23 @@
       "stock": 4,
       "rating": 4,
       "badge": "Verified",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643095/gadget-hub/products/product-2ok3yz/file_tvquhw.jpg",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775840224/gadget-hub/products/product-2ok3yz/file_npufqr.jpg",
       "images": [
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643103/gadget-hub/products/product-2ok3yz/file_t7c1qr.jpg",
-        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775643601/gadget-hub/products/product-2ok3yz/file_kh7dff.jpg"
-      ]
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775840271/gadget-hub/products/product-2ok3yz/file_mjgwnl.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775840273/gadget-hub/products/product-2ok3yz/file_sgrb4j.jpg",
+        "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775840274/gadget-hub/products/product-2ok3yz/file_xadlm7.jpg"
+      ],
+      "noDeliveryFee": true
     }
   ],
   "services": [
     {
       "id": "s1",
-      "name": "PC Game Installation",
+      "name": "PC Game Installation.",
       "turnaround": "2-4 hours",
       "price": 25,
       "details": "Get up to 3 games installed and fully optimized — launchers configured, patches applied, ready to play the moment you pick it up.",
-      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775753390/gadget-hub/services/file_jf2hbx.jpg"
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775754510/gadget-hub/services/file_orfon0.jpg"
     },
     {
       "id": "s2",
@@ -702,6 +795,110 @@
       "details": "Fresh start, zero hassle — get the latest Windows OS installed clean and fast, so your PC runs like it just came out of the box."
     }
   ],
+  "categories": [
+    {
+      "id": "cat-phones",
+      "name": "Phones & Tablets",
+      "description": "Latest smartphones and tablets",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775860312/gadget-hub/categories/file_okivcj.jpg",
+      "features": [
+        {
+          "id": "feat-1",
+          "name": "High Resolution Display",
+          "description": "Crystal clear visuals"
+        },
+        {
+          "id": "feat-2",
+          "name": "Long Battery Life",
+          "description": "All-day usage"
+        },
+        {
+          "id": "feat-3",
+          "name": "Fast Processor",
+          "description": "Smooth performance"
+        }
+      ]
+    },
+    {
+      "id": "cat-appliances",
+      "name": "Appliances",
+      "description": "Kitchen and home appliances",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775860177/gadget-hub/categories/file_vtt1n1.jpg",
+      "features": []
+    },
+    {
+      "id": "cat-bp6eix",
+      "name": "Games",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775859630/gadget-hub/categories/file_ctjemv.jpg",
+      "features": [
+        {
+          "id": "feat-nsgyd6",
+          "name": "Affordable PC and Console Games (Personal , Shared and Offline Accounts)"
+        },
+        {
+          "id": "feat-c8xjyg",
+          "name": "Enjoy up to 50% discount this Season"
+        },
+        {
+          "id": "feat-szh4yr",
+          "name": "Get the latest titles"
+        }
+      ]
+    },
+    {
+      "id": "cat-3hx8nb",
+      "name": "Health & Beauty",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775860123/gadget-hub/categories/file_xwgz3x.jpg",
+      "features": [
+        {
+          "id": "feat-pdbv9s",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "id": "cat-vlo72d",
+      "name": "Gaming",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775860053/gadget-hub/categories/file_wtkdsl.jpg",
+      "features": [
+        {
+          "id": "feat-isjp57",
+          "name": "Best Gaming Equipments "
+        }
+      ]
+    },
+    {
+      "id": "cat-46z8ak",
+      "name": "Home & Office",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775892406/gadget-hub/categories/file_tqb7cl.jpg",
+      "features": []
+    },
+    {
+      "id": "cat-ka7hd1",
+      "name": "Smartwatches",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903847/gadget-hub/categories/file_sjphat.jpg",
+      "features": []
+    },
+    {
+      "id": "cat-t1kfuh",
+      "name": "Laptops & Accessories",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903796/gadget-hub/categories/file_ixhlcr.jpg",
+      "features": []
+    },
+    {
+      "id": "cat-xpueh7",
+      "name": "Gift Cards",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903753/gadget-hub/categories/file_swzbnb.jpg",
+      "features": []
+    },
+    {
+      "id": "cat-bgbit4",
+      "name": "Suscriptions",
+      "image": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775909298/gadget-hub/categories/file_xoyd6x.jpg",
+      "features": []
+    }
+  ],
+  "allCategoryImage": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775861054/gadget-hub/categories/file_kadktw.jpg",
   "flashSale": {
     "bannerEyebrow": "Limited-Time Flash Sale — Act Fast!",
     "bannerTitle": "Unbeatable Deals Dropping Now — Grab Yours Before They're Gone!",
@@ -725,5 +922,90 @@
       "product-x5vuiu"
     ]
   },
-  "updatedAt": "2026-04-09T16:49:54.508Z"
+  "deliverySettings": {
+    "defaultFee": 15,
+    "freeDeliveryItemThreshold": 6,
+    "locationFees": [
+      {
+        "id": "loc-accra-central",
+        "name": "Accra (Central)",
+        "fee": 10
+      },
+      {
+        "id": "loc-accra-east",
+        "name": "Accra (East Legon / Cantonments)",
+        "fee": 15
+      },
+      {
+        "id": "loc-accra-west",
+        "name": "Accra (West - Dansoman / Kaneshie)",
+        "fee": 15
+      },
+      {
+        "id": "loc-accra-north",
+        "name": "Accra (North - Achimota / Dome)",
+        "fee": 15
+      },
+      {
+        "id": "loc-tema",
+        "name": "Tema & Ashaiman",
+        "fee": 20
+      },
+      {
+        "id": "loc-kumasi",
+        "name": "Kumasi",
+        "fee": 35
+      },
+      {
+        "id": "loc-takoradi",
+        "name": "Takoradi / Sekondi",
+        "fee": 40
+      },
+      {
+        "id": "loc-cape-coast",
+        "name": "Cape Coast",
+        "fee": 40
+      },
+      {
+        "id": "loc-other",
+        "name": "Other / Outside Accra",
+        "fee": 50
+      },
+      {
+        "id": "loc-dgz2gr",
+        "name": "Asamankese",
+        "fee": 10
+      }
+    ],
+    "deliveryTypes": [
+      {
+        "id": "dtype-48dzlt",
+        "name": "Door To Door",
+        "fee": 20,
+        "description": "We need to have Details for your Exact Location"
+      },
+      {
+        "id": "dtype-54biob",
+        "name": "Pickup Station",
+        "fee": 0,
+        "description": "Go to Any of our Pickup Stations Near you....."
+      },
+      {
+        "id": "dtype-yvkpwl",
+        "name": "Ghana Post",
+        "fee": 0
+      },
+      {
+        "id": "dtype-116n1y",
+        "name": "Toll Booth",
+        "fee": 0
+      }
+    ],
+    "processingFee": 4
+  },
+  "paymentSettings": {
+    "paystackEnabled": false,
+    "manualEnabled": true
+  },
+  "updatedAt": "2026-04-11T12:13:21.776Z"
 }

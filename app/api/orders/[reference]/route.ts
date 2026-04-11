@@ -39,6 +39,7 @@ export async function GET(
     orderStatus: data.order_status as OrderData["orderStatus"],
     createdAt: data.created_at as string,
     updatedAt: data.updated_at as string | undefined,
+    estimatedDeliveryDate: data.estimated_delivery_date as string | undefined,
   };
 
   return NextResponse.json(order, { status: 200 });

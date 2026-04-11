@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import type { PromoSlide } from "@/lib/site-content-types";
 
 const AUTO_SLIDE_MS = 4200;
@@ -29,8 +31,11 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
     return null;
   }
 
+  const activeSlide = slides[normalizedIndex];
+  const isClickable = activeSlide?.actionUrl;
+
   return (
-    <section className="panel promo-slider slider-container mx-auto overflow-hidden" aria-label="Ongoing promos and offers">
+    <section className="panel promo-slider slider-container relative mx-auto overflow-hidden" aria-label="Ongoing promos and offers">
       <div className="relative h-40 sm:h-56 md:h-72 lg:h-80">
         {slides.map((slide, index) => {
           const isActive = index === normalizedIndex;
@@ -41,14 +46,19 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
               className={`promo-slide ${isActive ? "promo-slide--active" : ""}`}
               aria-hidden={!isActive}
             >
-              <img
+              <Image
                 src={slide.src}
                 alt={slide.alt}
+                width={1920}
+                height={640}
+                priority={isActive}
+                sizes="100vw"
+                quality={75}
                 className="absolute inset-0 h-full w-full object-cover"
               />
               <figcaption className="promo-slide__caption">
                 <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/85">
-                  Ongoing Offer
+                  {slide.eventName || "Ongoing Offer"}
                 </p>
                 <h2 className="mt-1 text-lg font-black leading-tight text-white sm:mt-2 sm:text-2xl md:text-3xl">
                   {slide.title}
@@ -71,6 +81,23 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
           />
         ))}
       </div>
+
+      {/* Clickable overlay when actionUrl is configured */}
+      {isClickable && activeSlide.actionUrl !== "custom" && (
+        <Link
+          href={activeSlide.actionUrl || "#"}
+          className="absolute inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+          style={{ cursor: "pointer", zIndex: 10 }}
+          aria-label={`View ${activeSlide.eventName || "offer"}`}
+          onClick={(e) => {
+            // Don't navigate if clicking on the controls
+            const target = e.target as HTMLElement;
+            if (target.closest(".promo-slider__controls")) {
+              e.preventDefault();
+            }
+          }}
+        />
+      )}
     </section>
   );
 }

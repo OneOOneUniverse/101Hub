@@ -1,0 +1,18 @@
+# Allow Google, Bing, and other search engines to crawl the site
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login/
+Disallow: /signup/
+Disallow: /*.json$
+Disallow: /*?*
+Allow: /*.css$
+Allow: /*.js$
+Allow: /img/
+
+# Crawl delay for bots (optional, prevents server overload)
+Crawl-delay: 1
+
+# Sitemap location for Google, Bing
+Sitemap: https://www.101hub.shop/sitemap.xml

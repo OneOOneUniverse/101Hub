@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 type ProductGalleryProps = {
   productName: string;
@@ -11,6 +12,7 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
   const [activeIndex, setActiveIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const activeImage = images[activeIndex] ?? images[0];
+  const hasMultipleImages = images.length > 1;
 
   return (
     <>
@@ -21,9 +23,14 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
           className="relative group overflow-hidden rounded-lg border border-black/10"
           aria-label="View full image"
         >
-          <img
+          <Image
             src={activeImage}
             alt={`${productName} view ${activeIndex + 1}`}
+            width={800}
+            height={800}
+            priority
+            sizes="(max-width: 768px) 100vw, 50vw"
+            quality={85}
             className="h-64 max-w-full w-auto object-cover sm:h-80 md:h-96 mx-auto cursor-pointer transition group-hover:scale-105"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition">
@@ -32,32 +39,43 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
             </svg>
           </div>
         </button>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 max-w-full mx-auto">
-          {images.map((src, index) => {
-            const isActive = index === activeIndex;
+        {hasMultipleImages ? (
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 max-w-full mx-auto">
+            {images.map((src, index) => {
+              const isActive = index === activeIndex;
 
-            return (
-              <button
-                key={`${productName}-thumb-${index}`}
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                className={`overflow-hidden rounded-lg border transition ${
-                  isActive
-                    ? "border-[var(--brand)] shadow-[0_0_0_2px_rgba(15,118,110,0.16)]"
-                    : "border-black/10 hover:border-[var(--brand)]/50"
-                }`}
-                aria-label={`Show ${productName} image ${index + 1}`}
-                aria-pressed={isActive}
-              >
-                <img
-                  src={src}
-                  alt={`${productName} thumbnail ${index + 1}`}
-                  className="h-16 w-full object-cover sm:h-20 md:h-24"
-                />
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  key={`${productName}-thumb-${index}`}
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className={`overflow-hidden rounded-lg border transition ${
+                    isActive
+                      ? "border-[var(--brand)] shadow-[0_0_0_2px_rgba(15,118,110,0.16)]"
+                      : "border-black/10 hover:border-[var(--brand)]/50"
+                  }`}
+                  aria-label={`Show ${productName} image ${index + 1}`}
+                  aria-pressed={isActive}
+                >
+                  <Image
+                    src={src}
+                    alt={`${productName} thumbnail ${index + 1}`}
+                    width={96}
+                    height={96}
+                    sizes="96px"
+                    quality={60}
+                    className="h-16 w-full object-cover sm:h-20 md:h-24"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center text-xs text-[var(--ink-soft)] px-3 py-2 rounded-lg bg-[var(--surface)] border border-black/5">
+            <p>📸 Only one image available</p>
+            <p className="text-[10px] mt-0.5">Additional product photos coming soon</p>
+          </div>
+        )}
       </div>
 
       {/* Fullscreen Modal */}
@@ -88,12 +106,16 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
               </button>
             )}
 
-            <div className="flex flex-col items-center">
-              <img
-                src={activeImage}
-                alt={`${productName} fullscreen view ${activeIndex + 1}`}
-                className="max-h-[70vh] max-w-full object-contain rounded-lg"
-              />
+              <div className="flex flex-col items-center">
+                <Image
+                  src={activeImage}
+                  alt={`${productName} fullscreen view ${activeIndex + 1}`}
+                  width={1200}
+                  height={1200}
+                  quality={90}
+                  sizes="(max-width: 768px) 100vw, 80vw"
+                  className="max-h-[70vh] max-w-full object-contain rounded-lg"
+                />
               {images.length > 1 && (
                 <p className="mt-4 text-white text-sm">
                   {activeIndex + 1} / {images.length}

@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BoxIcon } from "@/components/Icons";
 import { getOrdersFromLocal, saveOrderToLocal, getOrderStatusLabel, getOrderStatusColor, type OrderData } from "@/lib/order-status";
 
 export default function OrderLookupPage() {
@@ -71,8 +72,8 @@ export default function OrderLookupPage() {
     <div className="mx-auto max-w-lg space-y-6 py-8 px-4">
       {/* Header */}
       <section className="panel p-6 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--brand)]/10 text-3xl">
-          📦
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[var(--brand)]">
+          <BoxIcon size={36} />
         </div>
         <h1 className="text-3xl font-black text-[var(--brand-deep)]">Track Your Order</h1>
         <p className="mt-2 text-sm text-[var(--ink-soft)]">

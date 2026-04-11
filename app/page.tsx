@@ -3,6 +3,8 @@ import PromoSlider from "@/components/PromoSlider";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
 import { getSiteContent } from "@/lib/site-content";
 
+export const revalidate = 60; // regenerate cached page every 60 seconds
+
 export default async function Home() {
   const content = await getSiteContent();
 

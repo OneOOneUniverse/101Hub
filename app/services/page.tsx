@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
 
@@ -94,6 +95,7 @@ export default function ServicesPage() {
       setPhone("");
       setIssue("");
       setPreferredTime("");
+      setPackageId(services[0]?.id ?? "");
     } catch {
       setSubmitError("Network error. Please try again.");
     } finally {
@@ -113,49 +115,95 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="grid gap-4 sm:gap-6 md:gap-8 lg:grid-cols-[1.15fr_1fr]">
-      <section className="panel p-4 sm:p-6">
-        <h1 className="text-2xl font-black sm:text-3xl">Services</h1>
+    <section className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="panel p-4 sm:p-6">
+        <h1 className="text-2xl font-black sm:text-3xl">Expert Services</h1>
         <p className="mt-2 text-sm text-[var(--ink-soft)] sm:text-base">
-          Book setup, installation, and tune-up services.
+          Professional setup, installation, and optimization services for your tech.
         </p>
+      </div>
 
-        <div className="mt-4 space-y-2 sm:space-y-3">
-          {services.map((item) => (
-            <article key={item.id} className="product-card">
-              <div className="product-card__shine" />
-              <div className="product-card__glow" />
-              <div className="product-card__content">
-                {item.image ? (
+      {/* Services Grid */}
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {services.map((service) => (
+          <article key={service.id} className="product-card group">
+            <div className="product-card__shine" />
+            <div className="product-card__glow" />
+            <div className="product-card__content flex flex-col h-full">
+              {/* Service Image */}
+              {service.image ? (
+                <div className="relative mb-3 overflow-hidden rounded-lg border border-black/10 bg-cover bg-center h-40 group/image">
                   <div
-                    className="h-24 overflow-hidden rounded-lg border border-black/10 bg-cover bg-center sm:h-32 md:h-36"
-                    style={{ backgroundImage: `url('${item.image}')` }}
+                    className="w-full h-full"
+                    style={{ backgroundImage: `url('${service.image}')` }}
                     role="img"
-                    aria-label={`${item.name} service image`}
+                    aria-label={`${service.name} service image`}
                   >
-                    <span className="sr-only">{item.name} service image</span>
+                    <span className="sr-only">{service.name} service image</span>
                   </div>
-                ) : (
-                  <div className="product-card__image" aria-hidden="true" />
-                )}
-                <div className="flex items-start justify-between gap-2 sm:gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-sm font-bold product-card__title sm:text-lg">{item.name}</h2>
-                    <p className="text-xs text-[var(--ink-soft)] product-card__description sm:text-sm">{item.details}</p>
+                  {/* Gallery Count Badge */}
+                  {service.images && service.images.length > 0 && (
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
+                      📸 +{service.images.length}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="relative mb-3 overflow-hidden rounded-lg border border-black/10 bg-[var(--base-light)] h-40 flex items-center justify-center group/image">
+                  <span className="text-3xl">🔧</span>
+                  {/* Gallery Count Badge */}
+                  {service.images && service.images.length > 0 && (
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
+                      📸 +{service.images.length}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Service Info */}
+              <div className="flex-1 flex flex-col">
+                <h2 className="text-sm font-bold sm:text-base mb-1">{service.name}</h2>
+                <p className="text-xs text-[var(--ink-soft)] sm:text-sm line-clamp-2 mb-3">{service.details}</p>
+
+                {/* Price and Turnaround */}
+                <div className="flex items-center justify-between gap-2 mb-3 text-xs sm:text-sm">
+                  <div>
+                    <p className="text-[var(--ink-soft)]">Turnaround</p>
+                    <p className="font-semibold">{service.turnaround}</p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-xs font-semibold text-[var(--ink-soft)] sm:text-sm">{item.turnaround}</p>
-                    <p className="text-base font-black product-card__price sm:text-lg">GHS {item.price.toFixed(2)}</p>
+                  <div className="text-right">
+                    <p className="text-[var(--ink-soft)]">Price</p>
+                    <p className="font-black text-[var(--brand-deep)]">₵{service.price.toFixed(2)}</p>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
 
+                {/* Provider Info Snippet */}
+                {service.providerName && (
+                  <div className="mb-3 text-xs py-2 px-2 bg-[var(--base-light)] rounded text-[var(--ink-soft)]">
+                    <p className="font-semibold">👤 {service.providerName}</p>
+                  </div>
+                )}
+
+                {/* CTA Button */}
+                <Link
+                  href={`/services/${service.id}`}
+                  className="w-full rounded-lg border-2 border-[var(--brand-deep)] bg-[var(--brand-deep)] px-3 py-2 text-center text-xs font-bold text-white hover:bg-[var(--brand)] transition-colors mt-auto"
+                >
+                  View Details & Contact
+                </Link>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* Request Service Form */}
       <form onSubmit={onSubmit} className="panel space-y-3 sm:space-y-4 p-4 sm:p-6">
         <h2 className="text-xl font-black sm:text-2xl">Request a Service</h2>
+        <p className="text-sm text-[var(--ink-soft)]">
+          Fill out this form to request one of our services. We'll be in touch within 24 hours.
+        </p>
 
         <div>
           <label htmlFor="pkg" className="mb-1 block text-xs font-semibold sm:text-sm">
@@ -169,7 +217,7 @@ export default function ServicesPage() {
           >
             {services.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.name}
+                {item.name} — ₵{item.price.toFixed(2)}
               </option>
             ))}
           </select>
@@ -184,6 +232,7 @@ export default function ServicesPage() {
             required
             value={customerName}
             onChange={(event) => setCustomerName(event.target.value)}
+            placeholder="John Doe"
             className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
           />
         </div>
@@ -197,6 +246,7 @@ export default function ServicesPage() {
             required
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
+            placeholder="+233 548656980"
             className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
           />
         </div>
@@ -210,6 +260,7 @@ export default function ServicesPage() {
             required
             value={issue}
             onChange={(event) => setIssue(event.target.value)}
+            placeholder="Describe the issue or what you need..."
             className="h-20 sm:h-24 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
           />
         </div>
@@ -222,25 +273,32 @@ export default function ServicesPage() {
             id="time"
             value={preferredTime}
             onChange={(event) => setPreferredTime(event.target.value)}
-            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            placeholder="e.g., Next week Saturday afternoon"
+            className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
           />
         </div>
 
-        {submitError ? <p className="text-sm font-semibold text-red-600">{submitError}</p> : null}
-        {result ? (
-          <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-            Ticket {result.ticketRef}: {result.message}
+        {submitError ? (
+          <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            ❌ {submitError}
           </p>
+        ) : null}
+        
+        {result ? (
+          <div className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+            <p>✅ Ticket {result.ticketRef}: {result.message}</p>
+            <p className="text-xs mt-1">We'll contact you shortly with next steps.</p>
+          </div>
         ) : null}
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-lg bg-[var(--brand)] px-4 py-3 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
         >
-          {submitting ? "Submitting..." : "Submit Request"}
+          {submitting ? "Submitting..." : "Request Service"}
         </button>
       </form>
-    </div>
+    </section>
   );
 }

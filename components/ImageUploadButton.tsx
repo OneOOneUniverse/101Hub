@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 interface ImageUploadButtonProps {
   onUpload: (url: string) => void;
+  onUploadAll?: (urls: string[]) => void;
   folder?: string;
   multiple?: boolean;
   label?: string;
@@ -11,6 +12,7 @@ interface ImageUploadButtonProps {
 
 export default function ImageUploadButton({
   onUpload,
+  onUploadAll,
   folder = "products",
   multiple = false,
   label = "Upload",
@@ -24,6 +26,8 @@ export default function ImageUploadButton({
     setError("");
 
     try {
+      const uploaded: string[] = [];
+
       for (const file of Array.from(files)) {
         const body = new FormData();
         body.append("file", file);
@@ -41,7 +45,15 @@ export default function ImageUploadButton({
         }
 
         if (data.url) {
-          onUpload(data.url);
+          uploaded.push(data.url);
+        }
+      }
+
+      if (onUploadAll) {
+        onUploadAll(uploaded);
+      } else {
+        for (const url of uploaded) {
+          onUpload(url);
         }
       }
     } catch (err) {

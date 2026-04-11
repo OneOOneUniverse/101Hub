@@ -1,22 +1,54 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { TruckIcon } from "@/components/Icons";
 import {
-  productCategories,
-  type HighlightCard,
+  defaultProductCategories,
+  getProductCategories,
+  type Category,
+  type CategoryFeature,
+  type DeliverySettings,
+  type DeliveryType,
+  type FooterContent,
+  type LocationDeliveryFee,
+  type PaymentSettings,
   type Product,
   type PromoSlide,
   type ServicePackage,
   type SiteContent,
   type SiteFeatures,
+  type HighlightCard,
+  type PaymentWalkthroughStep,
 } from "@/lib/site-content-types";
 import PendingPaymentsDashboard from "@/components/PendingPaymentsDashboard";
 import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
 import ServiceRequestsDashboard from "@/components/ServiceRequestsDashboard";
 import ImageUploadButton from "@/components/ImageUploadButton";
+import GalleryImageManager from "@/components/GalleryImageManager";
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
+  defaultFee: 15,
+  freeDeliveryItemThreshold: 5,
+  locationFees: [],
+  deliveryTypes: [],
+  processingFee: 4,
+};
+
+const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
+  paystackEnabled: true,
+  manualEnabled: true,
+};
+
+function withDeliveryDefaults(data: SiteContent): SiteContent {
+  return {
+    ...data,
+    deliverySettings: data.deliverySettings ?? DEFAULT_DELIVERY_SETTINGS,
+    paymentSettings: data.paymentSettings ?? DEFAULT_PAYMENT_SETTINGS,
+  };
 }
 
 function createProduct(): Product {
@@ -26,7 +58,7 @@ function createProduct(): Product {
     id,
     slug: id,
     name: "",
-    category: productCategories[0],
+    category: defaultProductCategories[0],
     description: "",
     price: 0,
     stock: 0,
@@ -52,6 +84,18 @@ function createService(): ServicePackage {
     price: 0,
     details: "",
     image: "",
+    images: [],
+  };
+}
+
+function createPaymentWalkthroughStep(): PaymentWalkthroughStep {
+  return {
+    id: createId("step"),
+    stepNumber: 1,
+    title: "",
+    description: "",
+    bulletPoints: [],
+    image: "",
   };
 }
 
@@ -70,6 +114,23 @@ function createHighlight(): HighlightCard {
     id: createId("highlight"),
     title: "",
     description: "",
+  };
+}
+
+function createCategoryFeature(): CategoryFeature {
+  return {
+    id: createId("feat"),
+    name: "",
+    description: "",
+  };
+}
+
+function createCategory(): Category {
+  return {
+    id: createId("cat"),
+    name: "",
+    description: "",
+    features: [],
   };
 }
 
@@ -143,7 +204,12 @@ type AdminSectionId =
   | "promo"
   | "flash"
   | "products"
+  | "categories"
+  | "delivery"
+  | "payments"
   | "services"
+  | "payment-walkthrough"
+  | "footer"
   | "sms";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
@@ -154,7 +220,12 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "promo", label: "Promo Slider" },
   { id: "flash", label: "Flash Sale" },
   { id: "products", label: "Products" },
+  { id: "categories", label: "Categories" },
+  { id: "delivery", label: "Delivery" },
+  { id: "payments", label: "Payments" },
   { id: "services", label: "Services" },
+  { id: "payment-walkthrough", label: "Payment Walkthrough" },
+  { id: "footer", label: "Footer" },
   { id: "sms", label: "Broadcast SMS" },
 ];
 
@@ -169,6 +240,19 @@ export default function AdminPage() {
   const [smsMessage, setSmsMessage] = useState("");
   const [smsSending, setSmsSending] = useState(false);
   const [smsResult, setSmsResult] = useState<{ success?: string; error?: string } | null>(null);
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+
+  function toggleProduct(id: string) {
+    setExpandedProducts((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
 
   const filteredProducts = useMemo(() => {
     if (!content) {
@@ -206,7 +290,7 @@ export default function AdminPage() {
         throw new Error(data.error || "Could not load admin content.");
       }
 
-      setContent(data);
+      setContent(withDeliveryDefaults(data));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not load admin content.");
     } finally {
@@ -288,7 +372,7 @@ export default function AdminPage() {
         throw new Error(data.error || "Could not save changes.");
       }
 
-      setContent(data);
+      setContent(withDeliveryDefaults(data));
       setMessage("Changes saved successfully.");
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save changes.");
@@ -766,6 +850,113 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
+
+              <div className="mt-4 space-y-4 border-t border-black/10 pt-4">
+                <h3 className="text-sm font-semibold text-[var(--brand-deep)]">Offer/Event Configuration (Optional)</h3>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Field label="Event/Offer Name">
+                    <input
+                      value={slide.eventName ?? ""}
+                      onChange={(event) => {
+                        const promoSlides = [...content.promoSlides];
+                        promoSlides[index] = { ...slide, eventName: event.target.value || undefined };
+                        setContent({ ...content, promoSlides });
+                      }}
+                      placeholder="e.g., Summer Sale, Black Friday"
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Link To">
+                    <select
+                      value={
+                        slide.actionUrl === "" ||
+                        slide.actionUrl === "/flash-sale" ||
+                        slide.actionUrl === "/products" ||
+                        slide.actionUrl === "/services" ||
+                        slide.actionUrl === "/wishlist" ||
+                        slide.actionUrl === "/cart"
+                          ? slide.actionUrl ?? ""
+                          : slide.actionUrl
+                          ? "custom"
+                          : ""
+                      }
+                      onChange={(event) => {
+                        const promoSlides = [...content.promoSlides];
+                        if (event.target.value === "custom") {
+                          // Keep current custom URL or show input
+                          promoSlides[index] = { ...slide, actionUrl: slide.actionUrl };
+                        } else {
+                          promoSlides[index] = { ...slide, actionUrl: event.target.value || undefined };
+                        }
+                        setContent({ ...content, promoSlides });
+                      }}
+                      className={inputClassName()}
+                    >
+                      <option value="">-- No Link --</option>
+                      <option value="/flash-sale">Flash Sale</option>
+                      <option value="/products">All Products</option>
+                      <option value="/services">Services</option>
+                      <option value="/wishlist">Wishlist</option>
+                      <option value="/cart">Shopping Cart</option>
+                      <option value="custom">Custom URL...</option>
+                    </select>
+                  </Field>
+                </div>
+
+                {slide.actionUrl &&
+                  slide.actionUrl !== "/flash-sale" &&
+                  slide.actionUrl !== "/products" &&
+                  slide.actionUrl !== "/services" &&
+                  slide.actionUrl !== "/wishlist" &&
+                  slide.actionUrl !== "/cart" && (
+                    <Field label="Custom URL">
+                      <input
+                        type="text"
+                        value={slide.actionUrl}
+                        onChange={(event) => {
+                          const promoSlides = [...content.promoSlides];
+                          promoSlides[index] = { ...slide, actionUrl: event.target.value || undefined };
+                          setContent({ ...content, promoSlides });
+                        }}
+                        placeholder="e.g., https://example.com or /custom-path"
+                        className={inputClassName()}
+                      />
+                    </Field>
+                  )}
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Field label="Start Date (Optional)">
+                    <input
+                      type="datetime-local"
+                      value={isoToDateTimeLocal(slide.startDate)}
+                      onChange={(event) => {
+                        const promoSlides = [...content.promoSlides];
+                        promoSlides[index] = {
+                          ...slide,
+                          startDate: dateTimeLocalToIso(event.target.value),
+                        };
+                        setContent({ ...content, promoSlides });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="End Date (Optional)">
+                    <input
+                      type="datetime-local"
+                      value={isoToDateTimeLocal(slide.endDate)}
+                      onChange={(event) => {
+                        const promoSlides = [...content.promoSlides];
+                        promoSlides[index] = {
+                          ...slide,
+                          endDate: dateTimeLocalToIso(event.target.value),
+                        };
+                        setContent({ ...content, promoSlides });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                </div>
+              </div>
             </article>
           ))}
         </div>
@@ -949,7 +1140,11 @@ export default function AdminPage() {
         <div className="mb-4 flex justify-start">
           <button
             type="button"
-            onClick={() => setContent({ ...content, products: [createProduct(), ...content.products] })}
+            onClick={() => {
+            const newProduct = createProduct();
+            setContent({ ...content, products: [newProduct, ...content.products] });
+            setExpandedProducts((prev) => new Set([...prev, newProduct.id]));
+          }}
             className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)]"
           >
             Add Product
@@ -973,8 +1168,40 @@ export default function AdminPage() {
         </p>
 
         <div className="space-y-4">
-          {filteredProducts.map(({ product, index }) => (
-            <article key={`${product.id}-${index}`} className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+          {filteredProducts.map(({ product, index }) => {
+            const isExpanded = expandedProducts.has(product.id);
+            return (
+            <article key={`${product.id}-${index}`} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+              <button
+                type="button"
+                onClick={() => toggleProduct(product.id)}
+                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-[var(--brand)]/5 transition-colors"
+              >
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
+                  <span className="font-bold text-[var(--brand-deep)] truncate">
+                    {product.name || <span className="text-[var(--ink-soft)] font-normal italic">Unnamed product</span>}
+                  </span>
+                  {product.category ? (
+                    <span className="rounded-full bg-[var(--accent)]/15 px-2.5 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">
+                      {product.category}
+                    </span>
+                  ) : null}
+                  {product.price > 0 ? (
+                    <span className="text-sm text-[var(--ink-soft)]">GHS {product.price.toLocaleString()}</span>
+                  ) : null}
+                  {product.stock === 0 ? (
+                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Out of stock</span>
+                  ) : (
+                    <span className="text-xs text-[var(--ink-soft)]">Stock: {product.stock}</span>
+                  )}
+                </div>
+                <span className="shrink-0 text-[var(--brand-deep)] text-lg" aria-hidden>
+                  {isExpanded ? "▲" : "▼"}
+                </span>
+              </button>
+
+              {isExpanded ? (
+              <div className="border-t border-black/10 p-4">
               <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
                 <Field label="Product id">
                   <input
@@ -1016,13 +1243,13 @@ export default function AdminPage() {
                       const products = [...content.products];
                       products[index] = {
                         ...product,
-                        category: event.target.value as Product["category"],
+                        category: event.target.value,
                       };
                       setContent({ ...content, products });
                     }}
                     className={inputClassName()}
                   >
-                    {productCategories.map((category) => (
+                    {getProductCategories(content.categories).map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>
@@ -1125,6 +1352,49 @@ export default function AdminPage() {
                     </p>
                   ) : null}
                 </Field>
+                <Field label="Delivery Fee (GHS, optional)">
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={product.deliveryFee ?? ""}
+                    placeholder="Leave empty to use location/default fee"
+                    disabled={product.noDeliveryFee === true}
+                    onChange={(event) => {
+                      const products = [...content.products];
+                      const feeValue = event.target.value ? Number(event.target.value) : undefined;
+                      products[index] = { ...product, deliveryFee: feeValue };
+                      setContent({ ...content, products });
+                    }}
+                    className={inputClassName()}
+                  />
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">
+                    Per-product delivery charge. Overrides location fee for this product.
+                  </p>
+                </Field>
+                <div className="flex flex-col justify-start gap-2 pt-1">
+                  <span className="text-sm font-semibold text-[var(--brand-deep)]">No Delivery Fee</span>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={product.noDeliveryFee === true}
+                      onChange={(event) => {
+                        const products = [...content.products];
+                        products[index] = {
+                          ...product,
+                          noDeliveryFee: event.target.checked || undefined,
+                          deliveryFee: event.target.checked ? undefined : product.deliveryFee,
+                        };
+                        setContent({ ...content, products });
+                      }}
+                      className="h-4 w-4 accent-[var(--brand)]"
+                    />
+                    <span className="text-sm text-[var(--ink)]">Free delivery for this product</span>
+                  </label>
+                  {product.noDeliveryFee && (
+                    <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1"><TruckIcon size={14} /> This product ships for free</p>
+                  )}
+                </div>
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
@@ -1139,56 +1409,47 @@ export default function AdminPage() {
                     className={inputClassName(true)}
                   />
                 </Field>
-                <Field label="Gallery image paths (one per line)">
-                  <textarea
-                    value={(product.images ?? []).join("\n")}
-                    onChange={(event) => {
+                <div className="lg:col-span-2">
+                  <GalleryImageManager
+                    images={product.images ?? []}
+                    onChange={(newImages) => {
                       const products = [...content.products];
-                      products[index] = {
-                        ...product,
-                        images: parseLinesToImagePaths(event.target.value),
-                      };
+                      products[index] = { ...product, images: newImages };
                       setContent({ ...content, products });
                     }}
-                    placeholder="/img/products/my-product/1.jpg\n/img/products/my-product/2.jpg"
-                    className={inputClassName(true)}
+                    productId={product.id}
+                    productSlug={product.slug}
+                    label="Product Gallery Images (Variation/Detail Images) 🖼️"
                   />
-                  <ImageUploadButton
-                    folder={`products/${product.slug || product.id}`}
-                    multiple
-                    onUpload={(url) => {
-                      const products = [...content.products];
-                      const existing = products[index].images ?? [];
-                      products[index] = { ...products[index], images: [...existing, url] };
-                      setContent({ ...content, products });
-                    }}
-                    label="Upload Gallery Image(s)"
-                  />
-                </Field>
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const nextProducts = [...content.products];
-                      nextProducts.splice(index, 1);
-                      const featuredProductIds = content.flashSale.featuredProductIds.filter(
-                        (id) => id !== product.id
-                      );
-
-                      setContent({
-                        ...content,
-                        products: nextProducts,
-                        flashSale: { ...content.flashSale, featuredProductIds },
-                      });
-                    }}
-                    className="w-full rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
-                  >
-                    Remove
-                  </button>
                 </div>
               </div>
+
+              <div className="flex items-end mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextProducts = [...content.products];
+                    nextProducts.splice(index, 1);
+                    const featuredProductIds = content.flashSale.featuredProductIds.filter(
+                      (id) => id !== product.id
+                    );
+
+                    setContent({
+                      ...content,
+                      products: nextProducts,
+                      flashSale: { ...content.flashSale, featuredProductIds },
+                    });
+                  }}
+                  className="w-full rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </div>
+              </div>
+              ) : null}
             </article>
-          ))}
+            );
+          })}
         </div>
         </Section>
       ) : null}
@@ -1308,9 +1569,808 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
+
+              <div className="mt-4">
+                <GalleryImageManager
+                  images={service.images ?? []}
+                  onChange={(newImages) => {
+                    const services = [...content.services];
+                    services[index] = { ...service, images: newImages };
+                    setContent({ ...content, services });
+                  }}
+                  productId={service.id}
+                  productSlug={service.id}
+                  label="Service Gallery Images (Additional Photos) 🖼️"
+                />
+              </div>
+
+              <div className="mt-4 border-t border-black/10 pt-4">
+                <h4 className="mb-4 text-sm font-bold text-[var(--ink-soft)]">Provider Contact Details</h4>
+                <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                  <Field label="Provider Name">
+                    <input
+                      value={service.providerName ?? ""}
+                      onChange={(event) => {
+                        const services = [...content.services];
+                        services[index] = { ...service, providerName: event.target.value };
+                        setContent({ ...content, services });
+                      }}
+                      placeholder="e.g., Tech Expert"
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Phone">
+                    <input
+                      value={service.phone ?? ""}
+                      onChange={(event) => {
+                        const services = [...content.services];
+                        services[index] = { ...service, phone: event.target.value };
+                        setContent({ ...content, services });
+                      }}
+                      placeholder="+233 548656980"
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Email">
+                    <input
+                      value={service.email ?? ""}
+                      onChange={(event) => {
+                        const services = [...content.services];
+                        services[index] = { ...service, email: event.target.value };
+                        setContent({ ...content, services });
+                      }}
+                      placeholder="contact@101hub.com"
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Current Offers">
+                    <input
+                      value={service.currentOffers ?? ""}
+                      onChange={(event) => {
+                        const services = [...content.services];
+                        services[index] = { ...service, currentOffers: event.target.value };
+                        setContent({ ...content, services });
+                      }}
+                      placeholder="e.g., Free optimization"
+                      className={inputClassName()}
+                    />
+                  </Field>
+                </div>
+              </div>
             </article>
           ))}
         </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "payment-walkthrough" ? (
+        <Section title="Manual Payment Walkthrough" description="Edit the step-by-step instructions shown to customers during checkout for manual payments. Add images to demonstrate each step.">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              const walkthrough = content.paymentWalkthrough ?? [];
+              const newStep = createPaymentWalkthroughStep();
+              newStep.stepNumber = (walkthrough.length ?? 0) + 1;
+              setContent({ ...content, paymentWalkthrough: [...walkthrough, newStep] });
+            }}
+            className="rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+          >
+            Add Step
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {(content.paymentWalkthrough ?? []).map((step, index) => (
+            <article key={`${step.id}-${index}`} className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+              <div className="grid gap-4 lg:grid-cols-3">
+                <Field label="Step Number">
+                  <input
+                    type="number"
+                    min={1}
+                    step="1"
+                    value={step.stepNumber}
+                    onChange={(event) => {
+                      const walkthrough = [...(content.paymentWalkthrough ?? [])];
+                      walkthrough[index] = { ...step, stepNumber: Number(event.target.value || 1) };
+                      setContent({ ...content, paymentWalkthrough: walkthrough });
+                    }}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Title">
+                  <input
+                    value={step.title}
+                    onChange={(event) => {
+                      const walkthrough = [...(content.paymentWalkthrough ?? [])];
+                      walkthrough[index] = { ...step, title: event.target.value };
+                      setContent({ ...content, paymentWalkthrough: walkthrough });
+                    }}
+                    placeholder="e.g., Open Your Mobile Money App"
+                    className={inputClassName()}
+                  />
+                </Field>
+              </div>
+
+              <div className="mt-4">
+                <Field label="Description">
+                  <textarea
+                    value={step.description}
+                    onChange={(event) => {
+                      const walkthrough = [...(content.paymentWalkthrough ?? [])];
+                      walkthrough[index] = { ...step, description: event.target.value };
+                      setContent({ ...content, paymentWalkthrough: walkthrough });
+                    }}
+                    placeholder="Detailed description of this step..."
+                    className={inputClassName(true)}
+                  />
+                </Field>
+              </div>
+
+              <div className="mt-4">
+                <Field label="Bullet Points (one per line)">
+                  <textarea
+                    value={(step.bulletPoints ?? []).join("\n")}
+                    onChange={(event) => {
+                      const walkthrough = [...(content.paymentWalkthrough ?? [])];
+                      walkthrough[index] = { 
+                        ...step, 
+                        bulletPoints: parseLinesToImagePaths(event.target.value) 
+                      };
+                      setContent({ ...content, paymentWalkthrough: walkthrough });
+                    }}
+                    placeholder="Line 1&#10;Line 2&#10;Line 3..."
+                    className={inputClassName(true)}
+                  />
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">Each line becomes a bullet point</p>
+                </Field>
+              </div>
+
+              <div className="mt-4">
+                <Field label="Step Image (Screenshot/Demo)">
+                  <input
+                    value={step.image ?? ""}
+                    onChange={(event) => {
+                      const walkthrough = [...(content.paymentWalkthrough ?? [])];
+                      walkthrough[index] = { ...step, image: event.target.value };
+                      setContent({ ...content, paymentWalkthrough: walkthrough });
+                    }}
+                    placeholder="/payment-walkthrough/step-1.jpg or https://..."
+                    className={inputClassName()}
+                  />
+                  <ImageUploadButton
+                    folder="payment-walkthrough"
+                    onUpload={(url) => {
+                      const walkthrough = [...(content.paymentWalkthrough ?? [])];
+                      walkthrough[index] = { ...step, image: url };
+                      setContent({ ...content, paymentWalkthrough: walkthrough });
+                    }}
+                    label="Upload Image"
+                  />
+                  {step.image && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-[var(--ink-soft)] mb-2">Preview:</p>
+                      <img 
+                        src={step.image} 
+                        alt={step.title}
+                        className="h-48 max-w-full rounded-lg border border-black/10 object-cover"
+                      />
+                    </div>
+                  )}
+                </Field>
+              </div>
+
+              <div className="mt-4 flex items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const walkthrough = [...(content.paymentWalkthrough ?? [])];
+                    walkthrough.splice(index, 1);
+                    setContent({
+                      ...content,
+                      paymentWalkthrough: walkthrough,
+                    });
+                  }}
+                  className="w-full rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
+                >
+                  Remove Step
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "categories" ? (
+        <Section title="Categories & Features" description="Manage product categories and their associated features.">
+
+          {/* "All" category card image */}
+          <div className="mb-6 rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+            <p className="text-sm font-bold text-[var(--brand-deep)] mb-3">"All" Category Card Image</p>
+            <Field label="Background image shown on the All products card">
+              <div className="flex flex-col gap-1.5">
+                {content.allCategoryImage ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-[var(--surface)] p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={content.allCategoryImage} alt="All category" className="h-12 w-16 rounded-lg object-cover border border-black/10" />
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <p className="text-xs text-[var(--ink-soft)] truncate">{content.allCategoryImage}</p>
+                      <div className="flex gap-2">
+                        <ImageUploadButton
+                          folder="categories"
+                          label="Replace"
+                          onUpload={(url) => setContent({ ...content, allCategoryImage: url })}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setContent({ ...content, allCategoryImage: undefined })}
+                          className="whitespace-nowrap rounded-full border border-red-300 px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <ImageUploadButton
+                    folder="categories"
+                    label="Upload All Card Image"
+                    onUpload={(url) => setContent({ ...content, allCategoryImage: url })}
+                  />
+                )}
+                <p className="text-xs text-[var(--ink-soft)]">Displayed as background on the "All" category card</p>
+              </div>
+            </Field>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[var(--ink-soft)] uppercase tracking-wide">
+                {content.categories.length} {content.categories.length === 1 ? "Category" : "Categories"}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {content.categories.map((cat) => (
+                  <span key={cat.id} className="rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-bold text-[var(--brand-deep)]">
+                    {cat.name} <span className="ml-1 text-[var(--ink-soft)]">({cat.features.length})</span>
+                  </span>
+                ))}
+                {content.categories.length === 0 && (
+                  <p className="text-xs italic text-[var(--ink-soft)]">No categories yet</p>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setContent({ ...content, categories: [...content.categories, createCategory()] })}
+              className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)]"
+            >
+              Add Category
+            </button>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            {content.categories.map((category, categoryIndex) => (
+              <article key={`${category.id}-${categoryIndex}`} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+                <div className="p-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Category Name">
+                      <input
+                        value={category.name}
+                        onChange={(event) => {
+                          const categories = [...content.categories];
+                          categories[categoryIndex] = { ...category, name: event.target.value };
+                          setContent({ ...content, categories });
+                        }}
+                        className={inputClassName()}
+                        placeholder="e.g., Phones & Tablets"
+                      />
+                    </Field>
+                    <Field label="Category Image (shown on card)">
+                      <div className="flex flex-col gap-1.5">
+                        {category.image ? (
+                          <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-[var(--surface)] p-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={category.image} alt={category.name} className="h-12 w-16 rounded-lg object-cover border border-black/10" />
+                            <div className="flex flex-col gap-1 min-w-0">
+                              <p className="text-xs text-[var(--ink-soft)] truncate">{category.image}</p>
+                              <div className="flex gap-2">
+                                <ImageUploadButton
+                                  folder="categories"
+                                  label="Replace"
+                                  onUpload={(url) => {
+                                    const categories = [...content.categories];
+                                    categories[categoryIndex] = { ...category, image: url };
+                                    setContent({ ...content, categories });
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const categories = [...content.categories];
+                                    categories[categoryIndex] = { ...category, image: undefined };
+                                    setContent({ ...content, categories });
+                                  }}
+                                  className="whitespace-nowrap rounded-full border border-red-300 px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <ImageUploadButton
+                            folder="categories"
+                            label="Upload Category Image"
+                            onUpload={(url) => {
+                              const categories = [...content.categories];
+                              categories[categoryIndex] = { ...category, image: url };
+                              setContent({ ...content, categories });
+                            }}
+                          />
+                        )}
+                        <p className="text-xs text-[var(--ink-soft)]">Displayed as background on the category card</p>
+                      </div>
+                    </Field>
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const categories = [...content.categories];
+                        categories.splice(categoryIndex, 1);
+                        setContent({ ...content, categories });
+                      }}
+                      className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
+                    >
+                      Remove Category
+                    </button>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-[var(--brand-deep)]">Features ({category.features.length})</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const categories = [...content.categories];
+                          const newFeature = createCategoryFeature();
+                          categories[categoryIndex] = {
+                            ...category,
+                            features: [...category.features, newFeature],
+                          };
+                          setContent({ ...content, categories });
+                        }}
+                        className="rounded-full border border-[var(--brand)] px-3 py-1 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                      >
+                        + Add
+                      </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      {category.features.map((feature, featureIndex) => (
+                        <div key={`${feature.id}-${featureIndex}`} className="flex items-center gap-2 rounded-lg bg-[var(--brand)]/5 px-3 py-2">
+                          <input
+                            type="text"
+                            value={feature.name}
+                            onChange={(event) => {
+                              const categories = [...content.categories];
+                              const features = [...category.features];
+                              features[featureIndex] = { ...feature, name: event.target.value };
+                              categories[categoryIndex] = { ...category, features };
+                              setContent({ ...content, categories });
+                            }}
+                            placeholder="Feature name"
+                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--ink-soft)]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const categories = [...content.categories];
+                              const features = [...category.features];
+                              features.splice(featureIndex, 1);
+                              categories[categoryIndex] = { ...category, features };
+                              setContent({ ...content, categories });
+                            }}
+                            className="text-xs font-bold text-red-600 hover:text-red-700"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      {category.features.length === 0 && (
+                        <p className="text-xs italic text-[var(--ink-soft)]">No features yet</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+            {content.categories.length === 0 && (
+              <p className="rounded-2xl border border-black/10 bg-white p-4 text-sm italic text-[var(--ink-soft)]">No categories yet. Click "Add Category" to get started.</p>
+            )}
+          </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "delivery" ? (
+        <Section title="Delivery Settings" description="Set delivery fees by location, per-product overrides, and the free-delivery item threshold.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Default delivery fee (GHS)">
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={content.deliverySettings.defaultFee}
+                onChange={(event) =>
+                  setContent({
+                    ...content,
+                    deliverySettings: {
+                      ...content.deliverySettings,
+                      defaultFee: Number(event.target.value || 0),
+                    },
+                  })
+                }
+                className={inputClassName()}
+              />
+              <p className="mt-1 text-xs text-[var(--ink-soft)]">Applies when no location is selected and the product has no custom delivery fee.</p>
+            </Field>
+            <Field label="Free delivery item threshold">
+              <input
+                type="number"
+                min={1}
+                step="1"
+                value={content.deliverySettings.freeDeliveryItemThreshold}
+                onChange={(event) =>
+                  setContent({
+                    ...content,
+                    deliverySettings: {
+                      ...content.deliverySettings,
+                      freeDeliveryItemThreshold: Number(event.target.value || 1),
+                    },
+                  })
+                }
+                className={inputClassName()}
+              />
+              <p className="mt-1 text-xs text-[var(--ink-soft)]">Customers who add this many or more items get free delivery automatically.</p>
+            </Field>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">Location-Based Delivery Fees</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  const newLoc: LocationDeliveryFee = {
+                    id: `loc-${Math.random().toString(36).slice(2, 8)}`,
+                    name: "",
+                    fee: 0,
+                  };
+                  setContent({
+                    ...content,
+                    deliverySettings: {
+                      ...content.deliverySettings,
+                      locationFees: [...content.deliverySettings.locationFees, newLoc],
+                    },
+                  });
+                }}
+                className="rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+              >
+                Add Location
+              </button>
+            </div>
+
+            {content.deliverySettings.locationFees.length === 0 && (
+              <p className="text-sm text-[var(--ink-soft)]">No locations configured yet. Delivery will use the default fee.</p>
+            )}
+
+            {content.deliverySettings.locationFees.map((loc, locIndex) => (
+              <article key={loc.id} className="grid grid-cols-[1fr_auto_auto] items-end gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+                <Field label="Location name">
+                  <input
+                    value={loc.name}
+                    onChange={(event) => {
+                      const locationFees = [...content.deliverySettings.locationFees];
+                      locationFees[locIndex] = { ...loc, name: event.target.value };
+                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                    }}
+                    placeholder="e.g. Accra Central"
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Fee (GHS)">
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={loc.fee}
+                    onChange={(event) => {
+                      const locationFees = [...content.deliverySettings.locationFees];
+                      locationFees[locIndex] = { ...loc, fee: Number(event.target.value || 0) };
+                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                    }}
+                    className={`${inputClassName()} w-28`}
+                  />
+                </Field>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const locationFees = [...content.deliverySettings.locationFees];
+                    locationFees.splice(locIndex, 1);
+                    setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                  }}
+                  className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </article>
+            ))}
+          </div>
+
+          {/* Processing Fee */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-black text-[var(--brand-deep)]">Processing Fee</h3>
+            <Field label="Processing fee per order (GHS)">
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={content.deliverySettings.processingFee}
+                onChange={(event) =>
+                  setContent({
+                    ...content,
+                    deliverySettings: {
+                      ...content.deliverySettings,
+                      processingFee: Number(event.target.value || 0),
+                    },
+                  })
+                }
+                className={inputClassName()}
+              />
+              <p className="mt-1 text-xs text-[var(--ink-soft)]">A flat fee charged on every order to cover payment processing costs. Set to 0 to disable.</p>
+            </Field>
+          </div>
+
+          {/* Delivery Types */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-black text-[var(--brand-deep)]">Delivery Types</h3>
+                <p className="text-xs text-[var(--ink-soft)] mt-0.5">Add delivery methods like &quot;Door to Door&quot; or &quot;Pickup&quot;. When configured, customers choose one at checkout.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const newType: DeliveryType = {
+                    id: `dtype-${Math.random().toString(36).slice(2, 8)}`,
+                    name: "",
+                    fee: 0,
+                    description: "",
+                  };
+                  setContent({
+                    ...content,
+                    deliverySettings: {
+                      ...content.deliverySettings,
+                      deliveryTypes: [...(content.deliverySettings.deliveryTypes ?? []), newType],
+                    },
+                  });
+                }}
+                className="rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 whitespace-nowrap"
+              >
+                Add Type
+              </button>
+            </div>
+
+            {(content.deliverySettings.deliveryTypes ?? []).length === 0 && (
+              <p className="text-sm text-[var(--ink-soft)]">No delivery types configured. Location-based fees will be used instead.</p>
+            )}
+
+            {(content.deliverySettings.deliveryTypes ?? []).map((dt, dtIndex) => (
+              <article key={dt.id} className="grid grid-cols-[1fr_1fr_auto_auto] items-end gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+                <Field label="Type name">
+                  <input
+                    value={dt.name}
+                    onChange={(event) => {
+                      const deliveryTypes = [...(content.deliverySettings.deliveryTypes ?? [])];
+                      deliveryTypes[dtIndex] = { ...dt, name: event.target.value };
+                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, deliveryTypes } });
+                    }}
+                    placeholder="e.g. Door to Door"
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Description (optional)">
+                  <input
+                    value={dt.description ?? ""}
+                    onChange={(event) => {
+                      const deliveryTypes = [...(content.deliverySettings.deliveryTypes ?? [])];
+                      deliveryTypes[dtIndex] = { ...dt, description: event.target.value };
+                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, deliveryTypes } });
+                    }}
+                    placeholder="e.g. Delivered straight to your door"
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Fee (GHS)">
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={dt.fee}
+                    onChange={(event) => {
+                      const deliveryTypes = [...(content.deliverySettings.deliveryTypes ?? [])];
+                      deliveryTypes[dtIndex] = { ...dt, fee: Number(event.target.value || 0) };
+                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, deliveryTypes } });
+                    }}
+                    className={`${inputClassName()} w-28`}
+                  />
+                </Field>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const deliveryTypes = [...(content.deliverySettings.deliveryTypes ?? [])];
+                    deliveryTypes.splice(dtIndex, 1);
+                    setContent({ ...content, deliverySettings: { ...content.deliverySettings, deliveryTypes } });
+                  }}
+                  className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </article>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-4">
+            <p className="text-sm font-bold text-[var(--brand-deep)] mb-1">How delivery fees work</p>
+            <ul className="text-xs text-[var(--ink-soft)] space-y-1 list-disc list-inside">
+              <li>If all items in the cart have "Free delivery" enabled, delivery is GHS 0.</li>
+              <li>If the cart has <strong>{content.deliverySettings.freeDeliveryItemThreshold}+ items</strong>, delivery is free automatically.</li>
+              <li>If delivery types are configured, the selected type fee is used as the delivery charge.</li>
+              <li>Otherwise, the customer's chosen location fee applies.</li>
+              <li>If a product has a custom per-product fee set, that fee overrides the location fee for that product.</li>
+              <li>If no location is chosen and no product fee is set, the default fee (GHS {content.deliverySettings.defaultFee}) applies.</li>
+              <li>A processing fee of GHS {content.deliverySettings.processingFee} is added to every non-empty order.</li>
+            </ul>
+          </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "payments" ? (
+        <Section title="Payment Methods" description="Control which payment methods customers can use at checkout.">
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
+              <label className="flex items-center justify-between gap-4 cursor-pointer">
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">Paystack (Card / Mobile Money / Bank Transfer)</p>
+                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">Customers can pay online via card, MoMo, or bank transfer through Paystack.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={content.paymentSettings?.paystackEnabled ?? true}
+                  onChange={(event) =>
+                    setContent({
+                      ...content,
+                      paymentSettings: {
+                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
+                        paystackEnabled: event.target.checked,
+                      },
+                    })
+                  }
+                  className="h-5 w-5 accent-[var(--brand)]"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 cursor-pointer border-t border-black/10 pt-4">
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">Manual Transfer (Upload Payment Proof)</p>
+                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">Customers pay via mobile money or bank transfer and upload a screenshot as proof.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={content.paymentSettings?.manualEnabled ?? true}
+                  onChange={(event) =>
+                    setContent({
+                      ...content,
+                      paymentSettings: {
+                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
+                        manualEnabled: event.target.checked,
+                      },
+                    })
+                  }
+                  className="h-5 w-5 accent-[var(--brand)]"
+                />
+              </label>
+            </div>
+
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Important</p>
+              <p className="text-xs text-amber-800">At least one payment method must be usable at checkout. Disabling all methods will prevent customers from placing orders. Paystack also requires a valid API key to function — set <code className="bg-amber-100 px-1 rounded">NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY</code> in your environment.</p>
+            </div>
+          </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "footer" ? (
+        <Section
+          title="Footer"
+          description="Set contact information and social media links shown in the site footer."
+        >
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Field label="Phone number">
+                <input
+                  value={content.footer?.phone ?? ""}
+                  onChange={(event) =>
+                    setContent({
+                      ...content,
+                      footer: { ...content.footer, phone: event.target.value },
+                    })
+                  }
+                  placeholder="+233 20 000 0000"
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Email address">
+                <input
+                  type="email"
+                  value={content.footer?.email ?? ""}
+                  onChange={(event) =>
+                    setContent({
+                      ...content,
+                      footer: { ...content.footer, email: event.target.value },
+                    })
+                  }
+                  placeholder="hello@101hub.store"
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Physical address">
+                <input
+                  value={content.footer?.address ?? ""}
+                  onChange={(event) =>
+                    setContent({
+                      ...content,
+                      footer: { ...content.footer, address: event.target.value },
+                    })
+                  }
+                  placeholder="Accra, Ghana"
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+
+            <div>
+              <p className="mb-3 text-sm font-bold text-[var(--brand-deep)]">Social Media Links</p>
+              <p className="mb-4 text-xs text-[var(--ink-soft)]">Enter the full URL or handle for each platform. Leave blank to hide it from the footer.</p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {(
+                  [
+                    { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/yourpage" },
+                    { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/yourhandle" },
+                    { key: "twitter", label: "X (Twitter)", placeholder: "https://x.com/yourhandle" },
+                    { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/@yourchannel" },
+                    { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@yourhandle" },
+                    { key: "whatsapp", label: "WhatsApp", placeholder: "https://wa.me/233200000000" },
+                  ] as Array<{ key: keyof FooterContent; label: string; placeholder: string }>
+                ).map(({ key, label, placeholder }) => (
+                  <Field key={key} label={label}>
+                    <input
+                      value={(content.footer?.[key] as string) ?? ""}
+                      onChange={(event) =>
+                        setContent({
+                          ...content,
+                          footer: { ...content.footer, [key]: event.target.value },
+                        })
+                      }
+                      placeholder={placeholder}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                ))}
+              </div>
+            </div>
+          </div>
         </Section>
       ) : null}
 

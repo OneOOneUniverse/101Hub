@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { getSiteContent } from "@/lib/site-content";
 import {
   getProductBySlug,
@@ -10,6 +11,7 @@ import { getResolvedProductGallery } from "@/lib/product-gallery.server";
 import ProductGallery from "@/components/ProductGallery";
 import ProductReviews from "@/components/ProductReviews";
 import WishlistButton from "@/components/WishlistButton";
+import ProductCardShare from "@/components/ProductCardShare";
 import ProductDetailActions from "@/components/ProductDetailActions";
 
 type ProductPageProps = {
@@ -26,13 +28,53 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     };
   }
 
+  // Calculate discount and price
+  const hasProductDiscount = product.discount && product.discount > 0;
+  const discountPercent = hasProductDiscount ? product.discount : 0;
+  const isFlashSale = !hasProductDiscount && content.features.flashSale && content.flashSale.featuredProductIds.includes(product.id);
+  const flashSalePercent = isFlashSale ? content.flashSale.discountPercentage : 0;
+  const totalDiscount = discountPercent || flashSalePercent;
+  const salePrice = totalDiscount > 0
+    ? Number((product.price * ((100 - totalDiscount) / 100)).toFixed(2))
+    : product.price;
+
+  // Build attractive description with price
+  const priceText = totalDiscount > 0 
+    ? `GHS ${salePrice.toFixed(2)} (was GHS ${product.price.toFixed(2)}) - Save GHS ${(product.price - salePrice).toFixed(2)}`
+    : `GHS ${product.price.toFixed(2)}`;
+
+  const shortDescription = product.description.split('\n')[0].substring(0, 120);
+  const shareDescription = `${product.name} - ${priceText}\n\n${shortDescription}...\n\nShop now at 101Hub!`;
+
   return {
     title: `${product.name} | 101Hub`,
-    description: product.description,
+    description: shareDescription,
+    openGraph: {
+      title: product.name,
+      description: shareDescription,
+      type: "website",
+      url: `/products/${slug}`,
+      images: product.image ? [
+        {
+          url: product.image,
+          width: 1200,
+          height: 900,
+          alt: product.name,
+          type: "image/jpeg",
+        },
+      ] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: shareDescription,
+      images: product.image ? [product.image] : undefined,
+    },
   };
 }
 
 export default async function ProductDetailsPage({ params }: ProductPageProps) {
+  await connection();
   const { slug } = await params;
   const content = await getSiteContent();
   const product = getProductBySlug(content.products, slug);
@@ -159,7 +201,17 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
               </div>
             </div>
 
-            <ProductDetailActions productId={product.id} features={content.features} />
+            <ProductDetailActions 
+              productId={product.id} 
+              features={content.features}
+              productName={product.name}
+              productDescription={product.description}
+              productImage={product.image}
+              productSlug={product.slug}
+              price={product.price}
+              salePrice={displayPrice}
+              discount={totalDiscount}
+            />
           </div>
         </div>
       </section>
@@ -243,7 +295,16 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
                     View Product
                   </Link>
                   {content.features.wishlist ? (
-                    <div className="mt-2">
+                    <div className="mt-2 flex gap-1.5">
+                      <ProductCardShare 
+                        productName={item.name}
+                        productDescription={`${item.name} - GHS ${relatedDisplayPrice.toFixed(2)}`}
+                        slug={item.slug}
+                        compact
+                        price={item.price}
+                        salePrice={relatedDisplayPrice}
+                        discount={relatedTotalDiscount}
+                      />
                       <WishlistButton productId={item.id} />
                     </div>
                   ) : null}

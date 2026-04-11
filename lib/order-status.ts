@@ -21,13 +21,16 @@ export interface OrderData {
   items: Array<{ name: string; qty: number; unitPrice: number; lineTotal: number }>;
   subtotal: number;
   delivery: number;
+  processingFee?: number;
   total: number;
   downpayment: number;
+  deliveryType?: string;
   paymentMethod: PaymentMethod;
   paymentStatus: "pending" | "verified" | "rejected";
   orderStatus: OrderStatus;
   createdAt: string;
   updatedAt?: string;
+  estimatedDeliveryDate?: string; // ISO string or human-readable estimate like "2 days" or "24 hours"
 }
 
 export function getOrderStatusLabel(status: OrderStatus): string {
@@ -156,4 +159,46 @@ export function getOrdersFromLocal(): OrderData[] {
   } catch {
     return [];
   }
+}
+
+/** Format creation date and time (e.g., "10 Apr 2026, 2:30 PM") */
+export function formatOrderDate(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+/** Format estimated delivery (either ISO date or text description) */
+export function formatEstimatedDelivery(estimate?: string): string {
+  if (!estimate) return "Not set";
+  
+  // Check if it's an ISO date string (contains T or is a date-like format)
+  if (estimate.includes("T") || /^\d{4}-\d{2}-\d{2}/.test(estimate)) {
+    try {
+      const date = new Date(estimate);
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return estimate;
+    }
+  }
+  
+  // Otherwise return as-is (e.g., "2 days", "24 hours")
+  return estimate;
 }

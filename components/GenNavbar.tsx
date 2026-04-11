@@ -25,17 +25,43 @@ export default function GenNavbar({
   const [isAdmin, setIsAdmin] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
   const [storeName, setStoreName] = useState("101Hub");
+  const [features, setFeatures] = useState({
+    flashSale: true,
+    wishlist: true,
+    services: true,
+    cart: true,
+    checkout: true,
+  });
 
   useEffect(() => {
     let isActive = true;
 
     async function loadBranding() {
       try {
-        const response = await fetch("/api/store", { cache: "no-store" });
-        const data = (await response.json()) as { logoUrl?: string; storeName?: string };
+        const response = await fetch("/api/store", { cache: "default" });
+        const data = (await response.json()) as {
+          logoUrl?: string;
+          storeName?: string;
+          features?: {
+            flashSale?: boolean;
+            wishlist?: boolean;
+            services?: boolean;
+            cart?: boolean;
+            checkout?: boolean;
+          };
+        };
         if (isActive) {
           if (data.logoUrl) setLogoUrl(data.logoUrl);
           if (data.storeName) setStoreName(data.storeName);
+          if (data.features) {
+            setFeatures({
+              flashSale: data.features.flashSale ?? true,
+              wishlist: data.features.wishlist ?? true,
+              services: data.features.services ?? true,
+              cart: data.features.cart ?? true,
+              checkout: data.features.checkout ?? true,
+            });
+          }
         }
       } catch {
         // keep defaults
@@ -105,7 +131,7 @@ export default function GenNavbar({
             src={logoUrl}
             alt={storeName}
             className="gen-logo-img"
-            style={{ height: "40px", width: "auto", maxWidth: "180px", objectFit: "contain", display: "block" }}
+            style={{ height: "40px", width: "auto", maxWidth: "120px", objectFit: "contain", display: "block" }}
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = "none";
               const text = e.currentTarget.nextElementSibling as HTMLElement | null;
@@ -115,7 +141,7 @@ export default function GenNavbar({
         ) : (
           <Image src="/favicon.ico" alt={storeName} width={36} height={36} />
         )}
-        <span className="gen-logo-text" style={logoUrl ? { display: "none" } : undefined}>{storeName}</span>
+        <span className="gen-logo-text">{storeName}</span>
       </div>
       <button
         className="gen-hamburger"
@@ -131,23 +157,25 @@ export default function GenNavbar({
           <a href="#">Products <span className="gen-arrow">▾</span></a>
           <ul>
             <li><Link href="/products">All Products</Link></li>
-            <li><Link href="/flash-sale">Flash Sale</Link></li>
-            <li><Link href="/wishlist">Wishlist</Link></li>
+            {features.flashSale ? <li><Link href="/flash-sale">Flash Sale</Link></li> : null}
+            {features.wishlist ? <li><Link href="/wishlist">Wishlist</Link></li> : null}
           </ul>
         </li>
-        <li>
-          <a href="#">Services <span className="gen-arrow">▾</span></a>
-          <ul>
-            <li><Link href="/services">All Services</Link></li>
-            <li><Link href="/checkout">Checkout</Link></li>
-          </ul>
-        </li>
+        {(features.services || features.checkout) ? (
+          <li>
+            <a href="#">Services <span className="gen-arrow">▾</span></a>
+            <ul>
+              {features.services ? <li><Link href="/services">All Services</Link></li> : null}
+              {features.checkout ? <li><Link href="/checkout">Checkout</Link></li> : null}
+            </ul>
+          </li>
+        ) : null}
         <li><Link href="/orders">Track Order</Link></li>
       </ul>
       <div className="gen-nav-actions">
         {/* Cart badge — desktop only; mobile uses FAB */}
         <div className="gen-cart-desktop">
-          {onCartClick && <CartBadge onClick={onCartClick} />}
+          {features.cart && onCartClick && <CartBadge onClick={onCartClick} />}
         </div>
         {/* Profile avatar — always visible on all screen sizes */}
         <div className="gen-profile-wrap" ref={profileRef}>

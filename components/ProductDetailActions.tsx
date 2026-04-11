@@ -2,13 +2,28 @@
 
 import Link from "next/link";
 import WishlistButton from "@/components/WishlistButton";
+import SocialShareButton from "@/components/SocialShareButton";
 
 export default function ProductDetailActions({
   productId,
   features,
+  productName,
+  productDescription,
+  productImage,
+  productSlug,
+  price,
+  salePrice,
+  discount,
 }: {
   productId: string;
   features: Record<string, boolean>;
+  productName?: string;
+  productDescription?: string;
+  productImage?: string;
+  productSlug?: string;
+  price?: number;
+  salePrice?: number;
+  discount?: number;
 }) {
   if (!features.cart) {
     return (
@@ -19,6 +34,18 @@ export default function ProductDetailActions({
         >
           Back to Products
         </Link>
+        {productSlug && productName && (
+          <SocialShareButton
+            productId={productId}
+            productName={productName}
+            productDescription={productDescription}
+            productImage={productImage}
+            slug={productSlug}
+            price={price}
+            salePrice={salePrice}
+            discount={discount}
+          />
+        )}
         {features.wishlist ? <WishlistButton productId={productId} /> : null}
       </div>
     );
@@ -64,6 +91,18 @@ export default function ProductDetailActions({
       >
         View Cart
       </Link>
+      {productSlug && productName && (
+        <SocialShareButton
+          productId={productId}
+          productName={productName}
+          productDescription={productDescription}
+          productImage={productImage}
+          slug={productSlug}
+          price={price}
+          salePrice={salePrice}
+          discount={discount}
+        />
+      )}
       {features.wishlist ? <WishlistButton productId={productId} /> : null}
     </div>
   );

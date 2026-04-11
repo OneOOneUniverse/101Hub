@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatOrderDate, formatEstimatedDelivery } from "@/lib/order-status";
 
 type PendingPayment = {
   orderRef: string;
@@ -13,11 +14,18 @@ type PendingPayment = {
   createdAt: string;
 };
 
+type DeliveryEstimateModal = {
+  orderRef: string;
+  value: string;
+} | null;
+
 export default function PendingPaymentsDashboard() {
   const [payments, setPayments] = useState<PendingPayment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
+  const [estimateModal, setEstimateModal] = useState<DeliveryEstimateModal>(null);
+  const [approving, setApproving] = useState<string | null>(null);
 
   useEffect(() => {
     loadPendingPayments();
@@ -47,12 +55,17 @@ export default function PendingPaymentsDashboard() {
     }
   }
 
-  async function handleApprove(orderRef: string) {
+  async function handleApprove(orderRef: string, estimatedDeliveryDate?: string) {
+    setApproving(orderRef);
     try {
       const response = await fetch("/api/admin/verify-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderRef, action: "approve" }),
+        body: JSON.stringify({ 
+          orderRef, 
+          action: "approve",
+          ...(estimatedDeliveryDate && { estimatedDeliveryDate })
+        }),
       });
 
       const data = await response.json();
@@ -63,9 +76,12 @@ export default function PendingPaymentsDashboard() {
 
       // Remove from pending list
       setPayments((current) => current.filter((p) => p.orderRef !== orderRef));
+      setEstimateModal(null);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Could not approve payment";
       setError(errorMsg);
+    } finally {
+      setApproving(null);
     }
   }
 
@@ -124,6 +140,7 @@ export default function PendingPaymentsDashboard() {
                     <p className="font-bold text-[var(--ink)]">{payment.customerName}</p>
                     <p className="text-sm text-[var(--ink-soft)]">{payment.phone}</p>
                     <p className="font-mono text-xs text-amber-800 mt-1">{payment.orderRef}</p>
+                    <p className="text-xs text-amber-700 mt-1.5">📅 Payment: {formatOrderDate(payment.createdAt)}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-black text-xl text-amber-900">GHS {payment.amount.toFixed(2)}</p>
@@ -145,7 +162,7 @@ export default function PendingPaymentsDashboard() {
 
                 <div className="flex gap-2 flex-wrap">
                   <button
-                    onClick={() => handleApprove(payment.orderRef)}
+                    onClick={() => setEstimateModal({ orderRef: payment.orderRef, value: "" })}
                     className="flex-1 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700"
                   >
                     ✓ Approve
@@ -189,6 +206,7 @@ export default function PendingPaymentsDashboard() {
                     <p className="font-bold text-[var(--ink)]">{payment.customerName}</p>
                     <p className="text-sm text-[var(--ink-soft)]">{payment.phone}</p>
                     <p className="font-mono text-xs text-green-800 mt-1">{payment.orderRef}</p>
+                    <p className="text-xs text-green-700 mt-1.5">📅 Payment: {formatOrderDate(payment.createdAt)}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-black text-xl text-green-900">GHS {payment.amount.toFixed(2)}</p>
@@ -204,7 +222,7 @@ export default function PendingPaymentsDashboard() {
 
                 <div className="flex gap-2 flex-wrap">
                   <button
-                    onClick={() => handleApprove(payment.orderRef)}
+                    onClick={() => setEstimateModal({ orderRef: payment.orderRef, value: "" })}
                     className="flex-1 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700"
                   >
                     ✓ Confirm Order
@@ -249,6 +267,48 @@ export default function PendingPaymentsDashboard() {
                 alt="Payment proof"
                 className="w-full h-auto rounded-lg border border-black/10"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delivery Estimate Modal */}
+      {estimateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 space-y-4">
+            <h3 className="text-xl font-bold text-[var(--ink)]">Set Delivery Estimate</h3>
+            <p className="text-sm text-[var(--ink-soft)]">Enter estimated delivery time for this order (optional)</p>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-[var(--ink)]">
+                Delivery Estimate
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., 2 days, 24 hours, or 15 Apr 2:30 PM"
+                value={estimateModal.value}
+                onChange={(e) => setEstimateModal({ ...estimateModal, value: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <p className="text-xs text-[var(--ink-soft)]">
+                You can enter: "2 days", "24 hours", or a specific date/time. Leave empty to skip.
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setEstimateModal(null)}
+                className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm font-bold text-[var(--ink)] hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void handleApprove(estimateModal.orderRef, estimateModal.value || undefined)}
+                disabled={approving === estimateModal.orderRef}
+                className="flex-1 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60"
+              >
+                {approving === estimateModal.orderRef ? "Approving..." : "Approve & Set Estimate"}
+              </button>
             </div>
           </div>
         </div>

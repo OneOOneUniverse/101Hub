@@ -6,9 +6,11 @@ create table orders (
   customer_phone  text not null,
   customer_address text not null,
   customer_note   text,
+  delivery_type   text,
   items           jsonb not null,
   subtotal        numeric not null,
   delivery        numeric not null,
+  processing_fee  numeric not null default 0,
   total           numeric not null,
   downpayment     numeric not null,
   payment_method  text not null,
@@ -57,3 +59,10 @@ create policy "authenticated_admins_can_read" on site_content
 
 create policy "authenticated_admins_can_update" on site_content
   for update to authenticated using (true);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Migration: add delivery_type and processing_fee to existing orders tables
+-- Run these if you already have an orders table (skip for fresh setups)
+-- ─────────────────────────────────────────────────────────────────────────────
+alter table orders add column if not exists delivery_type   text;
+alter table orders add column if not exists processing_fee  numeric not null default 0;

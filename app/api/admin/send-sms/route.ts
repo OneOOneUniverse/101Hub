@@ -90,25 +90,33 @@ export async function POST(request: Request) {
         Accept: "application/json",
         apiKey: apiKey,
       } as Record<string, string>,
-      body: `username=${username}&to=${recipientList}&message=${encodeURIComponent(message)}`,
+      body: (() => { const senderId = process.env.AFRICASTALKING_SENDER_ID; const base = `username=${encodeURIComponent(username)}&to=${encodeURIComponent(recipientList)}&message=${encodeURIComponent(message)}`; return senderId ? `${base}&from=${encodeURIComponent(senderId)}` : base; })(),
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error("[send-sms] Africa's Talking API error:", error);
+      const rawError = await response.text();
+      console.error("[send-sms] Africa's Talking API error:", rawError);
+      let errorMsg = rawError;
+      try { errorMsg = JSON.parse(rawError)?.error ?? rawError; } catch { /* plain text */ }
       return NextResponse.json(
-        { error: `Africa's Talking API error: ${error.error || "Unknown error"}` },
+        { error: `Africa's Talking API error: ${errorMsg}` },
         { status: 500 }
       );
     }
 
-    const result = (await response.json()) as {
+    const rawResult = await response.text();
+    let result: {
       SMSMessageData?: {
         Message: string;
         Recipients?: Array<{ status: string; number: string; messageId: string }>;
       };
     };
-
+    try {
+      result = JSON.parse(rawResult);
+    } catch {
+      console.error("[send-sms] Non-JSON response from Africa's Talking:", rawResult);
+      return NextResponse.json({ error: `Africa's Talking returned an unexpected response: ${rawResult}` }, { status: 500 });
+    }
     const recipientResults = result.SMSMessageData?.Recipients ?? [];
     const sent = recipientResults.filter((r) => r.status === "Success").length;
     const failed = recipientResults.length - sent;

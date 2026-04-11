@@ -29,6 +29,8 @@ type CheckoutPayload = {
   email?: string;
   phone?: string;
   address?: string;
+  location?: string;
+  deliveryType?: string;
   note?: string;
   items?: Array<{ productId: string; qty: number }>;
   paymentMethod?: "paystack" | "manual";
@@ -59,6 +61,7 @@ function orderEmailHtml(opts: {
   lines: OrderLine[];
   subtotal: number;
   delivery: number;
+  processingFee: number;
   total: number;
   downpayment: number;
   paymentMethod: string;
@@ -100,6 +103,7 @@ function orderEmailHtml(opts: {
   <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;max-width:300px;margin-left:auto">
     <tr><td style="padding:4px 8px">Subtotal</td><td style="padding:4px 8px;text-align:right">GHS ${opts.subtotal.toFixed(2)}</td></tr>
     <tr><td style="padding:4px 8px">Delivery</td><td style="padding:4px 8px;text-align:right">${opts.delivery === 0 ? "Free" : `GHS ${opts.delivery.toFixed(2)}`}</td></tr>
+    ${opts.processingFee > 0 ? `<tr><td style="padding:4px 8px">Processing fee</td><td style="padding:4px 8px;text-align:right">GHS ${opts.processingFee.toFixed(2)}</td></tr>` : ""}
     <tr style="font-weight:bold;font-size:1.1em"><td style="padding:8px">Total</td><td style="padding:8px;text-align:right">GHS ${opts.total.toFixed(2)}</td></tr>
   </table>
   <hr style="margin:24px 0;border:none;border-top:1px solid #eee"/>
@@ -110,76 +114,25 @@ function orderEmailHtml(opts: {
     <p style="margin:0;font-size:0.9em"><strong>Status:</strong> ${opts.paymentStatus}</p>
     <p style="margin:8px 0 0 0;font-size:0.85em;color:#92400e">Remaining 60% (GHS ${(opts.total - opts.downpayment).toFixed(2)}) payable at delivery</p>
   </div>
+  ${opts.paymentMethod === "manual" ? `
+  <div style="background:#fee2e2;border:2px solid #dc2626;padding:14px;border-radius:8px;margin-bottom:16px">
+    <p style="margin:0 0 10px 0;font-weight:bold;color:#991b1b;font-size:1em">📸 IMPORTANT: Screenshot Required</p>
+    <p style="margin:0 0 8px 0;font-size:0.9em;color:#7f1d1d"><strong>Your payment proof screenshot is needed to verify your payment.</strong></p>
+    
+    <p style="margin:8px 0 4px 0;font-weight:bold;color:#991b1b;font-size:0.9em">To complete this order, your screenshot must show:</p>
+    <ul style="margin:4px 0 8px 0;padding-left:20px;color:#7f1d1d;font-size:0.85em">
+      <li>Recipient phone number</li>
+      <li>Amount: <strong>GHS ${opts.downpayment.toFixed(2)}</strong></li>
+      <li>Transaction reference or confirmation status</li>
+      <li>Date and time of transaction</li>
+    </ul>
+    
+    <p style="margin:8px 0 0 0;font-size:0.85em;color:#7f1d1d;font-weight:bold">❌ Payment orders without valid screenshots cannot be approved.</p>
+  </div>
+  ` : ""}
   <p style="font-size:0.85em;color:#555">Questions? Call/WhatsApp: <strong>${opts.storePhone}</strong></p>
 </body>
 </html>`;
-}
-
-async function sendCustomerSms(opts: {
-  orderRef: string;
-  customerName: string;
-  phone: string;
-  total: number;
-  downpayment: number;
-  paymentMethod: string;
-}) {
-  const apiKey = process.env.AFRICASTALKING_API_KEY;
-  const username = process.env.AFRICASTALKING_USERNAME;
-
-  if (!apiKey || apiKey === "atsk_" || !username) {
-    console.warn("[checkout] SMS skipped: Africa's Talking not configured properly");
-    return;
-  }
-
-  try {
-    // Normalize phone number to E.164 format
-    let normalised = opts.phone.replace(/\s/g, "");
-    if (normalised.startsWith("0") && normalised.length === 10) {
-      normalised = `+233${normalised.slice(1)}`;
-    } else if (normalised.startsWith("233") && !normalised.startsWith("+")) {
-      normalised = `+${normalised}`;
-    } else if (!normalised.startsWith("+")) {
-      normalised = `+${normalised}`;
-    }
-
-    const message =
-      opts.paymentMethod === "paystack"
-        ? `Hi ${opts.customerName}, your 101Hub order ${opts.orderRef} confirmed! Total: GHS ${opts.total.toFixed(2)}. Complete payment (GHS ${opts.downpayment.toFixed(2)} now) via Paystack link in your email. Track: https://gadget-hub.vercel.app/orders/${opts.orderRef}`
-        : `Hi ${opts.customerName}, your 101Hub order ${opts.orderRef} received! Total: GHS ${opts.total.toFixed(2)}. Please send GHS ${opts.downpayment.toFixed(2)} via manual transfer. We'll verify & confirm soon. Track: https://gadget-hub.vercel.app/orders/${opts.orderRef}`;
-
-    // Truncate to 160 characters if needed
-    const truncatedMessage = message.slice(0, 160);
-
-    const response = await fetch("https://api.africastalking.com/version1/messaging", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-        apiKey: apiKey,
-      } as Record<string, string>,
-      body: `username=${username}&to=${normalised}&message=${encodeURIComponent(truncatedMessage)}`,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("[checkout] SMS send failed:", error);
-      return;
-    }
-
-    const result = (await response.json()) as {
-      SMSMessageData?: { Recipients?: Array<{ status: string }> };
-    };
-
-    const recipients = result.SMSMessageData?.Recipients ?? [];
-    const sent = recipients.filter((r) => r.status === "Success").length;
-    if (sent > 0) {
-      console.log(`[checkout] SMS sent successfully to ${normalised}`);
-    } else {
-      console.error("[checkout] SMS delivery failed");
-    }
-  } catch (err) {
-    console.error("[checkout] SMS error:", err);
-  }
 }
 
 async function sendEmails(opts: {
@@ -192,6 +145,7 @@ async function sendEmails(opts: {
   lines: OrderLine[];
   subtotal: number;
   delivery: number;
+  processingFee: number;
   total: number;
   downpayment: number;
   paymentMethod: string;
@@ -249,7 +203,7 @@ async function sendEmails(opts: {
 }
 
 export async function POST(request: Request) {
-  const { products, features } = await getSiteContent();
+  const { products, features, deliverySettings, paymentSettings } = await getSiteContent();
   let body: CheckoutPayload;
 
   try {
@@ -267,6 +221,15 @@ export async function POST(request: Request) {
 
   if (!features.checkout || !features.cart) {
     return NextResponse.json({ error: "Checkout is currently unavailable" }, { status: 403 });
+  }
+
+  const paymentMethod = body.paymentMethod ?? "paystack";
+  // Validate payment method is enabled
+  if (paymentMethod === "paystack" && !(paymentSettings?.paystackEnabled ?? true)) {
+    return NextResponse.json({ error: "Paystack payments are currently unavailable" }, { status: 403 });
+  }
+  if (paymentMethod === "manual" && !(paymentSettings?.manualEnabled ?? true)) {
+    return NextResponse.json({ error: "Manual transfer payments are currently unavailable" }, { status: 403 });
   }
 
   let subtotal = 0;
@@ -298,11 +261,35 @@ export async function POST(request: Request) {
     lines.push({ name: product.name, qty: line.qty, unitPrice: product.price, lineTotal });
   }
 
-  const delivery = subtotal > 250 ? 0 : 12;
-  const total = subtotal + delivery;
+  const delivery = (() => {
+    const totalQty = body.items!.reduce((sum, l) => sum + l.qty, 0);
+    if (subtotal === 0) return 0;
+    if (totalQty >= deliverySettings.freeDeliveryItemThreshold) return 0;
+    const allFree = lines.every((_, i) => {
+      const product = products.find((p) => p.id === body.items![i]?.productId);
+      return product?.noDeliveryFee === true;
+    });
+    if (allFree) return 0;
+    // Delivery type overrides location-based fees
+    if (body.deliveryType && (deliverySettings.deliveryTypes ?? []).length > 0) {
+      const dt = deliverySettings.deliveryTypes.find((t) => t.id === body.deliveryType);
+      return dt ? dt.fee : 0;
+    }
+    if (body.location) {
+      const locFee = deliverySettings.locationFees.find((l) => l.id === body.location);
+      return locFee ? locFee.fee : deliverySettings.defaultFee;
+    }
+    const productFees = lines.map((_, i) => {
+      const product = products.find((p) => p.id === body.items![i]?.productId);
+      if (product?.noDeliveryFee) return 0;
+      return product?.deliveryFee ?? deliverySettings.defaultFee;
+    });
+    return Math.max(...productFees, 0);
+  })();
+  const processingFee = subtotal > 0 ? (deliverySettings.processingFee ?? 4) : 0;
+  const total = subtotal + delivery + processingFee;
   const downpayment = total * 0.4;
   const orderRef = `GH-${Date.now()}`;
-  const paymentMethod = body.paymentMethod ?? "paystack";
   const paymentStatus =
     paymentMethod === "paystack"
       ? "Payment processing via Paystack..."
@@ -319,20 +306,11 @@ export async function POST(request: Request) {
     lines,
     subtotal,
     delivery,
+    processingFee,
     total,
     downpayment,
     paymentMethod,
     paymentStatus,
-  });
-
-  // Fire-and-forget — send SMS notification
-  void sendCustomerSms({
-    orderRef,
-    customerName: body.customerName,
-    phone: body.phone,
-    total,
-    downpayment,
-    paymentMethod,
   });
 
   // Save order to Supabase (awaited so it completes before response)
@@ -343,9 +321,11 @@ export async function POST(request: Request) {
     customer_phone: body.phone,
     customer_address: body.address,
     customer_note: body.note ?? "",
+    delivery_type: body.deliveryType ?? null,
     items: lines,
     subtotal,
     delivery,
+    processing_fee: processingFee,
     total,
     downpayment,
     payment_method: paymentMethod,
@@ -368,9 +348,9 @@ export async function POST(request: Request) {
       success: true,
       orderRef,
       paymentMethod: paymentMethod === "paystack" ? "Paystack (Online)" : "Manual Transfer",
-      customer: { name: body.customerName, phone: body.phone, address: body.address, note: body.note ?? "" },
+      customer: { name: body.customerName, phone: body.phone, address: body.address, note: body.note ?? "", deliveryType: body.deliveryType },
       lines,
-      totals: { subtotal, delivery, total, downpayment },
+      totals: { subtotal, delivery, processingFee, total, downpayment },
       storePhone: process.env.STORE_PHONE ?? "+233 548656980",
       storeEmail: process.env.STORE_EMAIL ?? "josephsakyi247@gmail.com",
       message: paymentMethod === "manual"

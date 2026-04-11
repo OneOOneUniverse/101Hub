@@ -4,9 +4,10 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getCategories } from "@/lib/store-data";
-import { productCategories } from "@/lib/site-content-types";
+import { defaultProductCategories, getProductCategories } from "@/lib/site-content-types";
 import { useStoreContent } from "@/lib/use-store-content";
 import WishlistButton from "@/components/WishlistButton";
+import ProductCardShare from "@/components/ProductCardShare";
 import PromoSlider from "@/components/PromoSlider";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
 import { getReviewStats } from "@/lib/product-feedback";
@@ -51,6 +52,10 @@ function ProductsPageContent() {
   }, [searchQuery]);
 
   const products = useMemo(() => content?.products ?? [], [content?.products]);
+  const dynamicCategories = useMemo(() => {
+    if (!content?.categories) return defaultProductCategories;
+    return getProductCategories(content.categories);
+  }, [content?.categories]);
 
   useEffect(() => {
     const syncReviewSummaries = () => {
@@ -148,23 +153,60 @@ function ProductsPageContent() {
           Browse gadgets and add items to your cart.
         </p>
 
-        {/* Horizontal category filter */}
-        <div className="-mx-4 mt-4 overflow-x-auto sm:-mx-6 md:-mx-8">
-          <div className="flex gap-2 px-4 pb-1 sm:flex-wrap sm:px-6 md:px-8">
-            {(["All", ...productCategories] as const).map((cat) => (
+        {/* Category cards — Browse by Category */}
+        <div className="mt-5">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-[var(--ink-soft)]">Browse by Category</h2>
+          <div className="-mx-4 overflow-x-auto sm:-mx-6 md:-mx-8">
+          <div className="flex gap-3 px-4 pb-2 sm:px-6 md:px-8" style={{ minWidth: 'max-content' }}>
+            {/* "All" card */}
+            <button
+              type="button"
+              onClick={() => setCategory("All")}
+              className={`category-card shrink-0${category === "All" ? " category-card--active" : ""}`}
+            >
+              <div style={{ position: 'absolute', inset: 0, background: '#1a1a1a', ...(content.allCategoryImage ? { backgroundImage: `url('${content.allCategoryImage}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}) }} />
+              <div className="category-card__overlay">
+                <div className="category-card__text">
+                  <span className="category-card__name">All</span>
+                </div>
+                <div className="category-card__arrow">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" className="w-4 h-4" fill="none">
+                    <path d="M4.646 2.146a.5.5 0 0 0 0 .708L7.793 6L4.646 9.146a.5.5 0 1 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z" fill="currentColor"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+
+            {/* Dynamic category cards */}
+            {(content.categories ?? []).map((cat) => (
               <button
-                key={cat}
+                key={cat.id}
                 type="button"
-                onClick={() => setCategory(cat)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition sm:text-sm ${
-                  category === cat
-                    ? "bg-[var(--brand)] text-white"
-                    : "border border-[var(--brand)]/40 text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
-                }`}
+                onClick={() => setCategory(cat.name)}
+                className={`category-card shrink-0${category === cat.name ? " category-card--active" : ""}`}
               >
-                {cat}
+                <div style={{
+                  position: 'absolute', inset: 0, background: '#1a1a1a',
+                  ...(cat.image ? { backgroundImage: `url('${cat.image}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})
+                }} />
+                {!cat.image && (
+                  <div className="category-card__spinner-wrap">
+                    <div className="category-card__spinner" />
+                  </div>
+                )}
+                <div className="category-card__overlay">
+                  <div className="category-card__text">
+                    <span className="category-card__name">{cat.name}</span>
+                  </div>
+                  <div className="category-card__arrow">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" className="w-4 h-4" fill="none">
+                      <path d="M4.646 2.146a.5.5 0 0 0 0 .708L7.793 6L4.646 9.146a.5.5 0 1 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </div>
               </button>
             ))}
+          </div>
           </div>
         </div>
 
@@ -178,7 +220,7 @@ function ProductsPageContent() {
         </div>
       </section>
 
-      <section className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 items-start gap-2 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
         {filtered.map((item) => {
           // Product-specific discount takes priority
           const hasProductDiscount = item.discount && item.discount > 0;
@@ -220,71 +262,92 @@ function ProductsPageContent() {
                 ) : null}
 
                 {item.image ? (
-                  <div
-                    className="h-24 overflow-hidden rounded-lg border border-black/10 bg-cover bg-center sm:h-32 md:h-40"
-                    style={{ backgroundImage: `url('${item.image}')` }}
-                    role="img"
-                    aria-label={`${item.name} image`}
-                  >
-                    <span className="sr-only">{item.name} image</span>
+                  <div className="product-card__img-wrap">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="product-card__img"
+                    />
                   </div>
                 ) : (
                   <div className="product-card__image" aria-hidden="true" />
                 )}
-                {content.features.wishlist ? (
-                  <div className="mt-1 flex justify-end sm:mt-2">
-                    <span className="sm:hidden">
-                      <WishlistButton productId={item.id} iconOnly />
-                    </span>
-                    <span className="hidden sm:inline-flex">
-                      <WishlistButton productId={item.id} compact />
-                    </span>
-                  </div>
-                ) : null}
 
-                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
-                  {item.category}
-                </p>
+                {/* Category + wishlist/share on same row */}
+                <div className="flex items-center justify-between gap-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
+                    {item.category}
+                  </p>
+                  {content.features.wishlist ? (
+                    <div className="flex shrink-0 gap-0.5 sm:gap-1">
+                      <span className="sm:hidden">
+                        <ProductCardShare
+                          productName={item.name}
+                          productDescription={`${item.name} - GHS ${displayPrice.toFixed(2)}`}
+                          slug={item.slug}
+                          iconOnly
+                          price={item.price}
+                          salePrice={displayPrice}
+                          discount={totalDiscount}
+                        />
+                      </span>
+                      <span className="hidden sm:inline-flex">
+                        <ProductCardShare
+                          productName={item.name}
+                          productDescription={`${item.name} - GHS ${displayPrice.toFixed(2)}`}
+                          slug={item.slug}
+                          compact
+                          price={item.price}
+                          salePrice={displayPrice}
+                          discount={totalDiscount}
+                        />
+                      </span>
+                      <span className="sm:hidden">
+                        <WishlistButton productId={item.id} iconOnly />
+                      </span>
+                      <span className="hidden sm:inline-flex">
+                        <WishlistButton productId={item.id} compact />
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+
                 <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
                   <Link href={`/products/${item.slug}`}>{item.name}</Link>
                 </h2>
 
-                <div className="mt-2 sm:mt-4">
-                  <div className="flex items-baseline gap-2">
-                    <p className={`text-sm font-black leading-none sm:text-lg ${isFlashSale ? "text-red-600" : "product-card__price"}`}>
-                      GHS {displayPrice.toFixed(2)}
-                    </p>
+                {/* Price + stock/rating on same row */}
+                <div className="flex items-end justify-between gap-1">
+                  <div>
+                    <div className="flex items-baseline gap-1.5">
+                      <p className={`text-sm font-black leading-none sm:text-base ${isFlashSale ? "text-red-600" : "product-card__price"}`}>
+                        GHS {displayPrice.toFixed(2)}
+                      </p>
+                      {isFlashSale && (
+                        <p className="text-[10px] text-[var(--ink-soft)] line-through sm:text-xs">
+                          GHS {item.price.toFixed(2)}
+                        </p>
+                      )}
+                    </div>
                     {isFlashSale && (
-                      <p className="text-sm text-[var(--ink-soft)] line-through">
-                        GHS {item.price.toFixed(2)}
+                      <p className="text-[10px] font-bold text-green-700 sm:text-xs">
+                        Save GHS {savings.toFixed(2)}
                       </p>
                     )}
                   </div>
-                  {isFlashSale && (
-                    <p className="mt-1 text-xs font-bold text-green-700">
-                      Save GHS {savings.toFixed(2)}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-2 grid grid-cols-[1fr_auto] items-end gap-2 sm:mt-3">
-                  <div />
-                  <div className="text-right">
-                    <p className="text-[10px] text-[var(--ink-soft)] sm:text-sm">Stock: {item.stock}</p>
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {item.stock}</p>
                     {content.features.reviews ? (
-                      <p className="text-[10px] text-[var(--ink-soft)] sm:text-sm">
-                        Rating {((reviewSummaryByProduct[item.id]?.average ?? item.rating)).toFixed(1)} / 5
+                      <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">
+                        ★ {((reviewSummaryByProduct[item.id]?.average ?? item.rating)).toFixed(1)}
+                        <span className="hidden sm:inline"> ({reviewSummaryByProduct[item.id]?.count ?? 0})</span>
                       </p>
                     ) : null}
                   </div>
                 </div>
-                {content.features.reviews ? (
-                  <p className="hidden text-[10px] text-[var(--ink-soft)] sm:block sm:text-xs">
-                    {reviewSummaryByProduct[item.id]?.count ?? 0} user reviews
-                  </p>
-                ) : null}
 
-                <div className="mt-2 grid grid-cols-[1fr_auto] gap-1.5 sm:mt-4 sm:flex sm:flex-wrap sm:gap-2">
+                <div className="grid grid-cols-[1fr_auto] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
                   {content.features.cart ? (
                     <button
                       onClick={() => {

@@ -1,4 +1,5 @@
-export const productCategories = [
+// Legacy fallback for hardcoded categories (kept for backwards compatibility)
+export const defaultProductCategories = [
   "New Drops",
   "Phones & Tablets",
   "Health & Beauty",
@@ -13,7 +14,17 @@ export const productCategories = [
   "Other Categories",
 ] as const;
 
-export type ProductCategory = (typeof productCategories)[number];
+// Get product categories dynamically from site content
+export function getProductCategories(categories: Category[]): string[] {
+  const names = categories.map((c) => c.name);
+  // Ensure "New Drops" is always first if not present
+  if (!names.includes("New Drops") && !names.includes("new-drops")) {
+    return ["New Drops", ...names];
+  }
+  return names;
+}
+
+export type ProductCategory = string;
 
 export type Product = {
   id: string;
@@ -29,6 +40,8 @@ export type Product = {
   images?: string[];
   dateAdded?: string; // ISO 8601 timestamp for sorting (newest first)
   discount?: number; // Optional discount percentage (0-100)
+  deliveryFee?: number; // Optional per-product delivery fee
+  noDeliveryFee?: boolean; // Optional flag for no delivery fee
 };
 
 export type ServicePackage = {
@@ -38,6 +51,11 @@ export type ServicePackage = {
   price: number;
   details: string;
   image?: string;
+  images?: string[];
+  providerName?: string;
+  phone?: string;
+  email?: string;
+  currentOffers?: string;
 };
 
 export type PromoSlide = {
@@ -46,6 +64,14 @@ export type PromoSlide = {
   alt: string;
   title: string;
   subtitle: string;
+  /** Optional offer/event name for organization */
+  eventName?: string;
+  /** Optional URL or path to navigate when slide is clicked */
+  actionUrl?: string;
+  /** Optional start date (ISO 8601) for time-limited offers */
+  startDate?: string;
+  /** Optional end date (ISO 8601) for time-limited offers */
+  endDate?: string;
 };
 
 export type HighlightCard = {
@@ -88,16 +114,83 @@ export type SiteFeatures = {
   checkout: boolean;
 };
 
+export type LocationDeliveryFee = {
+  id: string;
+  name: string;
+  fee: number;
+};
+
+export type DeliveryType = {
+  id: string;
+  name: string;
+  fee: number;
+  description?: string;
+};
+
+export type DeliverySettings = {
+  defaultFee: number;
+  freeDeliveryItemThreshold: number;
+  locationFees: LocationDeliveryFee[];
+  deliveryTypes: DeliveryType[];
+  processingFee: number;
+};
+
+export type PaymentSettings = {
+  paystackEnabled: boolean;
+  manualEnabled: boolean;
+};
+
+export type PaymentWalkthroughStep = {
+  id: string;
+  stepNumber: number;
+  title: string;
+  description: string;
+  bulletPoints?: string[];
+  image?: string; // Image showing this step
+};
+
+export type CategoryFeature = {
+  id: string;
+  name: string;
+  description?: string;
+};
+
+export type Category = {
+  id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  features: CategoryFeature[];
+};
+
+export type FooterContent = {
+  phone?: string;
+  email?: string;
+  address?: string;
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  youtube?: string;
+  tiktok?: string;
+  whatsapp?: string;
+};
+
 export type SiteContent = {
   storeName: string;
   storeDescription: string;
   footerText: string;
   logoUrl?: string;
+  footer?: FooterContent;
   features: SiteFeatures;
   home: HomeContent;
   promoSlides: PromoSlide[];
   products: Product[];
   services: ServicePackage[];
+  categories: Category[];
+  allCategoryImage?: string;
   flashSale: FlashSaleContent;
+  deliverySettings: DeliverySettings;
+  paymentSettings: PaymentSettings;
+  paymentWalkthrough?: PaymentWalkthroughStep[];
   updatedAt: string;
 };

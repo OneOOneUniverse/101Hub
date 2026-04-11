@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BoxIcon, CoinIcon } from "@/components/Icons";
 import { 
   getOrderFromLocal, 
   saveOrderToLocal,
@@ -12,6 +13,8 @@ import {
   calculateRemainingBalance,
   getPaymentMethodDisplay,
   canCancelOrder,
+  formatOrderDate,
+  formatEstimatedDelivery,
   type OrderData,
 } from "@/lib/order-status";
 
@@ -150,6 +153,31 @@ export default function OrderTrackingPage() {
         )}
       </section>
 
+      {/* Order & Delivery Dates */}
+      <section className="panel p-6">
+        <h2 className="text-xl font-bold mb-4">Order & Delivery Information</h2>
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[var(--ink-soft)]">Order Date & Time</span>
+            <span className="font-semibold text-right">{formatOrderDate(order.createdAt)}</span>
+          </div>
+          {order.estimatedDeliveryDate && (
+            <div className="flex justify-between items-start border-t pt-3">
+              <span className="text-[var(--ink-soft)]">Estimated Delivery</span>
+              <span className="font-semibold text-right text-emerald-700">
+                {formatEstimatedDelivery(order.estimatedDeliveryDate)}
+              </span>
+            </div>
+          )}
+          {!order.estimatedDeliveryDate && order.orderStatus !== "payment_pending" && order.orderStatus !== "payment_pending_admin_review" && (
+            <div className="flex justify-between items-start border-t pt-3">
+              <span className="text-[var(--ink-soft)]">Estimated Delivery</span>
+              <span className="text-xs text-[var(--ink-soft)]">Being arranged...</span>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Timeline */}
       <section className="panel p-6">
         <h2 className="text-xl font-bold mb-6">Delivery Timeline</h2>
@@ -225,8 +253,8 @@ export default function OrderTrackingPage() {
             <span>Remaining Balance (60%)</span>
             <span className="text-amber-900">GHS {remainingBalance.toFixed(2)}</span>
           </div>
-          <p className="text-xs text-amber-700 mt-2">
-            💵 This amount will be collected from you when the driver delivers your order.
+          <p className="text-xs text-amber-700 mt-2 flex items-center gap-1.5">
+            <CoinIcon size={14} className="shrink-0" /> This amount will be collected from you when the driver delivers your order.
           </p>
         </div>
       </section>
@@ -360,7 +388,7 @@ export default function OrderTrackingPage() {
       {/* User confirms they received the order */}
       {order.orderStatus === "in_transit" && (
         <section className="panel p-6 bg-emerald-50 border border-emerald-200">
-          <h2 className="text-xl font-bold text-emerald-900 mb-2">📦 Did You Receive Your Order?</h2>
+          <h2 className="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2"><BoxIcon size={22} /> Did You Receive Your Order?</h2>
           <p className="text-sm text-emerald-800 mb-4">
             Once the driver hands over your package, tap the button below to confirm delivery. This helps us keep your order history up to date.
           </p>
@@ -401,7 +429,7 @@ export default function OrderTrackingPage() {
 
       {order.orderStatus === "delivered" && (
         <section className="panel p-6 bg-emerald-50 border border-emerald-200">
-          <h2 className="text-xl font-bold text-emerald-900 mb-2">📦 Order Delivered!</h2>
+          <h2 className="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2"><BoxIcon size={22} /> Order Delivered!</h2>
           <p className="text-sm text-emerald-800">
             Your order has been delivered. Thank you for shopping with 101Hub! We hope you love your purchase.
           </p>

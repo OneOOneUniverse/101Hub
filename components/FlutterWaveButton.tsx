@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CreditCardIcon } from "@/components/Icons";
 
 type FlutterWaveButtonProps = {
   downpayment: number;
@@ -206,7 +207,7 @@ export default function FlutterWaveButton({
             </>
           ) : (
             <>
-              💳 Pay GHS {downpayment.toFixed(2)} with Flutterwave
+              <CreditCardIcon size={16} className="inline-block shrink-0" />{" "}Pay GHS {downpayment.toFixed(2)} with Flutterwave
             </>
           )}
         </button>

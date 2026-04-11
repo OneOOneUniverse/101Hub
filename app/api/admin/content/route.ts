@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { saveSiteContent, sanitizeSiteContent, getSiteContent } from "@/lib/site-content";
 import type { SiteContent } from "@/lib/site-content-types";
 import { isCurrentUserAdmin } from "@/lib/auth";
@@ -114,6 +115,9 @@ export async function PUT(request: Request) {
 
   try {
     const saved = await saveSiteContent(content);
+    // Invalidate all pages that display site content so the Router Cache
+    // and Full Route Cache serve fresh data after the admin saves changes.
+    revalidatePath("/", "layout");
     return NextResponse.json(saved);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save content.";

@@ -6,6 +6,7 @@ type VerifyPaymentPayload = {
   orderRef?: string;
   action?: "approve" | "reject";
   reason?: string;
+  estimatedDeliveryDate?: string; // optional estimate like "2 days", "24 hours", or ISO date
 };
 
 function buildTransporter() {
@@ -18,69 +19,6 @@ function buildTransporter() {
       pass: (process.env.SMTP_PASS ?? "").replace(/\s/g, ""),
     },
   });
-}
-
-async function sendPaymentVerificationSms(opts: {
-  phone: string;
-  customerName: string;
-  orderRef: string;
-  action: "approve" | "reject";
-  reason?: string;
-}) {
-  const apiKey = process.env.AFRICASTALKING_API_KEY;
-  const username = process.env.AFRICASTALKING_USERNAME;
-
-  if (!apiKey || apiKey === "atsk_" || !username) {
-    console.warn("[verify-payment] SMS skipped: Africa's Talking not configured properly");
-    return;
-  }
-
-  try {
-    // Normalize phone number to E.164 format
-    let normalised = opts.phone.replace(/\s/g, "");
-    if (normalised.startsWith("0") && normalised.length === 10) {
-      normalised = `+233${normalised.slice(1)}`;
-    } else if (normalised.startsWith("233") && !normalised.startsWith("+")) {
-      normalised = `+${normalised}`;
-    } else if (!normalised.startsWith("+")) {
-      normalised = `+${normalised}`;
-    }
-
-    const message =
-      opts.action === "approve"
-        ? `Hi ${opts.customerName}, your 101Hub payment for order ${opts.orderRef} is verified! We're now processing your order. You'll receive a call/text soon with delivery details.`
-        : `Hi ${opts.customerName}, we couldn't verify your payment for order ${opts.orderRef}. Please contact us. ${opts.reason ? `Reason: ${opts.reason}` : ""}`;
-
-    const truncatedMessage = message.slice(0, 160);
-
-    const response = await fetch("https://api.africastalking.com/version1/messaging", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-        apiKey: apiKey,
-      } as Record<string, string>,
-      body: `username=${username}&to=${normalised}&message=${encodeURIComponent(truncatedMessage)}`,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("[verify-payment] SMS send failed:", error);
-      return;
-    }
-
-    const result = (await response.json()) as {
-      SMSMessageData?: { Recipients?: Array<{ status: string }> };
-    };
-
-    const recipients = result.SMSMessageData?.Recipients ?? [];
-    const sent = recipients.filter((r) => r.status === "Success").length;
-    if (sent > 0) {
-      console.log(`[verify-payment] SMS sent successfully to ${normalised}`);
-    }
-  } catch (err) {
-    console.error("[verify-payment] SMS error:", err);
-  }
 }
 
 export async function POST(request: Request) {
@@ -109,7 +47,12 @@ export async function POST(request: Request) {
     // 2. Update order status in Supabase
     const updates =
       body.action === "approve"
-        ? { payment_status: "verified", order_status: "confirmed", updated_at: new Date().toISOString() }
+        ? { 
+            payment_status: "verified", 
+            order_status: "confirmed", 
+            updated_at: new Date().toISOString(),
+            ...(body.estimatedDeliveryDate && { estimated_delivery_date: body.estimatedDeliveryDate })
+          }
         : { payment_status: "rejected", order_status: "payment_rejected", updated_at: new Date().toISOString() };
 
     const { error: updateError } = await supabaseAdmin
@@ -129,17 +72,6 @@ export async function POST(request: Request) {
     const customerPhone = order.customer_phone as string;
     const customerName = order.customer_name as string;
     const orderRef = order.order_ref as string;
-
-    // Send SMS notification
-    if (customerPhone) {
-      void sendPaymentVerificationSms({
-        phone: customerPhone,
-        customerName,
-        orderRef,
-        action: body.action,
-        reason: body.reason,
-      });
-    }
 
     if (smtpUser && smtpPass && smtpPass !== "YOUR_GMAIL_APP_PASSWORD_HERE" && customerEmail) {
       const transporter = buildTransporter();

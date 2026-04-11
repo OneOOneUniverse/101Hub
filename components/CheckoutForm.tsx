@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState, useEffect } from "react";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
+import { CreditCardIcon, GiftIcon, TruckIcon } from "@/components/Icons";
 import { useStoreContent } from "@/lib/use-store-content";
 import PaystackButton from "@/components/PaystackButton";
 import AnimatedPaymentModal from "@/components/AnimatedPaymentModal";
@@ -21,9 +22,9 @@ type CheckoutResult = {
   orderRef: string;
   paymentMethod: string;
   message: string;
-  customer: { name: string; phone: string; address: string; note: string };
+  customer: { name: string; phone: string; address: string; note: string; deliveryType?: string };
   lines: OrderLine[];
-  totals: { subtotal: number; delivery: number; total: number; downpayment: number };
+  totals: { subtotal: number; delivery: number; processingFee: number; total: number; downpayment: number };
   storePhone: string;
   storeEmail: string;
 };
@@ -49,6 +50,8 @@ export default function CheckoutForm() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [location, setLocation] = useState("");
+  const [deliveryType, setDeliveryType] = useState("");
   const [note, setNote] = useState("");
   const [items, setItems] = useState<CartLine[]>(() => loadLines());
   const [submitting, setSubmitting] = useState(false);
@@ -65,12 +68,16 @@ export default function CheckoutForm() {
   const paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "";
   const isPaystackConfigured = Boolean(paystackPublicKey) && !paystackPublicKey.startsWith("pk_test_xxx");
 
-  // Default to manual if Paystack not configured
+  // Default to manual if Paystack not configured or disabled by admin
   useEffect(() => {
-    if (!isPaystackConfigured) {
+    const paystackAllowed = isPaystackConfigured && (content?.paymentSettings?.paystackEnabled ?? true);
+    const manualAllowed = content?.paymentSettings?.manualEnabled ?? true;
+    if (!paystackAllowed) {
       setPaymentMethod("manual");
+    } else if (!manualAllowed && paymentMethod === "manual") {
+      setPaymentMethod("paystack");
     }
-  }, [isPaystackConfigured]);
+  }, [isPaystackConfigured, content?.paymentSettings, paymentMethod]);
 
   // Validate cart items on mount and when products change
   useEffect(() => {
@@ -88,22 +95,53 @@ export default function CheckoutForm() {
   }, [products, items]);
 
   const totals = useMemo(() => {
+    const deliverySettings = content?.deliverySettings;
+    const totalQty = items.reduce((sum, line) => sum + line.qty, 0);
     const subtotal = items.reduce((sum, line) => {
       const product = products.find((item) => item.id === line.productId);
       return sum + (product ? product.price * line.qty : 0);
     }, 0);
 
-    const delivery = subtotal > 250 ? 0 : subtotal > 0 ? 12 : 0;
-    const total = subtotal + delivery;
-    const downpayment = total * 0.4; // 40% downpayment
+    let delivery = 0;
+    if (subtotal > 0 && deliverySettings) {
+      // Free delivery if item count meets threshold
+      if (totalQty >= deliverySettings.freeDeliveryItemThreshold) {
+        delivery = 0;
+      } else {
+        // Check if all items in cart are free delivery
+        const allFree = items.every((line) => {
+          const product = products.find((p) => p.id === line.productId);
+          return product?.noDeliveryFee === true;
+        });
 
-    return {
-      subtotal,
-      delivery,
-      total,
-      downpayment,
-    };
-  }, [items, products]);
+        if (allFree) {
+          delivery = 0;
+        } else if ((deliverySettings.deliveryTypes ?? []).length > 0 && deliveryType) {
+          // Use selected delivery type fee
+          const dt = deliverySettings.deliveryTypes.find((t) => t.id === deliveryType);
+          delivery = dt ? dt.fee : 0;
+        } else if (location) {
+          // Use location-based fee
+          const locFee = deliverySettings.locationFees.find((l) => l.id === location);
+          delivery = locFee ? locFee.fee : deliverySettings.defaultFee;
+        } else {
+          // Use highest per-product fee or default
+          const productFees = items.map((line) => {
+            const product = products.find((p) => p.id === line.productId);
+            if (product?.noDeliveryFee) return 0;
+            return product?.deliveryFee ?? deliverySettings.defaultFee;
+          });
+          delivery = Math.max(...productFees, 0);
+        }
+      }
+    }
+
+    const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
+    const total = subtotal + delivery + processingFee;
+    const downpayment = total * 0.4;
+
+    return { subtotal, delivery, processingFee, total, downpayment };
+  }, [items, products, location, deliveryType, content?.deliverySettings]);
 
   if (loading) {
     return (
@@ -168,6 +206,8 @@ export default function CheckoutForm() {
           email,
           phone,
           address,
+          location,
+          deliveryType,
           note,
           items,
           paymentMethod,
@@ -214,6 +254,8 @@ export default function CheckoutForm() {
             items: data.lines,
             subtotal: data.totals.subtotal,
             delivery: data.totals.delivery,
+            processingFee: data.totals.processingFee,
+            deliveryType: data.customer.deliveryType,
             total: data.totals.total,
             downpayment: data.totals.downpayment,
             paymentMethod: "manual",
@@ -250,12 +292,33 @@ export default function CheckoutForm() {
       // Non-fatal — order was already recorded
     }
 
+    const deliverySettings = content?.deliverySettings;
+    const totalQty = items.reduce((sum, l) => sum + l.qty, 0);
     const subtotal = items.reduce((sum, line) => {
       const product = products.find((item) => item.id === line.productId);
       return sum + (product ? product.price * line.qty : 0);
     }, 0);
-    const delivery = subtotal > 250 ? 0 : 12;
-    const total = subtotal + delivery;
+    let delivery = 0;
+    if (subtotal > 0 && deliverySettings) {
+      if (totalQty >= deliverySettings.freeDeliveryItemThreshold) {
+        delivery = 0;
+      } else {
+        const allFree = items.every((line) => {
+          const product = products.find((p) => p.id === line.productId);
+          return product?.noDeliveryFee === true;
+        });
+        if (!allFree) {
+          if ((deliverySettings.deliveryTypes ?? []).length > 0 && deliveryType) {
+            const dt = deliverySettings.deliveryTypes.find((t) => t.id === deliveryType);
+            delivery = dt ? dt.fee : 0;
+          } else {
+            delivery = deliverySettings.defaultFee;
+          }
+        }
+      }
+    }
+    const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
+    const total = subtotal + delivery + processingFee;
     const downpayment = total * 0.4;
 
     setResult({
@@ -263,7 +326,7 @@ export default function CheckoutForm() {
       orderRef: paystackOrderRef,
       paymentMethod: "Paystack (Online)",
       message: "✅ Payment confirmed! Your order is being processed.",
-      customer: { name: customerName, phone, address, note },
+      customer: { name: customerName, phone, address, note, deliveryType: deliveryType || undefined },
       lines: items.map((line) => {
         const product = products.find((item) => item.id === line.productId);
         return {
@@ -273,7 +336,7 @@ export default function CheckoutForm() {
           lineTotal: (product?.price ?? 0) * line.qty,
         };
       }),
-      totals: { subtotal, delivery, total, downpayment },
+      totals: { subtotal, delivery, processingFee, total, downpayment },
       storePhone: process.env.NEXT_PUBLIC_STORE_PHONE ?? "+233 548656980",
       storeEmail: process.env.NEXT_PUBLIC_STORE_EMAIL ?? "",
     });
@@ -295,6 +358,8 @@ export default function CheckoutForm() {
       }),
       subtotal,
       delivery,
+      processingFee,
+      deliveryType: deliveryType || undefined,
       total,
       downpayment,
       paymentMethod: "paystack",
@@ -355,6 +420,12 @@ export default function CheckoutForm() {
                 {result.totals.delivery === 0 ? "Free" : `GHS ${result.totals.delivery.toFixed(2)}`}
               </span>
             </div>
+            {result.totals.processingFee > 0 && (
+              <div className="flex justify-between">
+                <span className="text-[var(--ink-soft)]">Processing fee</span>
+                <span className="font-semibold">GHS {result.totals.processingFee.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-base font-black border-t border-black/10 pt-2 mt-2">
               <span>Total</span>
               <span>GHS {result.totals.total.toFixed(2)}</span>
@@ -382,6 +453,9 @@ export default function CheckoutForm() {
           <p><span className="text-[var(--ink-soft)]">Address:</span> {result.customer.address}</p>
           {result.customer.note && (
             <p><span className="text-[var(--ink-soft)]">Note:</span> {result.customer.note}</p>
+          )}
+          {result.customer.deliveryType && (
+            <p><span className="text-[var(--ink-soft)]">Delivery type:</span> {result.customer.deliveryType}</p>
           )}
           <p className="mt-2">
             <span className="text-[var(--ink-soft)]">Payment:</span>{" "}
@@ -470,41 +544,50 @@ export default function CheckoutForm() {
 
         {/* Payment Method Selection */}
         <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 space-y-3">
-          <p className="text-sm font-semibold text-blue-900">
-            💳 Payment Method
+          <p className="text-sm font-semibold text-blue-900 flex items-center gap-1.5">
+            <CreditCardIcon size={16} /> Payment Method
           </p>
-          <div className="space-y-2">
-            <label className={`flex items-center gap-3 ${isPaystackConfigured ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}>
-              <input
-                type="radio"
-                name="payment-method"
-                value="paystack"
-                checked={paymentMethod === "paystack"}
-                disabled={!isPaystackConfigured}
-                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="w-4 h-4"
-              />
-              <span className="text-sm font-medium">
-                Paystack (Card / Mobile Money / Bank Transfer)
-                {!isPaystackConfigured && (
-                  <span className="ml-2 text-xs text-amber-700">[Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY to enable]</span>
+          {(() => {
+            const paystackAllowed = isPaystackConfigured && (content.paymentSettings?.paystackEnabled ?? true);
+            const manualAllowed = content.paymentSettings?.manualEnabled ?? true;
+            return (
+              <div className="space-y-2">
+                {paystackAllowed && (
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      value="paystack"
+                      checked={paymentMethod === "paystack"}
+                      onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm font-medium">
+                      Paystack (Card / Mobile Money / Bank Transfer)
+                    </span>
+                  </label>
                 )}
-              </span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="payment-method"
-                value="manual"
-                checked={paymentMethod === "manual"}
-                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="w-4 h-4"
-              />
-              <span className="text-sm font-medium">
-                Manual Transfer (Upload Payment Proof)
-              </span>
-            </label>
-          </div>
+                {manualAllowed && (
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      value="manual"
+                      checked={paymentMethod === "manual"}
+                      onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm font-medium">
+                      Manual Transfer (Upload Payment Proof)
+                    </span>
+                  </label>
+                )}
+                {!paystackAllowed && !manualAllowed && (
+                  <p className="text-sm text-red-700 font-semibold">No payment methods are currently available. Please contact the store.</p>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Downpayment Amount Display */}
@@ -579,6 +662,83 @@ export default function CheckoutForm() {
           />
         </div>
 
+        {/* Delivery Location */}
+        {content.deliverySettings.locationFees.length > 0 && (content.deliverySettings.deliveryTypes ?? []).length === 0 && (
+          <div>
+            <label htmlFor="location" className="mb-1 block text-sm font-semibold">
+              Delivery Location <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="location"
+              required
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+              className="w-full rounded-lg border border-black/15 px-3 py-2"
+            >
+              <option value="">— Select your area —</option>
+              {content.deliverySettings.locationFees.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.name} — GHS {loc.fee.toFixed(2)}
+                </option>
+              ))}
+            </select>
+            {location && (
+              <p className="mt-1 text-xs text-[var(--ink-soft)] flex items-center gap-1">
+                <TruckIcon size={13} /> Delivery fee for this area: <span className="font-semibold">GHS {(content.deliverySettings.locationFees.find((l) => l.id === location)?.fee ?? 0).toFixed(2)}</span>
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Delivery Type */}
+        {(content.deliverySettings.deliveryTypes ?? []).length > 0 && (
+          <div>
+            <label htmlFor="delivery-type" className="mb-1 block text-sm font-semibold">
+              Delivery Method <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="delivery-type"
+              required
+              value={deliveryType}
+              onChange={(event) => setDeliveryType(event.target.value)}
+              className="w-full rounded-lg border border-black/15 px-3 py-2"
+            >
+              <option value="">— Choose delivery method —</option>
+              {content.deliverySettings.deliveryTypes.map((dt) => (
+                <option key={dt.id} value={dt.id}>
+                  {dt.name}{dt.fee > 0 ? ` — GHS ${dt.fee.toFixed(2)}` : " — Free"}
+                </option>
+              ))}
+            </select>
+            {deliveryType && (() => {
+              const selected = content.deliverySettings.deliveryTypes.find((t) => t.id === deliveryType);
+              return selected ? (
+                <p className="mt-1 text-xs text-[var(--ink-soft)] flex items-center gap-1">
+                  <TruckIcon size={13} /> {selected.description || selected.name}
+                  {selected.fee > 0 ? ` — GHS ${selected.fee.toFixed(2)}` : " — Free"}
+                </p>
+              ) : null;
+            })()}
+          </div>
+        )}
+
+        {/* Free delivery encouragement */}
+        {(() => {
+          const totalQty = items.reduce((sum, line) => sum + line.qty, 0);
+          const threshold = content.deliverySettings.freeDeliveryItemThreshold;
+          const remaining = threshold - totalQty;
+          if (remaining <= 0) return null;
+          return (
+            <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 flex items-start gap-2">
+              <GiftIcon size={20} className="text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-emerald-800">Add {remaining} more item{remaining !== 1 ? "s" : ""} for FREE delivery!</p>
+                <p className="text-xs text-emerald-700 mt-0.5">Orders with {threshold}+ items ship for free — no matter your location.</p>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Order note */}
         <div>
           <label htmlFor="note" className="mb-1 block text-sm font-semibold">
@@ -596,20 +756,133 @@ export default function CheckoutForm() {
 
         {/* Payment Method Specific Fields */}
         {paymentMethod === "manual" && (
-          <div className="space-y-3 border-t border-black/10 pt-4">
+          <div className="space-y-4 border-t border-black/10 pt-4">
+            {/* Main Payment Amount */}
             <div className="rounded-lg bg-amber-50 p-4 border border-amber-200">
-              <p className="text-sm font-semibold text-amber-900 mb-2">📱 Manual Payment Instructions</p>
-              <p className="text-sm text-amber-800 mb-1">Pay GHS <span className="font-bold">{totals.downpayment.toFixed(2)}</span> to:</p>
-              <p className="text-lg font-black text-amber-900 font-mono mb-3">{MANUAL_PAYMENT_NUMBER}</p>
-              <p className="text-xs text-amber-700">Include your order reference in the transfer/memo to help us verify your payment faster.</p>
+              <p className="text-sm font-semibold text-amber-900 mb-1">💳 Payment Amount</p>
+              <p className="text-2xl font-black text-amber-900 mb-2">GHS {totals.downpayment.toFixed(2)}</p>
+              <p className="text-xs text-amber-700">Down payment required (40% of total)</p>
             </div>
 
-            {/* Payment Proof Upload */}
-            <div>
-              <label htmlFor="payment-proof" className="mb-1 block text-sm font-semibold">
-                Upload Payment Proof <span className="text-red-500">*</span>
-                <span className="text-[var(--ink-soft)] font-normal text-xs block">Screenshot of transfer receipt or confirmation</span>
+            {/* Step-by-step Walkthrough */}
+            <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
+              <p className="text-sm font-semibold text-blue-900 mb-3">📋 Payment Steps</p>
+              <div className="space-y-4">
+                {content?.paymentWalkthrough && content.paymentWalkthrough.length > 0 ? (
+                  // Display admin-configured walkthrough
+                  content.paymentWalkthrough
+                    .sort((a, b) => a.stepNumber - b.stepNumber)
+                    .map((step) => (
+                      <div key={step.id} className="rounded-lg bg-white border border-blue-200 overflow-hidden">
+                        <div className="flex gap-3 p-3">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                            {step.stepNumber}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-blue-900">{step.title}</p>
+                            <p className="text-xs text-blue-800 mt-1">{step.description}</p>
+                            {step.bulletPoints && step.bulletPoints.length > 0 && (
+                              <ul className="text-xs text-blue-800 mt-2 ml-2 list-disc list-inside">
+                                {step.bulletPoints.map((bullet, idx) => (
+                                  <li key={idx}>{bullet}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                        {step.image && (
+                          <div className="border-t border-blue-200 bg-blue-50 p-3">
+                            <img
+                              src={step.image}
+                              alt={step.title}
+                              className="w-full max-h-48 object-cover rounded border border-blue-200"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))
+                ) : (
+                  // Fallback to hardcoded steps if no admin configuration
+                  <>
+                    {/* Step 1 */}
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">Open Your Mobile Money / Bank App</p>
+                        <p className="text-xs text-blue-800">MTN Mobile Money, Vodafone Cash, or your bank app</p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</div>
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">Send Transfer</p>
+                        <div className="mt-1 p-2 bg-white rounded border border-blue-200">
+                          <p className="text-xs text-blue-900 font-mono font-bold">{MANUAL_PAYMENT_NUMBER}</p>
+                          <p className="text-xs text-blue-800 mt-1">Amount: GHS {totals.downpayment.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">3</div>
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">Save the Confirmation Screen</p>
+                        <p className="text-xs text-blue-800">After payment, your app will show a confirmation message with a reference or receipt number. This is what we need to verify your payment.</p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">4</div>
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">Take a Screenshot</p>
+                        <p className="text-xs text-blue-800">Take a clear screenshot showing:</p>
+                        <ul className="text-xs text-blue-800 mt-1 ml-2 list-disc list-inside">
+                          <li>Recipient phone number ({MANUAL_PAYMENT_NUMBER})</li>
+                          <li>Amount (GHS {totals.downpayment.toFixed(2)})</li>
+                          <li>Transaction status or reference number</li>
+                          <li>Date/time of transaction</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Step 5 */}
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">5</div>
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">Upload Screenshot Below</p>
+                        <p className="text-xs text-blue-800">Upload the screenshot using the file upload field below</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Payment Proof Upload - With Clear Requirements */}
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <label htmlFor="payment-proof" className="mb-2 block">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-block w-5 h-5 rounded-full bg-red-600 text-white text-xs font-bold flex items-center justify-center">📸</span>
+                  <span className="text-sm font-bold text-red-900">Screenshot Upload Required <span className="text-red-600">*</span></span>
+                </div>
+                <p className="text-xs text-red-800">This is mandatory to verify your payment</p>
               </label>
+              
+              <div className="mb-3 p-3 bg-white rounded border border-red-200">
+                <p className="text-xs font-semibold text-red-900 mb-2">✓ What We Need:</p>
+                <ul className="text-xs text-red-800 space-y-1 ml-4 list-disc">
+                  <li>Screenshot of transfer confirmation screen</li>
+                  <li>Must show amount: <span className="font-bold">GHS {totals.downpayment.toFixed(2)}</span></li>
+                  <li>Must show recipient: <span className="font-bold">{MANUAL_PAYMENT_NUMBER}</span></li>
+                  <li>Transaction reference or status visible</li>
+                  <li>Date & time visible</li>
+                </ul>
+              </div>
+
               <input
                 id="payment-proof"
                 type="file"
@@ -626,14 +899,21 @@ export default function CheckoutForm() {
                     }
                   }
                 }}
-                className="w-full text-sm"
+                className="w-full text-sm border border-red-300 rounded px-2 py-2 bg-white"
               />
               {paymentProof && (
-                <p className="text-xs text-green-600 mt-1">✓ {paymentProof.name}</p>
+                <p className="text-xs text-green-600 mt-2 font-semibold">✓ Screenshot selected: {paymentProof.name}</p>
               )}
               {paymentProofError && (
-                <p className="text-xs text-red-600 mt-1">{paymentProofError}</p>
+                <p className="text-xs text-red-600 mt-2">{paymentProofError}</p>
               )}
+            </div>
+
+            {/* Info Box */}
+            <div className="rounded-lg bg-gray-50 p-3 border border-gray-200">
+              <p className="text-xs text-gray-700">
+                <span className="font-semibold">💡 Tip:</span> Include your order reference in the transfer memo if possible. This helps us verify your payment even faster.
+              </p>
             </div>
           </div>
         )}
@@ -641,7 +921,7 @@ export default function CheckoutForm() {
         {paymentMethod === "paystack" && (
           <div className="rounded-lg bg-green-50 p-4 border border-green-200">
             <p className="text-sm text-green-900">
-              💳 You will complete payment of <span className="font-bold">GHS {totals.downpayment.toFixed(2)}</span> securely via Paystack (Card, MTN/Vodafone Mobile Money, or bank transfer).
+              You will complete payment of <span className="font-bold">GHS {totals.downpayment.toFixed(2)}</span> securely via Paystack (Card, MTN/Vodafone Mobile Money, or bank transfer).
             </p>
           </div>
         )}
@@ -716,9 +996,15 @@ export default function CheckoutForm() {
                 {totals.delivery === 0 ? "Free" : `GHS ${totals.delivery.toFixed(2)}`}
               </span>
             </div>
+            {totals.subtotal > 0 && totals.processingFee > 0 && (
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-[var(--ink-soft)]">Processing fee</span>
+                <span className="font-semibold">GHS {totals.processingFee.toFixed(2)}</span>
+              </div>
+            )}
             {totals.subtotal > 0 && totals.delivery > 0 && (
               <p className="mt-1 text-xs text-[var(--ink-soft)]">
-                Free delivery on orders over GHS 250
+                Add {Math.max(0, (content?.deliverySettings.freeDeliveryItemThreshold ?? 5) - items.reduce((s, l) => s + l.qty, 0))} more item(s) for free delivery <GiftIcon size={13} className="inline-block align-middle" />
               </p>
             )}
             <div className="mt-2 flex items-center justify-between text-base">

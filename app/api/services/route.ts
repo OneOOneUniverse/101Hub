@@ -141,25 +141,8 @@ async function sendNotifications(opts: {
     }
   }
 
-  // Send SMS to customer (fire-and-forget)
-  if (apiKey && apiKey !== "your-africastalking-api-key-here" && atUsername) {
-    void (async () => {
-      try {
-        const AT = AfricasTalking({ apiKey, username: atUsername });
-        const smsMessage = `Hi ${opts.customerName}, your service request (${opts.ticketRef}) has been received. Our team will contact you shortly. - 101Hub`;
-        
-        if (smsMessage.length <= 160) {
-          await AT.SMS.send({
-            to: [opts.customerPhone],
-            message: smsMessage,
-          });
-          console.log(`[services] SMS sent to ${opts.customerPhone}`);
-        }
-      } catch (err) {
-        console.error("[services] SMS send failed:", err);
-      }
-    })();
-  }
+  // Email notification sent above; SMS notifications have been disabled
+  // SMS is now only available through admin dashboard broadcast
 }
 
 export async function GET() {

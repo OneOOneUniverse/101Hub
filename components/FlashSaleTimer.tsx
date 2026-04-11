@@ -15,6 +15,29 @@ function getNextTarget(durationHours: number): number {
   return Date.now() + durationHours * 60 * 60 * 1000;
 }
 
+const STORAGE_KEY = "flash-sale-target";
+
+function loadOrCreateTarget(durationHours: number): number {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = Number(stored);
+      if (Number.isFinite(parsed) && parsed > Date.now()) {
+        return parsed;
+      }
+    }
+  } catch {
+    // localStorage unavailable (SSR guard / private mode)
+  }
+  const next = getNextTarget(durationHours);
+  try {
+    localStorage.setItem(STORAGE_KEY, String(next));
+  } catch {
+    // ignore
+  }
+  return next;
+}
+
 function splitTime(distanceMs: number) {
   const safe = Math.max(0, distanceMs);
   const totalSeconds = Math.floor(safe / 1000);
@@ -37,6 +60,12 @@ export default function FlashSaleTimer({
   const [targetTime, setTargetTime] = useState<number>(() => getNextTarget(durationHours));
   const [now, setNow] = useState<number>(() => Date.now());
 
+  // Sync target from localStorage after mount to avoid SSR/client mismatch
+  useEffect(() => {
+    setTargetTime(loadOrCreateTarget(durationHours));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const configuredEndTime = useMemo(() => {
     if (!endsAt) {
       return null;
@@ -52,10 +81,13 @@ export default function FlashSaleTimer({
       setNow(currentTime);
 
       if (!configuredEndTime) {
-        setTargetTime((currentTarget) =>
-          currentTime >= currentTarget ? getNextTarget(durationHours) : currentTarget
-        );
-      }
+          setTargetTime((currentTarget) => {
+            if (currentTime < currentTarget) return currentTarget;
+            const next = getNextTarget(durationHours);
+            try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* ignore */ }
+            return next;
+          });
+        }
     }, 1000);
 
     return () => window.clearInterval(timer);

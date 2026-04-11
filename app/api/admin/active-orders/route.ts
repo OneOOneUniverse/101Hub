@@ -5,7 +5,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("orders")
     .select(
-      "order_ref, customer_name, customer_phone, customer_address, order_status, total, downpayment, created_at, updated_at"
+      "order_ref, customer_name, customer_phone, customer_address, order_status, total, downpayment, created_at, updated_at, estimated_delivery_date"
     )
     .in("order_status", ["confirmed", "in_transit"])
     .order("created_at", { ascending: true });
@@ -25,6 +25,7 @@ export async function GET() {
     downpayment: row.downpayment as number,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string | null,
+    estimatedDeliveryDate: row.estimated_delivery_date as string | null | undefined,
   }));
 
   return NextResponse.json({ orders });

@@ -5,11 +5,18 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import seedContent from "@/data/site-content.json";
 import {
+  type Category,
+  type CategoryFeature,
+  type DeliverySettings,
+  type DeliveryType,
   type FlashSaleContent,
+  type FooterContent,
   type HighlightCard,
   type HomeContent,
+  type LocationDeliveryFee,
+  type PaymentSettings,
   type Product,
-  productCategories,
+  defaultProductCategories,
   type PromoSlide,
   type ServicePackage,
   type SiteContent,
@@ -88,14 +95,25 @@ function normalizeSlug(slug: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function sanitizeProduct(product: unknown, index: number, fallback?: Product): Product {
+function sanitizeProduct(product: unknown, index: number, fallback?: Product, customCategories?: Set<string>): Product {
   const candidate = typeof product === "object" && product !== null ? product as Partial<Product> : {};
-  const category = productCategories.includes(candidate.category as Product["category"])
+  const isKnownCategory =
+    defaultProductCategories.includes(candidate.category as typeof defaultProductCategories[number]) ||
+    (typeof candidate.category === "string" && (customCategories?.has(candidate.category) ?? false));
+  const category = isKnownCategory
     ? (candidate.category as Product["category"])
-    : fallback?.category ?? productCategories[0];
+    : fallback?.category ?? defaultProductCategories[0];
   const images = toOptionalTextArray(candidate.images) ?? fallback?.images;
   const image = toOptionalText(candidate.image) ?? images?.[0] ?? fallback?.image;
   const rawSlug = toText(candidate.slug, fallback?.slug ?? `product-${index + 1}`);
+
+  const rawDiscount = candidate.discount !== undefined ? toNumber(candidate.discount) : fallback?.discount;
+  const discount = rawDiscount !== undefined && Number.isFinite(rawDiscount) && rawDiscount > 0 ? Math.min(100, rawDiscount) : undefined;
+
+  const rawDeliveryFee = candidate.deliveryFee !== undefined ? toNumber(candidate.deliveryFee) : fallback?.deliveryFee;
+  const deliveryFee = rawDeliveryFee !== undefined && Number.isFinite(rawDeliveryFee) && rawDeliveryFee >= 0 ? rawDeliveryFee : undefined;
+
+  const noDeliveryFee = toBoolean(candidate.noDeliveryFee, fallback?.noDeliveryFee ?? false) || undefined;
 
   return {
     id: toText(candidate.id, fallback?.id ?? `product-${index + 1}`),
@@ -109,6 +127,9 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product): P
     badge: toOptionalText(candidate.badge) ?? fallback?.badge,
     image,
     images,
+    ...(discount !== undefined && { discount }),
+    ...(deliveryFee !== undefined && { deliveryFee }),
+    ...(noDeliveryFee && { noDeliveryFee }),
   };
 }
 
@@ -134,6 +155,10 @@ function sanitizePromoSlide(slide: unknown, index: number, fallback?: PromoSlide
     alt: toText(candidate.alt, fallback?.alt ?? "Promotional banner"),
     title: toText(candidate.title, fallback?.title ?? "Untitled promo"),
     subtitle: toText(candidate.subtitle, fallback?.subtitle ?? ""),
+    eventName: toOptionalText(candidate.eventName) ?? fallback?.eventName,
+    actionUrl: toOptionalText(candidate.actionUrl) ?? fallback?.actionUrl,
+    startDate: toOptionalText(candidate.startDate) ?? fallback?.startDate,
+    endDate: toOptionalText(candidate.endDate) ?? fallback?.endDate,
   };
 }
 
@@ -205,6 +230,95 @@ function sanitizeFlashSale(value: unknown, fallback: FlashSaleContent): FlashSal
   };
 }
 
+function sanitizeCategoryFeature(feature: unknown, index: number): CategoryFeature {
+  const candidate = typeof feature === "object" && feature !== null ? feature as Partial<CategoryFeature> : {};
+  return {
+    id: toText(candidate.id, `feat-${index + 1}`),
+    name: toText(candidate.name, `Feature ${index + 1}`),
+    description: toOptionalText(candidate.description),
+  };
+}
+
+function sanitizeCategory(category: unknown, index: number): Category {
+  const candidate = typeof category === "object" && category !== null ? category as Partial<Category> : {};
+  const rawFeatures = Array.isArray(candidate.features) ? candidate.features : [];
+  return {
+    id: toText(candidate.id, `cat-${index + 1}`),
+    name: toText(candidate.name, `Category ${index + 1}`),
+    description: toOptionalText(candidate.description),
+    image: toOptionalText(candidate.image),
+    features: rawFeatures.map((item, featureIndex) => sanitizeCategoryFeature(item, featureIndex)),
+  };
+}
+
+function sanitizeFooter(value: unknown): FooterContent {
+  const candidate = typeof value === "object" && value !== null ? value as Partial<FooterContent> : {};
+  return {
+    phone: toOptionalText(candidate.phone),
+    email: toOptionalText(candidate.email),
+    address: toOptionalText(candidate.address),
+    facebook: toOptionalText(candidate.facebook),
+    instagram: toOptionalText(candidate.instagram),
+    twitter: toOptionalText(candidate.twitter),
+    youtube: toOptionalText(candidate.youtube),
+    tiktok: toOptionalText(candidate.tiktok),
+    whatsapp: toOptionalText(candidate.whatsapp),
+  };
+}
+
+const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
+  defaultFee: 15,
+  freeDeliveryItemThreshold: 5,
+  locationFees: [],
+  deliveryTypes: [],
+  processingFee: 4,
+};
+
+const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
+  paystackEnabled: true,
+  manualEnabled: true,
+};
+
+function sanitizeLocationFee(value: unknown, index: number): LocationDeliveryFee {
+  const candidate = typeof value === "object" && value !== null ? value as Partial<LocationDeliveryFee> : {};
+  return {
+    id: toText(candidate.id, `loc-${index + 1}`),
+    name: toText(candidate.name, `Location ${index + 1}`),
+    fee: Math.max(0, toNumber(candidate.fee, 0)),
+  };
+}
+
+function sanitizeDeliveryType(value: unknown, index: number): DeliveryType {
+  const candidate = typeof value === "object" && value !== null ? value as Partial<DeliveryType> : {};
+  return {
+    id: toText(candidate.id, `dtype-${index + 1}`),
+    name: toText(candidate.name, `Delivery Type ${index + 1}`),
+    fee: Math.max(0, toNumber(candidate.fee, 0)),
+    description: toOptionalText(candidate.description),
+  };
+}
+
+function sanitizeDeliverySettings(value: unknown): DeliverySettings {
+  const candidate = typeof value === "object" && value !== null ? value as Partial<DeliverySettings> : {};
+  const rawFees = Array.isArray(candidate.locationFees) ? candidate.locationFees : DEFAULT_DELIVERY_SETTINGS.locationFees;
+  const rawDeliveryTypes = Array.isArray(candidate.deliveryTypes) ? candidate.deliveryTypes : DEFAULT_DELIVERY_SETTINGS.deliveryTypes;
+  return {
+    defaultFee: Math.max(0, toNumber(candidate.defaultFee, DEFAULT_DELIVERY_SETTINGS.defaultFee)),
+    freeDeliveryItemThreshold: Math.max(1, Math.trunc(toNumber(candidate.freeDeliveryItemThreshold, DEFAULT_DELIVERY_SETTINGS.freeDeliveryItemThreshold))),
+    locationFees: rawFees.map((item, index) => sanitizeLocationFee(item, index)),
+    deliveryTypes: rawDeliveryTypes.map((item, index) => sanitizeDeliveryType(item, index)),
+    processingFee: Math.max(0, toNumber(candidate.processingFee, DEFAULT_DELIVERY_SETTINGS.processingFee)),
+  };
+}
+
+function sanitizePaymentSettings(value: unknown): PaymentSettings {
+  const candidate = typeof value === "object" && value !== null ? value as Partial<PaymentSettings> : {};
+  return {
+    paystackEnabled: toBoolean(candidate.paystackEnabled, DEFAULT_PAYMENT_SETTINGS.paystackEnabled),
+    manualEnabled: toBoolean(candidate.manualEnabled, DEFAULT_PAYMENT_SETTINGS.manualEnabled),
+  };
+}
+
 function resolveUpdatedAt(candidate: Partial<SiteContent>, fallback: SiteContent): string {
   const candidateUpdatedAt = typeof candidate.updatedAt === "string" ? candidate.updatedAt : "";
   const fallbackUpdatedAt = typeof fallback.updatedAt === "string" ? fallback.updatedAt : "";
@@ -227,8 +341,13 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
   const rawProducts = Array.isArray(candidate.products) ? candidate.products : defaultContent.products;
   const rawServices = Array.isArray(candidate.services) ? candidate.services : defaultContent.services;
   const rawSlides = Array.isArray(candidate.promoSlides) ? candidate.promoSlides : defaultContent.promoSlides;
+  const rawCategories = Array.isArray(candidate.categories) ? candidate.categories : (defaultContent as SiteContent).categories || [];
 
-  const products = rawProducts.map((item, index) => sanitizeProduct(item, index, defaultContent.products[index]));
+  // Sanitize categories first so custom category names can be used to validate products
+  const categories = rawCategories.map((item, index) => sanitizeCategory(item, index));
+  const customCategoryNames = new Set(categories.map((c) => c.name));
+
+  const products = rawProducts.map((item, index) => sanitizeProduct(item, index, defaultContent.products[index], customCategoryNames));
   const services = rawServices.map((item, index) => sanitizeService(item, index, defaultContent.services[index]));
 
   return {
@@ -236,12 +355,17 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     storeDescription: toText(candidate.storeDescription, defaultContent.storeDescription),
     footerText: toText(candidate.footerText, defaultContent.footerText),
     logoUrl: toOptionalText(candidate.logoUrl) ?? defaultContent.logoUrl,
+    footer: sanitizeFooter(candidate.footer ?? (defaultContent as SiteContent).footer ?? {}),
     features: sanitizeFeatures(candidate.features, defaultContent.features),
     home: sanitizeHome(candidate.home, defaultContent.home),
     promoSlides: rawSlides.map((item, index) => sanitizePromoSlide(item, index, defaultContent.promoSlides[index])),
     products,
     services,
+    categories,
+    allCategoryImage: toOptionalText(candidate.allCategoryImage) ?? defaultContent.allCategoryImage,
     flashSale: sanitizeFlashSale(candidate.flashSale, defaultContent.flashSale),
+    deliverySettings: sanitizeDeliverySettings(candidate.deliverySettings ?? (defaultContent as SiteContent).deliverySettings),
+    paymentSettings: sanitizePaymentSettings(candidate.paymentSettings ?? (defaultContent as SiteContent & { paymentSettings?: PaymentSettings }).paymentSettings ?? {}),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };
 }
@@ -254,7 +378,7 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
     // Try to load from Supabase first (production)
     const dbContent = await getSiteContentFromDb();
     if (dbContent) {
-      return dbContent;
+      return sanitizeSiteContent(dbContent);
     }
   } catch (error) {
     console.error("Error loading from Supabase, falling back to JSON:", error);

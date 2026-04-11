@@ -2,7 +2,9 @@ import Link from "next/link";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { getSiteContent } from "@/lib/site-content";
 import WishlistButton from "@/components/WishlistButton";
+import ProductCardShare from "@/components/ProductCardShare";
 import { getReviewStats } from "@/lib/product-feedback";
+import { CoinIcon } from "@/components/Icons";
 
 export default async function FlashSalePage() {
   const content = await getSiteContent();
@@ -41,8 +43,8 @@ export default async function FlashSalePage() {
         <p className="mt-2 text-[var(--ink-soft)]">
           {content.flashSale.pageDescription}
         </p>
-        <p className="mt-4 inline-flex rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">
-          💰 Save up to <span className="ml-1 text-red-600">{content.flashSale.discountPercentage}%</span>
+        <p className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">
+          <CoinIcon size={16} /> Save up to <span className="ml-1 text-red-600">{content.flashSale.discountPercentage}%</span>
         </p>
       </section>
 
@@ -66,77 +68,93 @@ export default async function FlashSalePage() {
 
               {/* Product image */}
               {item.image ? (
-                <div
-                  className="h-24 overflow-hidden rounded-lg border border-black/10 bg-cover bg-center sm:h-32 md:h-40"
-                  style={{ backgroundImage: `url('${item.image}')` }}
-                  role="img"
-                  aria-label={`${item.name} image`}
-                >
-                  <span className="sr-only">{item.name} image</span>
+                <div className="product-card__img-wrap">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="product-card__img"
+                  />
                 </div>
               ) : (
                 <div className="product-card__image" aria-hidden="true" />
               )}
 
-              {/* Wishlist button */}
-              {content.features.wishlist ? (
-                <div className="mt-1 flex justify-end sm:mt-2">
-                  <span className="sm:hidden">
-                    <WishlistButton productId={item.id} iconOnly />
-                  </span>
-                  <span className="hidden sm:inline-flex">
-                    <WishlistButton productId={item.id} compact />
-                  </span>
-                </div>
-              ) : null}
-
-              {/* Category */}
-              <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
-                {item.category}
-              </p>
+              {/* Category + wishlist/share on same row */}
+              <div className="flex items-center justify-between gap-1">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
+                  {item.category}
+                </p>
+                {content.features.wishlist ? (
+                  <div className="flex shrink-0 gap-0.5 sm:gap-1">
+                    <span className="sm:hidden">
+                      <ProductCardShare
+                        productName={item.name}
+                        productDescription={`${item.name} - GHS ${item.salePrice.toFixed(2)}`}
+                        slug={item.slug}
+                        iconOnly
+                        price={item.price}
+                        salePrice={item.salePrice}
+                        discount={content.flashSale.discountPercentage}
+                      />
+                    </span>
+                    <span className="hidden sm:inline-flex">
+                      <ProductCardShare
+                        productName={item.name}
+                        productDescription={`${item.name} - GHS ${item.salePrice.toFixed(2)}`}
+                        slug={item.slug}
+                        compact
+                        price={item.price}
+                        salePrice={item.salePrice}
+                        discount={content.flashSale.discountPercentage}
+                      />
+                    </span>
+                    <span className="sm:hidden">
+                      <WishlistButton productId={item.id} iconOnly />
+                    </span>
+                    <span className="hidden sm:inline-flex">
+                      <WishlistButton productId={item.id} compact />
+                    </span>
+                  </div>
+                ) : null}
+              </div>
 
               {/* Product name */}
               <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
                 <Link href={`/products/${item.slug}`}>{item.name}</Link>
               </h2>
 
-              {/* Pricing section */}
-              <div className="mt-2 sm:mt-3">
-                <div className="flex items-baseline gap-2">
-                  <p className="text-lg font-black text-red-600 sm:text-xl">
-                    GHS {item.salePrice.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-[var(--ink-soft)] line-through">
-                    GHS {item.price.toFixed(2)}
-                  </p>
-                </div>
-                <p className="mt-1 text-xs font-bold text-green-700">
-                  Save GHS {item.savings.toFixed(2)}
-                </p>
-              </div>
-
-              {/* Stock and rating info */}
-              <div className="mt-2 grid grid-cols-2 gap-2 text-right sm:mt-3">
+              {/* Price + stock/rating on same row */}
+              <div className="flex items-end justify-between gap-1">
                 <div>
-                  <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Stock</p>
-                  <p className="font-bold text-[11px] sm:text-sm">
-                    {item.stock > 0 ? item.stock : "Out"}
-                  </p>
-                </div>
-                {content.features.reviews ? (
-                  <div>
-                    <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Rating</p>
-                    <p className="font-bold text-[11px] sm:text-sm">
-                      {item.reviewStats.average.toFixed(1)} / 5
+                  <div className="flex items-baseline gap-1.5">
+                    <p className="text-sm font-black text-red-600 sm:text-base">
+                      GHS {item.salePrice.toFixed(2)}
+                    </p>
+                    <p className="text-[10px] text-[var(--ink-soft)] line-through sm:text-xs">
+                      GHS {item.price.toFixed(2)}
                     </p>
                   </div>
-                ) : null}
+                  <p className="text-[10px] font-bold text-green-700 sm:text-xs">
+                    Save GHS {item.savings.toFixed(2)}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">
+                    Qty: {item.stock > 0 ? item.stock : "Out"}
+                  </p>
+                  {content.features.reviews ? (
+                    <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">
+                      ★ {item.reviewStats.average.toFixed(1)}
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
               {/* View product link */}
               <Link
                 href={`/products/${item.slug}`}
-                className="mt-3 inline-flex w-full justify-center rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white transition hover:bg-[var(--brand-deep)] sm:mt-4 sm:text-sm"
+                className="inline-flex w-full justify-center rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white transition hover:bg-[var(--brand-deep)] sm:text-sm"
               >
                 View Product
               </Link>
