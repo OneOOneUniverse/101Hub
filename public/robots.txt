@@ -6,7 +6,6 @@ Disallow: /api/
 Disallow: /login/
 Disallow: /signup/
 Disallow: /*.json$
-Disallow: /*?*
 Allow: /*.css$
 Allow: /*.js$
 Allow: /img/

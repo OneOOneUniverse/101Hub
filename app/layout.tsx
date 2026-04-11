@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: "https://www.101hub.shop",
+    canonical: "https://www.101hub.shop/",
   },
   robots: {
     index: true,
