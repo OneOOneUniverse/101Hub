@@ -170,6 +170,7 @@ export default function GenNavbar({
             </ul>
           </li>
         ) : null}
+        <li><Link href="/faqs">FAQs</Link></li>
         <li><Link href="/orders">Track Order</Link></li>
       </ul>
       <div className="gen-nav-actions">

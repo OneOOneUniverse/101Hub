@@ -1007,5 +1007,42 @@
     "paystackEnabled": false,
     "manualEnabled": true
   },
+  "faqs": [
+    {
+      "id": "faq-1",
+      "question": "How long does delivery take?",
+      "answer": "Standard delivery takes 2-3 business days within Accra. We offer faster options at checkout. Delivery times may vary for orders outside Accra.",
+      "category": "Shipping & Delivery",
+      "order": 1
+    },
+    {
+      "id": "faq-2",
+      "question": "What payment methods do you accept?",
+      "answer": "We accept Cash on Delivery (COD) for most orders. You can also pay during checkout using available payment methods. No payment is required until you confirm your order.",
+      "category": "Payment",
+      "order": 2
+    },
+    {
+      "id": "faq-3",
+      "question": "Can I return or exchange an item?",
+      "answer": "Yes, items can be returned within 7 days of purchase if they are in original condition with all packaging and accessories. Contact our support team to initiate a return.",
+      "category": "Returns & Refunds",
+      "order": 3
+    },
+    {
+      "id": "faq-4",
+      "question": "Do you offer warranty on products?",
+      "answer": "Most products come with manufacturer warranty. Warranties vary by product. Check the product details page for specific warranty information.",
+      "category": "Warranty",
+      "order": 4
+    },
+    {
+      "id": "faq-5",
+      "question": "How do I track my order?",
+      "answer": "After placing an order, you can track it from your profile under 'Orders'. You'll receive shipping updates via SMS and email as your order progresses.",
+      "category": "Orders",
+      "order": 5
+    }
+  ],
   "updatedAt": "2026-04-11T12:13:21.776Z"
 }

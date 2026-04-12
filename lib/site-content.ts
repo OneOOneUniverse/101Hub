@@ -9,6 +9,7 @@ import {
   type CategoryFeature,
   type DeliverySettings,
   type DeliveryType,
+  type FAQ,
   type FlashSaleContent,
   type FooterContent,
   type HighlightCard,

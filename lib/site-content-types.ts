@@ -163,6 +163,16 @@ export type Category = {
   features: CategoryFeature[];
 };
 
+export type FAQ = {
+  id: string;
+  question: string;
+  answer: string;
+  videoUrl?: string;
+  imageUrl?: string;
+  category?: string;
+  order?: number;
+};
+
 export type FooterContent = {
   phone?: string;
   email?: string;
@@ -200,5 +210,6 @@ export type SiteContent = {
   paymentSettings: PaymentSettings;
   paymentWalkthrough?: PaymentWalkthroughStep[];
   smsTemplates?: SmsTemplate[];
+  faqs?: FAQ[];
   updatedAt: string;
 };
