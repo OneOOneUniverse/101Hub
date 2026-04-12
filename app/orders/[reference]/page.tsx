@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BoxIcon, CoinIcon } from "@/components/Icons";
+import CustomerOrderMessages from "@/components/CustomerOrderMessages";
 import { 
   getOrderFromLocal, 
   saveOrderToLocal,
@@ -177,6 +178,9 @@ export default function OrderTrackingPage() {
           )}
         </div>
       </section>
+
+      {/* Store Messages */}
+      <CustomerOrderMessages orderRef={order.orderRef} />
 
       {/* Timeline */}
       <section className="panel p-6">
