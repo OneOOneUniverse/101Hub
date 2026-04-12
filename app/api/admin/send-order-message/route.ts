@@ -112,15 +112,3 @@ export async function POST(request: Request) {
     );
   }
 }
-    is_highlighted: body.isHighlighted || false,
-  });
-
-  if (error) {
-    return NextResponse.json(
-      { error: "Failed to send message: " + error.message },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({ success: true, message });
-}
