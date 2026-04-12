@@ -68,6 +68,7 @@ export default function SiteFooter({ storeName, footerText, footer }: SiteFooter
                 { href: "/flash-sale", label: "Flash Sale" },
                 { href: "/orders", label: "My Orders" },
                 { href: "/wishlist", label: "Wishlist" },
+                { href: "/faqs", label: "FAQs" },
               ].map(({ href, label }) => (
                 <Link
                   key={href}

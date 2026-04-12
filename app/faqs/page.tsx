@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { FAQ } from "@/lib/site-content-types";
 
 export default function FAQsPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +29,16 @@ export default function FAQsPage() {
   }
 
   const categories = Array.from(new Set(faqs.map((faq) => faq.category).filter(Boolean))) as string[];
-  const filteredFaqs = selectedCategory ? faqs.filter((faq) => faq.category === selectedCategory) : faqs;
+  
+  const filteredFaqs = useMemo(() => {
+    return faqs.filter((faq) => {
+      const matchCategory = !selectedCategory || faq.category === selectedCategory;
+      const matchSearch = !searchTerm || 
+        faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchCategory && matchSearch;
+    });
+  }, [faqs, selectedCategory, searchTerm]);
 
   if (loading) {
     return (
@@ -45,38 +55,65 @@ export default function FAQsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 py-8 sm:py-16">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Find answers to common questions about our products, services, and policies.
+            Find answers to common questions about our products, services, and policies. Browse by category or search for what you need.
           </p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-8 sm:mb-12">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search FAQs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl border-2 border-gray-200 focus:border-black focus:outline-none text-gray-900 placeholder:text-gray-500 transition-colors"
+            />
+            <svg
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
         </div>
 
         {/* Category Filter */}
         {categories.length > 0 && (
           <div className="mb-8 sm:mb-12">
-            <div className="flex flex-wrap gap-2 justify-center">
+            <p className="text-sm font-semibold text-gray-600 mb-3">Filter by Category:</p>
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedCategory(null)}
-                className={`px-4 py-2 rounded-full font-medium transition-all ${
+                className={`px-4 py-2 rounded-full font-medium transition-all text-sm sm:text-base ${
                   selectedCategory === null
-                    ? "bg-black text-white"
+                    ? "bg-black text-white shadow-lg"
                     : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                 }`}
               >
-                All
+                All Categories
               </button>
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-full font-medium transition-all ${
+                  className={`px-4 py-2 rounded-full font-medium transition-all text-sm sm:text-base ${
                     selectedCategory === category
-                      ? "bg-black text-white"
+                      ? "bg-black text-white shadow-lg"
                       : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                   }`}
                 >
@@ -84,6 +121,13 @@ export default function FAQsPage() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Results Count */}
+        {searchTerm && (
+          <div className="mb-6 text-sm text-gray-600">
+            Found {filteredFaqs.length} result{filteredFaqs.length !== 1 ? "s" : ""} for "{searchTerm}"
           </div>
         )}
 
@@ -174,17 +218,31 @@ export default function FAQsPage() {
 
         {/* CTA Section */}
         {filteredFaqs.length > 0 && (
-          <div className="mt-12 sm:mt-16 bg-black text-white rounded-lg p-6 sm:p-8 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Still have questions?</h2>
-            <p className="text-gray-300 mb-6 sm:mb-8">
-              Contact our support team and we'll help you right away.
+          <div className="mt-12 sm:mt-16 bg-gradient-to-r from-black to-gray-800 text-white rounded-2xl p-8 sm:p-10 text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Didn't find your answer?</h2>
+            <p className="text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto">
+              We're here to help! Contact our support team anytime and we'll be happy to assist you with any questions or concerns.
             </p>
-            <a
-              href="mailto:support@101hub.com"
-              className="inline-block bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Contact Support
-            </a>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="mailto:support@101hub.com"
+                className="inline-flex items-center justify-center gap-2 bg-white text-black px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Email Support
+              </a>
+              <a
+                href="/orders"
+                className="inline-flex items-center justify-center gap-2 border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-black transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2m0 0V3a2 2 0 00-2-2h-2a2 2 0 00-2 2v2z" />
+                </svg>
+                Track Order
+              </a>
+            </div>
           </div>
         )}
       </div>

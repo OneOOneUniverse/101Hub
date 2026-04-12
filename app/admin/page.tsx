@@ -9,6 +9,7 @@ import {
   type CategoryFeature,
   type DeliverySettings,
   type DeliveryType,
+  type FAQ,
   type FooterContent,
   type LocationDeliveryFee,
   type PaymentSettings,
@@ -135,6 +136,17 @@ function createCategory(): Category {
   };
 }
 
+function createFAQ(): FAQ {
+  return {
+    id: createId("faq"),
+    question: "",
+    answer: "",
+    category: "",
+    videoUrl: "",
+    imageUrl: "",
+  };
+}
+
 function isoToDateTimeLocal(value?: string): string {
   if (!value) {
     return "";
@@ -212,7 +224,8 @@ type AdminSectionId =
   | "payment-walkthrough"
   | "footer"
   | "sms-templates"
-  | "sms";
+  | "sms"
+  | "faqs";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
@@ -230,6 +243,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "footer", label: "Footer" },
   { id: "sms-templates", label: "SMS Templates" },
   { id: "sms", label: "Broadcast SMS" },
+  { id: "faqs", label: "FAQs" },
 ];
 
 export default function AdminPage() {
@@ -2683,6 +2697,218 @@ export default function AdminPage() {
                 {smsResult.error}
               </p>
             ) : null}
+          </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "faqs" ? (
+        <Section
+          title="FAQs"
+          description="Manage frequently asked questions. You can add images and video URLs to each FAQ."
+        >
+          <div className="space-y-6">
+            {/* Add New FAQ */}
+            <div className="space-y-4 rounded-xl border border-black/10 bg-white p-6">
+              <h3 className="text-lg font-bold text-[var(--brand-deep)]">Add New FAQ</h3>
+              <div className="space-y-3">
+                <Field label="Question">
+                  <input
+                    type="text"
+                    placeholder="What is your return policy?"
+                    id="new-faq-question"
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Answer">
+                  <textarea
+                    placeholder="Enter the answer to the question..."
+                    id="new-faq-answer"
+                    className={inputClassName(true)}
+                    rows={4}
+                  />
+                </Field>
+                <Field label="Category">
+                  <input
+                    type="text"
+                    placeholder="e.g., Shipping & Delivery, Payment, Returns"
+                    id="new-faq-category"
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Video URL (Optional)">
+                  <input
+                    type="url"
+                    placeholder="https://youtube.com/embed/..."
+                    id="new-faq-video"
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Image URL (Optional)">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    id="new-faq-image"
+                    className={inputClassName()}
+                  />
+                </Field>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const question = (document.getElementById("new-faq-question") as HTMLInputElement)?.value.trim();
+                    const answer = (document.getElementById("new-faq-answer") as HTMLTextAreaElement)?.value.trim();
+                    if (!question || !answer) {
+                      setError("Question and answer are required");
+                      return;
+                    }
+                    const category = (document.getElementById("new-faq-category") as HTMLInputElement)?.value.trim() || undefined;
+                    const videoUrl = (document.getElementById("new-faq-video") as HTMLInputElement)?.value.trim() || undefined;
+                    const imageUrl = (document.getElementById("new-faq-image") as HTMLInputElement)?.value.trim() || undefined;
+                    
+                    const newFaq: FAQ = {
+                      id: createId("faq"),
+                      question,
+                      answer,
+                      category,
+                      videoUrl,
+                      imageUrl,
+                      order: ((content?.faqs?.length ?? 0) + 1),
+                    };
+                    
+                    setContent((current) => {
+                      if (!current) return current;
+                      return {
+                        ...current,
+                        faqs: [...(current.faqs ?? []), newFaq],
+                      };
+                    });
+                    
+                    // Clear form
+                    (document.getElementById("new-faq-question") as HTMLInputElement).value = "";
+                    (document.getElementById("new-faq-answer") as HTMLTextAreaElement).value = "";
+                    (document.getElementById("new-faq-category") as HTMLInputElement).value = "";
+                    (document.getElementById("new-faq-video") as HTMLInputElement).value = "";
+                    (document.getElementById("new-faq-image") as HTMLInputElement).value = "";
+                    setMessage("New FAQ added successfully!");
+                  }}
+                  className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)]"
+                >
+                  Add FAQ
+                </button>
+              </div>
+            </div>
+
+            {/* Existing FAQs */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-[var(--brand-deep)]">Manage FAQs</h3>
+              {(content?.faqs ?? []).length === 0 ? (
+                <p className="text-sm text-[var(--ink-soft)]">No FAQs yet. Add one to get started!</p>
+              ) : (
+                <div className="space-y-3">
+                  {(content?.faqs ?? []).map((faq, index) => (
+                    <div
+                      key={faq.id}
+                      className="rounded-xl border border-black/10 bg-white p-4 space-y-3"
+                    >
+                      <div className="space-y-2">
+                        <Field label="Question">
+                          <input
+                            type="text"
+                            defaultValue={faq.question}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updatedFaqs = [...(current.faqs ?? [])];
+                                updatedFaqs[index] = { ...faq, question: e.target.value };
+                                return { ...current, faqs: updatedFaqs };
+                              });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Answer">
+                          <textarea
+                            defaultValue={faq.answer}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updatedFaqs = [...(current.faqs ?? [])];
+                                updatedFaqs[index] = { ...faq, answer: e.target.value };
+                                return { ...current, faqs: updatedFaqs };
+                              });
+                            }}
+                            className={inputClassName(true)}
+                            rows={3}
+                          />
+                        </Field>
+                        <Field label="Category">
+                          <input
+                            type="text"
+                            defaultValue={faq.category || ""}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updatedFaqs = [...(current.faqs ?? [])];
+                                updatedFaqs[index] = { ...faq, category: e.target.value || undefined };
+                                return { ...current, faqs: updatedFaqs };
+                              });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Video URL">
+                          <input
+                            type="url"
+                            defaultValue={faq.videoUrl || ""}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updatedFaqs = [...(current.faqs ?? [])];
+                                updatedFaqs[index] = { ...faq, videoUrl: e.target.value || undefined };
+                                return { ...current, faqs: updatedFaqs };
+                              });
+                            }}
+                            placeholder="https://youtube.com/embed/..."
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Image URL">
+                          <input
+                            type="url"
+                            defaultValue={faq.imageUrl || ""}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updatedFaqs = [...(current.faqs ?? [])];
+                                updatedFaqs[index] = { ...faq, imageUrl: e.target.value || undefined };
+                                return { ...current, faqs: updatedFaqs };
+                              });
+                            }}
+                            placeholder="https://example.com/image.jpg"
+                            className={inputClassName()}
+                          />
+                        </Field>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setContent((current) => {
+                            if (!current) return current;
+                            return {
+                              ...current,
+                              faqs: (current.faqs ?? []).filter((_, i) => i !== index),
+                            };
+                          });
+                          setMessage("FAQ deleted successfully!");
+                        }}
+                        className="text-xs font-bold text-red-600 hover:underline"
+                      >
+                        Delete FAQ
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </Section>
       ) : null}
