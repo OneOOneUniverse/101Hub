@@ -43,6 +43,23 @@ create table service_requests (
 alter table service_requests enable row level security;
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Order messages (admin-to-customer communications)
+-- ─────────────────────────────────────────────────────────────────────────────
+create table order_messages (
+  id              bigint generated always as identity primary key,
+  order_ref       text not null,
+  message         text not null,
+  message_type    text not null default 'custom',
+  is_highlighted  boolean not null default false,
+  created_at      timestamptz not null default now(),
+  
+  constraint fk_order_messages_order
+    foreign key (order_ref) references orders(order_ref) on delete cascade
+);
+
+alter table order_messages enable row level security;
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Site content (editable via admin panel)
 -- ─────────────────────────────────────────────────────────────────────────────
 create table site_content (

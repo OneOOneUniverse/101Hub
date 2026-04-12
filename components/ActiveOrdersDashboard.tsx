@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BoxIcon, CoinIcon, TruckIcon } from "@/components/Icons";
 import { formatOrderDate, formatEstimatedDelivery } from "@/lib/order-status";
+import OrderMessaging from "@/components/OrderMessaging";
 
 type ActiveOrder = {
   orderRef: string;
@@ -177,6 +178,11 @@ export default function ActiveOrdersDashboard() {
                   📞 Call Customer
                 </a>
               </div>
+
+              {/* Messaging Panel */}
+              <div className="mt-3 border-t-2 border-blue-200 pt-3">
+                <OrderMessaging orderRef={order.orderRef} isCompact={true} />
+              </div>
             </article>
           ))}
         </div>
@@ -226,6 +232,11 @@ export default function ActiveOrdersDashboard() {
                 >
                   📞 Call Customer
                 </a>
+              </div>
+
+              {/* Messaging Panel */}
+              <div className="mt-3 border-t-2 border-cyan-200 pt-3">
+                <OrderMessaging orderRef={order.orderRef} isCompact={true} />
               </div>
             </article>
           ))}

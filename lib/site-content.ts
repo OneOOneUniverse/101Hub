@@ -21,6 +21,7 @@ import {
   type ServicePackage,
   type SiteContent,
   type SiteFeatures,
+  type SmsTemplate,
 } from "@/lib/site-content-types";
 import { getSiteContentFromDb, saveSiteContentToDb } from "@/lib/site-content-db";
 
@@ -319,6 +320,16 @@ function sanitizePaymentSettings(value: unknown): PaymentSettings {
   };
 }
 
+function sanitizeSmsTemplate(template: unknown, index: number): SmsTemplate {
+  const candidate = typeof template === "object" && template !== null ? template as Partial<SmsTemplate> : {};
+  return {
+    id: toText(candidate.id, `sms-${index + 1}`),
+    name: toText(candidate.name, `Template ${index + 1}`),
+    message: toText(candidate.message, ""),
+    createdAt: toOptionalText(candidate.createdAt),
+  };
+}
+
 function resolveUpdatedAt(candidate: Partial<SiteContent>, fallback: SiteContent): string {
   const candidateUpdatedAt = typeof candidate.updatedAt === "string" ? candidate.updatedAt : "";
   const fallbackUpdatedAt = typeof fallback.updatedAt === "string" ? fallback.updatedAt : "";
@@ -342,6 +353,7 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
   const rawServices = Array.isArray(candidate.services) ? candidate.services : defaultContent.services;
   const rawSlides = Array.isArray(candidate.promoSlides) ? candidate.promoSlides : defaultContent.promoSlides;
   const rawCategories = Array.isArray(candidate.categories) ? candidate.categories : (defaultContent as SiteContent).categories || [];
+  const rawSmsTemplates = Array.isArray(candidate.smsTemplates) ? candidate.smsTemplates : (defaultContent as SiteContent).smsTemplates ?? [];
 
   // Sanitize categories first so custom category names can be used to validate products
   const categories = rawCategories.map((item, index) => sanitizeCategory(item, index));
@@ -366,6 +378,7 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     flashSale: sanitizeFlashSale(candidate.flashSale, defaultContent.flashSale),
     deliverySettings: sanitizeDeliverySettings(candidate.deliverySettings ?? (defaultContent as SiteContent).deliverySettings),
     paymentSettings: sanitizePaymentSettings(candidate.paymentSettings ?? (defaultContent as SiteContent & { paymentSettings?: PaymentSettings }).paymentSettings ?? {}),
+    smsTemplates: rawSmsTemplates.map((item, index) => sanitizeSmsTemplate(item, index)),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };
 }

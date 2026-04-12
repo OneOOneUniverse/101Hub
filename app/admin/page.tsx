@@ -19,6 +19,7 @@ import {
   type SiteFeatures,
   type HighlightCard,
   type PaymentWalkthroughStep,
+  type SmsTemplate,
 } from "@/lib/site-content-types";
 import PendingPaymentsDashboard from "@/components/PendingPaymentsDashboard";
 import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
@@ -210,6 +211,7 @@ type AdminSectionId =
   | "services"
   | "payment-walkthrough"
   | "footer"
+  | "sms-templates"
   | "sms";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
@@ -226,6 +228,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "services", label: "Services" },
   { id: "payment-walkthrough", label: "Payment Walkthrough" },
   { id: "footer", label: "Footer" },
+  { id: "sms-templates", label: "SMS Templates" },
   { id: "sms", label: "Broadcast SMS" },
 ];
 
@@ -241,6 +244,10 @@ export default function AdminPage() {
   const [smsSending, setSmsSending] = useState(false);
   const [smsResult, setSmsResult] = useState<{ success?: string; error?: string } | null>(null);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [newTemplateName, setNewTemplateName] = useState("");
+  const [newTemplateMessage, setNewTemplateMessage] = useState("");
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
   function toggleProduct(id: string) {
     setExpandedProducts((prev) => {
@@ -345,6 +352,93 @@ export default function AdminPage() {
       setSmsResult({ error: "Network error — could not reach the server." });
     } finally {
       setSmsSending(false);
+    }
+  }
+
+  function addSmsTemplate() {
+    const name = newTemplateName.trim();
+    const msg = newTemplateMessage.trim();
+    
+    if (!name) {
+      setError("Template name is required");
+      return;
+    }
+    if (!msg) {
+      setError("Message is required");
+      return;
+    }
+    if (msg.length > 160) {
+      setError("Message exceeds 160 characters");
+      return;
+    }
+
+    setContent((current) => {
+      if (!current) return current;
+      const templates = current.smsTemplates ?? [];
+      const newTemplate = {
+        id: `sms-${Date.now()}`,
+        name,
+        message: msg,
+        createdAt: new Date().toISOString(),
+      };
+      return {
+        ...current,
+        smsTemplates: [...templates, newTemplate],
+      };
+    });
+
+    setNewTemplateName("");
+    setNewTemplateMessage("");
+    setMessage("Template created successfully!");
+  }
+
+  function updateSmsTemplate(templateId: string, newName: string, newMessage: string) {
+    const msg = newMessage.trim();
+    if (!msg) {
+      setError("Message is required");
+      return;
+    }
+    if (msg.length > 160) {
+      setError("Message exceeds 160 characters");
+      return;
+    }
+
+    setContent((current) => {
+      if (!current) return current;
+      const templates = (current.smsTemplates ?? []).map((t) =>
+        t.id === templateId ? { ...t, name: newName.trim(), message: msg } : t
+      );
+      return {
+        ...current,
+        smsTemplates: templates,
+      };
+    });
+    
+    setEditingTemplateId(null);
+    setMessage("Template updated successfully!");
+  }
+
+  function deleteSmsTemplate(templateId: string) {
+    setContent((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        smsTemplates: (current.smsTemplates ?? []).filter((t) => t.id !== templateId),
+      };
+    });
+    if (selectedTemplateId === templateId) {
+      setSelectedTemplateId("");
+      setSmsMessage("");
+    }
+    setMessage("Template deleted successfully!");
+  }
+
+  function loadTemplateIntoMessage(templateId: string) {
+    const template = (content?.smsTemplates ?? []).find((t) => t.id === templateId);
+    if (template) {
+      setSmsMessage(template.message);
+      setSelectedTemplateId(templateId);
+      setSmsResult(null);
     }
   }
 
@@ -2374,15 +2468,176 @@ export default function AdminPage() {
         </Section>
       ) : null}
 
+      {activeSection === "sms-templates" ? (
+        <Section
+          title="SMS Templates"
+          description="Create and manage reusable SMS message templates for easy broadcasting."
+        >
+          <div className="space-y-6">
+            <div className="rounded-xl border border-black/10 bg-white p-6">
+              <p className="mb-4 text-sm font-bold text-[var(--brand-deep)]">Create New Template</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--brand-deep)] mb-1">Template Name</label>
+                  <input
+                    type="text"
+                    value={newTemplateName}
+                    onChange={(event) => setNewTemplateName(event.target.value)}
+                    placeholder="e.g., Flash Sale Reminder, Order Confirmation"
+                    className={inputClassName()}
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-semibold text-[var(--brand-deep)]">Message</label>
+                    <span
+                      className={`text-xs font-semibold ${
+                        newTemplateMessage.length > 160 ? "text-red-600" : "text-[var(--ink-soft)]"
+                      }`}
+                    >
+                      {newTemplateMessage.length} / 160
+                    </span>
+                  </div>
+                  <textarea
+                    value={newTemplateMessage}
+                    onChange={(event) => setNewTemplateMessage(event.target.value)}
+                    maxLength={160}
+                    rows={3}
+                    placeholder="Type your template message here..."
+                    className="min-h-20 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void addSmsTemplate()}
+                  disabled={!newTemplateName.trim() || !newTemplateMessage.trim() || newTemplateMessage.length > 160}
+                  className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Create Template
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-4 text-sm font-bold text-[var(--brand-deep)]">Your Templates</p>
+              {(content?.smsTemplates ?? []).length === 0 ? (
+                <p className="text-sm text-[var(--ink-soft)]">No templates yet. Create one to get started!</p>
+              ) : (
+                <div className="space-y-3">
+                  {(content?.smsTemplates ?? []).map((template) => (
+                    <div
+                      key={template.id}
+                      className="rounded-xl border border-black/10 bg-white p-4 hover:border-[var(--brand)]/50 transition"
+                    >
+                      {editingTemplateId === template.id ? (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            defaultValue={template.name}
+                            id={`edit-name-${template.id}`}
+                            placeholder="Template name"
+                            className={inputClassName()}
+                          />
+                          <textarea
+                            defaultValue={template.message}
+                            id={`edit-msg-${template.id}`}
+                            maxLength={160}
+                            rows={3}
+                            placeholder="Message"
+                            className="min-h-20 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newName = (document.getElementById(`edit-name-${template.id}`) as HTMLInputElement)?.value;
+                                const newMsg = (document.getElementById(`edit-msg-${template.id}`) as HTMLTextAreaElement)?.value;
+                                updateSmsTemplate(template.id, newName, newMsg);
+                              }}
+                              className="flex-1 rounded-lg bg-[var(--brand)] px-3 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)]"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingTemplateId(null)}
+                              className="flex-1 rounded-lg bg-[var(--ink-soft)]/20 px-3 py-2 text-xs font-bold text-[var(--ink)] hover:bg-[var(--ink-soft)]/30"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mb-3">
+                            <p className="text-sm font-bold text-[var(--ink)]">{template.name}</p>
+                            <p className="text-xs text-[var(--ink-soft)] mt-1 whitespace-pre-wrap break-words">{template.message}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => loadTemplateIntoMessage(template.id)}
+                              className="text-xs font-bold text-[var(--brand)] hover:underline"
+                            >
+                              Use Template
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingTemplateId(template.id)}
+                              className="text-xs font-bold text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteSmsTemplate(template.id)}
+                              className="text-xs font-bold text-red-600 hover:underline"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </Section>
+      ) : null}
+
       {activeSection === "sms" ? (
         <Section
           title="Broadcast SMS"
           description="Send a text message to every customer who has placed an order. Uses Africa&#39;s Talking — make sure AFRICASTALKING_API_KEY is set in .env.local."
         >
           <div className="space-y-4">
+            {(content?.smsTemplates ?? []).length > 0 ? (
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[var(--brand-deep)]">Quick Load Template</label>
+                <select
+                  value={selectedTemplateId}
+                  onChange={(event) => {
+                    if (event.target.value) {
+                      loadTemplateIntoMessage(event.target.value);
+                    }
+                  }}
+                  className={inputClassName()}
+                >
+                  <option value="">Select a template...</option>
+                  {(content?.smsTemplates ?? []).map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-[var(--ink-soft)]">Or <a href="#" onClick={(e) => { e.preventDefault(); setActiveSection("sms-templates"); }} className="text-[var(--brand)] font-semibold">manage templates here</a>.</p>
+              </div>
+            ) : null}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <span className="block text-sm font-semibold text-[var(--brand-deep)]">Message</span>
+                <span className="block text-sm font-semibold text-[var(--brand-deep)]">Message {selectedTemplateId ? `(from template)` : ""}</span>
                 <span
                   className={`text-xs font-semibold ${
                     smsMessage.length > 160 ? "text-red-600" : "text-[var(--ink-soft)]"

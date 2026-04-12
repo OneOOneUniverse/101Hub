@@ -175,6 +175,13 @@ export type FooterContent = {
   whatsapp?: string;
 };
 
+export type SmsTemplate = {
+  id: string;
+  name: string;
+  message: string;
+  createdAt?: string;
+};
+
 export type SiteContent = {
   storeName: string;
   storeDescription: string;
@@ -192,5 +199,6 @@ export type SiteContent = {
   deliverySettings: DeliverySettings;
   paymentSettings: PaymentSettings;
   paymentWalkthrough?: PaymentWalkthroughStep[];
+  smsTemplates?: SmsTemplate[];
   updatedAt: string;
 };
