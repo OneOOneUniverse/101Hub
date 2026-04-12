@@ -112,42 +112,6 @@ export async function POST(request: Request) {
     );
   }
 }
-import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-
-type Payload = {
-  orderRef?: string;
-  message?: string;
-  messageType?: "update" | "milestone" | "custom";
-  isHighlighted?: boolean;
-};
-
-export async function POST(request: Request) {
-  const body = (await request.json()) as Payload;
-
-  if (!body.orderRef || !body.message?.trim()) {
-    return NextResponse.json(
-      { error: "orderRef and message are required" },
-      { status: 400 }
-    );
-  }
-
-  // Verify order exists
-  const { data: order, error: orderError } = await supabaseAdmin
-    .from("orders")
-    .select("order_ref")
-    .eq("order_ref", body.orderRef)
-    .single();
-
-  if (orderError || !order) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
-  }
-
-  // Insert message
-  const { data: message, error } = await supabaseAdmin.from("order_messages").insert({
-    order_ref: body.orderRef,
-    message: body.message.trim(),
-    message_type: body.messageType || "custom",
     is_highlighted: body.isHighlighted || false,
   });
 

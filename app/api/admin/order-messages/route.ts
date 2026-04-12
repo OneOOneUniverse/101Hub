@@ -124,29 +124,6 @@ export async function DELETE(request: Request) {
     );
   }
 }
-import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-
-type Message = {
-  id: number;
-  orderRef: string;
-  message: string;
-  sender: string;
-  messageType: string;
-  isHighlighted: boolean;
-  createdAt: string;
-};
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const orderRef = searchParams.get("orderRef");
-
-  if (!orderRef) {
-    return NextResponse.json(
-      { error: "orderRef parameter is required" },
-      { status: 400 }
-    );
-  }
 
   // Fetch messages for the order
   const { data: messages, error } = await supabaseAdmin
