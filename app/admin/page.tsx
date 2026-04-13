@@ -303,10 +303,9 @@ export default function AdminPage() {
   }, [content, productSearch]);
 
   // Enable real-time notifications for admin
-  // TODO: Re-enable after debugging page load issues
-  // useAdminOrderUpdates();
-  // useAdminPendingPayments();
-  // useAdminServiceRequests();
+  useAdminOrderUpdates();
+  useAdminPendingPayments();
+  useAdminServiceRequests();
 
   useEffect(() => {
     void loadContent();

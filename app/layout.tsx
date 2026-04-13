@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import LayoutWrapper from "@/components/LayoutWrapper";
+import { NotificationProvider } from "@/components/NotificationProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -154,12 +155,14 @@ export default async function RootLayout({
           />
         </head>
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
-          <div className="relative flex min-h-screen flex-col overflow-x-hidden">
-            <Sidebar />
-            <LayoutWrapper>
-              <main className="flex-1 flex flex-col max-w-6xl w-full mx-auto px-3 sm:px-4 md:px-5 space-y-4 sm:space-y-6 md:space-y-8">{children}</main>
-            </LayoutWrapper>
-          </div>
+          <NotificationProvider>
+            <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+              <Sidebar />
+              <LayoutWrapper>
+                <main className="flex-1 flex flex-col max-w-6xl w-full mx-auto px-3 sm:px-4 md:px-5 space-y-4 sm:space-y-6 md:space-y-8">{children}</main>
+              </LayoutWrapper>
+            </div>
+          </NotificationProvider>
         </body>
       </html>
     </ClerkProvider>
