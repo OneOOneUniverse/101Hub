@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as BrowsingData;
 
     // Update user's private metadata with browsing data
-    await clerkClient.users.updateUser(user.id, {
+    await clerkClient().users.updateUser(user.id, {
       privateMetadata: {
         profile: {
           cart: body.cart || [],
