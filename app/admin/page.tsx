@@ -302,10 +302,10 @@ export default function AdminPage() {
       });
   }, [content, productSearch]);
 
-  // Enable real-time notifications for admin
-  useAdminOrderUpdates();
-  useAdminPendingPayments();
-  useAdminServiceRequests();
+  // Notification hooks disabled - causes page crash
+  // useAdminOrderUpdates();
+  // useAdminPendingPayments();
+  // useAdminServiceRequests();
 
   useEffect(() => {
     void loadContent();
