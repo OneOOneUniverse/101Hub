@@ -112,8 +112,8 @@ const jsonLd = {
     "@type": "OfferCatalog",
     "name": "Gadgets, Accessories & Tech Services",
     "itemListElement": [
-      { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gadgets & Electronics" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Mobile Phones & Accessories" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Gadgets & Electronics" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Mobile Phones & Accessories" } },
       { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Game Installation" } },
       { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Device Setup & Repair" } }
     ]
