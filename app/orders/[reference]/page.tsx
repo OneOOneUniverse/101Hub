@@ -36,8 +36,9 @@ export default function OrderTrackingPage() {
   const [showConfirmDelivery, setShowConfirmDelivery] = useState(false);
 
   // Enable real-time notifications for this order
-  useCustomerOrderUpdates(orderRef);
-  useCustomerOrderMessages(orderRef);
+  // TODO: Re-enable after debugging page load issues
+  // useCustomerOrderUpdates(orderRef);
+  // useCustomerOrderMessages(orderRef);
 
   useEffect(() => {
     async function fetchOrder() {
