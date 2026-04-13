@@ -16,6 +16,7 @@ import {
   type HomeContent,
   type LocationDeliveryFee,
   type PaymentSettings,
+  type PaymentWalkthroughStep,
   type Product,
   defaultProductCategories,
   type PromoSlide,
@@ -338,6 +339,35 @@ function sanitizeSmsTemplate(template: unknown, index: number): SmsTemplate {
   };
 }
 
+function sanitizeFAQ(faq: unknown, index: number): FAQ {
+  const candidate = typeof faq === "object" && faq !== null ? faq as Partial<FAQ> : {};
+  return {
+    id: toText(candidate.id, `faq-${index + 1}`),
+    question: toText(candidate.question, `Question ${index + 1}`),
+    answer: toText(candidate.answer, ""),
+    videoUrl: toOptionalText(candidate.videoUrl),
+    imageUrl: toOptionalText(candidate.imageUrl),
+    category: toOptionalText(candidate.category),
+    order: toNumber(candidate.order, index + 1),
+  };
+}
+
+function sanitizePaymentWalkthroughStep(step: unknown, index: number): PaymentWalkthroughStep {
+  const candidate = typeof step === "object" && step !== null ? step as Partial<PaymentWalkthroughStep> : {};
+  const rawBulletPoints = Array.isArray(candidate.bulletPoints) ? candidate.bulletPoints : [];
+  return {
+    id: toText(candidate.id, `step-${index + 1}`),
+    stepNumber: Math.max(1, toNumber(candidate.stepNumber, index + 1)),
+    title: toText(candidate.title, `Step ${index + 1}`),
+    description: toText(candidate.description, ""),
+    bulletPoints: rawBulletPoints
+      .filter((item: unknown): item is string => typeof item === "string")
+      .map((item: string) => item.trim())
+      .filter(Boolean),
+    image: toOptionalText(candidate.image),
+  };
+}
+
 function resolveUpdatedAt(candidate: Partial<SiteContent>, fallback: SiteContent): string {
   const candidateUpdatedAt = typeof candidate.updatedAt === "string" ? candidate.updatedAt : "";
   const fallbackUpdatedAt = typeof fallback.updatedAt === "string" ? fallback.updatedAt : "";
@@ -362,6 +392,8 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
   const rawSlides = Array.isArray(candidate.promoSlides) ? candidate.promoSlides : defaultContent.promoSlides;
   const rawCategories = Array.isArray(candidate.categories) ? candidate.categories : (defaultContent as SiteContent).categories || [];
   const rawSmsTemplates = Array.isArray(candidate.smsTemplates) ? candidate.smsTemplates : (defaultContent as SiteContent).smsTemplates ?? [];
+  const rawFaqs = Array.isArray(candidate.faqs) ? candidate.faqs : (defaultContent as SiteContent).faqs ?? [];
+  const rawPaymentWalkthrough = Array.isArray(candidate.paymentWalkthrough) ? candidate.paymentWalkthrough : (defaultContent as SiteContent).paymentWalkthrough ?? [];
 
   // Sanitize categories first so custom category names can be used to validate products
   const categories = rawCategories.map((item, index) => sanitizeCategory(item, index));
@@ -387,6 +419,8 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     deliverySettings: sanitizeDeliverySettings(candidate.deliverySettings ?? (defaultContent as SiteContent).deliverySettings),
     paymentSettings: sanitizePaymentSettings(candidate.paymentSettings ?? (defaultContent as SiteContent & { paymentSettings?: PaymentSettings }).paymentSettings ?? {}),
     smsTemplates: rawSmsTemplates.map((item, index) => sanitizeSmsTemplate(item, index)),
+    ...(rawFaqs.length > 0 && { faqs: rawFaqs.map((item, index) => sanitizeFAQ(item, index)) }),
+    ...(rawPaymentWalkthrough.length > 0 && { paymentWalkthrough: rawPaymentWalkthrough.map((item, index) => sanitizePaymentWalkthroughStep(item, index)) }),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };
 }

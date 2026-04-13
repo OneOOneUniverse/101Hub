@@ -139,7 +139,7 @@ export default function GenNavbar({
             }}
           />
         ) : (
-          <Image src="/favicon.ico" alt={storeName} width={36} height={36} />
+          <Image src="/img/log.png" alt={storeName} width={36} height={36} />
         )}
         <span className="gen-logo-text">{storeName}</span>
       </div>

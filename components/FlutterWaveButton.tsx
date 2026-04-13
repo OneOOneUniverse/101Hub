@@ -130,7 +130,7 @@ export default function FlutterWaveButton({
         customizations: {
           title: "101Hub Downpayment",
           description: `40% downpayment for order ${orderRef}`,
-          logo: "https://www.gadget-hub.com/logo.png",
+          logo: "https://www.101hub.shop/img/log.png",
         },
       };
 
