@@ -2,22 +2,17 @@
  * Notification Service
  * Manages real-time notifications using Supabase Realtime subscriptions
  * Replaces polling-based updates with live event streams
+ *
+ * NOTE: This file imports supabase — only use it in client components
+ * that are NOT in the root layout (to avoid service key exposure).
+ * For types only, import from lib/notification-types.ts instead.
  */
 
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
-export type NotificationType = 'order' | 'message' | 'service' | 'payment' | 'status_update';
-
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  data?: Record<string, any>;
-  timestamp: Date;
-  read: boolean;
-}
+export type { NotificationType, Notification } from './notification-types';
+export { createNotification } from './notification-types';
 
 /**
  * Listen for new orders
@@ -279,26 +274,6 @@ export function subscribeToPendingPayments(
     onError?.(error instanceof Error ? error : new Error(String(error)));
     return null;
   }
-}
-
-/**
- * Create a notification object
- */
-export function createNotification(
-  type: NotificationType,
-  title: string,
-  message: string,
-  data?: Record<string, any>
-): Notification {
-  return {
-    id: `${type}_${Date.now()}_${Math.random()}`,
-    type,
-    title,
-    message,
-    data,
-    timestamp: new Date(),
-    read: false,
-  };
 }
 
 /**

@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useNotifications } from '@/components/NotificationProvider';
+// Note: This file is only used inside specific page components, not in layout.
+// It's safe to import lib/notifications here as it won't affect the root layout.
 import {
   subscribeToNewOrders,
   subscribeToOrderMessages,
