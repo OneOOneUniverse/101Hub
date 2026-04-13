@@ -279,6 +279,8 @@ const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   paystackEnabled: true,
   manualEnabled: true,
+  downPaymentEnabled: true,
+  downPaymentPercentage: 40,
 };
 
 function sanitizeLocationFee(value: unknown, index: number): LocationDeliveryFee {
@@ -318,6 +320,8 @@ function sanitizePaymentSettings(value: unknown): PaymentSettings {
   return {
     paystackEnabled: toBoolean(candidate.paystackEnabled, DEFAULT_PAYMENT_SETTINGS.paystackEnabled),
     manualEnabled: toBoolean(candidate.manualEnabled, DEFAULT_PAYMENT_SETTINGS.manualEnabled),
+    downPaymentEnabled: toBoolean(candidate.downPaymentEnabled, DEFAULT_PAYMENT_SETTINGS.downPaymentEnabled),
+    downPaymentPercentage: Math.max(1, Math.min(100, toNumber(candidate.downPaymentPercentage, DEFAULT_PAYMENT_SETTINGS.downPaymentPercentage))),
   };
 }
 
