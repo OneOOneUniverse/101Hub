@@ -27,6 +27,11 @@ import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
 import ServiceRequestsDashboard from "@/components/ServiceRequestsDashboard";
 import ImageUploadButton from "@/components/ImageUploadButton";
 import GalleryImageManager from "@/components/GalleryImageManager";
+import {
+  useAdminOrderUpdates,
+  useAdminPendingPayments,
+  useAdminServiceRequests,
+} from "@/lib/use-notifications";
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -296,6 +301,11 @@ export default function AdminPage() {
           .includes(term);
       });
   }, [content, productSearch]);
+
+  // Enable real-time notifications for admin
+  useAdminOrderUpdates();
+  useAdminPendingPayments();
+  useAdminServiceRequests();
 
   useEffect(() => {
     void loadContent();
