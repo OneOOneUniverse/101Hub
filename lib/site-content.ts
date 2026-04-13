@@ -117,6 +117,8 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
 
   const noDeliveryFee = toBoolean(candidate.noDeliveryFee, fallback?.noDeliveryFee ?? false) || undefined;
 
+  const requireFullPaymentBeforeDelivery = toBoolean(candidate.requireFullPaymentBeforeDelivery, fallback?.requireFullPaymentBeforeDelivery ?? false) || undefined;
+
   return {
     id: toText(candidate.id, fallback?.id ?? `product-${index + 1}`),
     slug: normalizeSlug(rawSlug),
@@ -132,6 +134,7 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
     ...(discount !== undefined && { discount }),
     ...(deliveryFee !== undefined && { deliveryFee }),
     ...(noDeliveryFee && { noDeliveryFee }),
+    ...(requireFullPaymentBeforeDelivery && { requireFullPaymentBeforeDelivery }),
   };
 }
 
