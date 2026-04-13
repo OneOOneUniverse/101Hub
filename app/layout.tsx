@@ -16,25 +16,47 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "101Hub - Gadgets, Accessories & Tech Services | Shop Online",
+  title: "101 Hub - Gadgets, Accessories & Tech Services Ghana | Shop Online",
   description:
-    "Buy gadgets and tech accessories online. Request professional tech services like game installation, device setup, and repairs. Fast delivery and competitive prices.",
-  keywords: ["gadgets", "electronics", "accessories", "tech services", "game installation", "device setup"],
+    "Welcome to 101 Hub, Ghana's premier online tech store. Buy gadgets, phones, and accessories. Get professional tech services: game installation, device setup, repairs. Fast delivery, best prices guaranteed.",
+  keywords: [
+    "101 hub",
+    "101hub",
+    "101 hub ghana",
+    "101 hub shop",
+    "101 hub asamankese",
+    "gadgets store",
+    "buy gadgets online",
+    "electronics shop",
+    "tech accessories",
+    "mobile phones",
+    "gaming equipment",
+    "tech services",
+    "device setup",
+    "game installation",
+    "tech repair",
+    "ghana tech store",
+    "online electronics",
+    "tech shop ghana",
+    "affordable gadgets",
+    "asamankese tech shop",
+    "asamankese gadgets"
+  ],
   icons: {
-    icon: "/img/logo.png",
+    icon: "/img/log.png",
   },
   openGraph: {
-    title: "101Hub - Gadgets, Accessories & Tech Services",
-    description: "Shop online for gadgets, accessories and professional tech services. Fast delivery guaranteed.",
+    title: "101 Hub - Gadgets, Accessories & Tech Services Ghana",
+    description: "101 Hub: Your trusted tech store in Ghana. Shop gadgets, accessories & professional tech services. Fast delivery & competitive prices.",
     type: "website",
     locale: "en_US",
-    siteName: "101Hub",
+    siteName: "101 Hub",
     images: [
       {
-        url: "https://www.101hub.shop/img/logo.png",
+        url: "https://www.101hub.shop/img/log.png",
         width: 1200,
         height: 630,
-        alt: "101Hub - Your Tech Store",
+        alt: "101 Hub - Ghana Tech Store & Gadget Shop",
       },
     ],
   },
@@ -54,6 +76,50 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "101 Hub",
+  "alternateName": "101Hub",
+  "url": "https://www.101hub.shop",
+  "logo": "https://www.101hub.shop/img/log.png",
+  "image": "https://www.101hub.shop/img/log.png",
+  "description": "101 Hub is Ghana's trusted online tech store. Buy gadgets, phones, accessories and get professional tech services including game installation, device setup and repairs.",
+  "telephone": "+233548656980",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "First Stop",
+    "addressLocality": "Asamankese",
+    "addressCountry": "GH"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "5.8667",
+    "longitude": "-0.6667"
+  },
+  "openingHours": "Mo-Su 00:00-23:59",
+  "priceRange": "$$",
+  "currenciesAccepted": "GHS",
+  "paymentAccepted": "Cash, Mobile Money, Credit Card",
+  "areaServed": {
+    "@type": "Country",
+    "name": "Ghana"
+  },
+  "sameAs": [
+    "https://www.101hub.shop"
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Gadgets, Accessories & Tech Services",
+    "itemListElement": [
+      { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gadgets & Electronics" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Mobile Phones & Accessories" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Game Installation" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Device Setup & Repair" } }
+    ]
+  }
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -63,6 +129,12 @@ export default async function RootLayout({
         lang="en"
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
+        <head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        </head>
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
           <div className="relative flex min-h-screen flex-col overflow-x-hidden">
           <Sidebar />
