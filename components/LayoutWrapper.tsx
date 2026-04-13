@@ -6,6 +6,7 @@ import FloatingCart from "@/components/FloatingCart";
 import NavSearch from "@/components/NavSearch";
 import SiteFooter from "@/components/SiteFooter";
 import { useCartCount } from "@/lib/use-cart-count";
+import { useSyncBrowsingDataToProfile, useLoadUserBrowsingData } from "@/lib/use-sync-browsing-data";
 import type { FooterContent } from "@/lib/site-content-types";
 
 type StoreData = {
@@ -24,6 +25,12 @@ export default function LayoutWrapper({
   const cartCount = useCartCount();
   const [cartEnabled, setCartEnabled] = useState(true);
   const [storeData, setStoreData] = useState<StoreData | null>(null);
+  
+  // Load user's saved browsing data on mount if signed in
+  useLoadUserBrowsingData();
+  
+  // Sync browsing data to user profile periodically if signed in
+  useSyncBrowsingDataToProfile();
 
   useEffect(() => {
     let isActive = true;

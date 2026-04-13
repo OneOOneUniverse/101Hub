@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
 
@@ -13,7 +12,6 @@ type ServiceResult = {
 };
 
 export default function ServicesPage() {
-  const { user, isLoaded } = useUser();
   const { content, loading, error: contentError } = useStoreContent();
   const services = useMemo(() => content?.services ?? [], [content?.services]);
   const [packageId, setPackageId] = useState("");
@@ -24,34 +22,6 @@ export default function ServicesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [result, setResult] = useState<ServiceResult | null>(null);
-
-  // Check if user is authenticated
-  if (isLoaded && !user) {
-    return (
-      <section className="panel p-4 sm:p-6">
-        <h1 className="text-2xl font-black sm:text-3xl">Expert Services</h1>
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm sm:text-base text-gray-700 mb-4">
-            You need to sign in to request services. Please log in to your account or create a new one.
-          </p>
-          <div className="flex gap-3">
-            <Link
-              href="/login?redirect_url=/services"
-              className="inline-block px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 transition"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup?redirect_url=/services"
-              className="inline-block px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium hover:bg-gray-300 transition"
-            >
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </section>
-    );
-  }
 
   useEffect(() => {
     if (!packageId && services[0]?.id) {
