@@ -130,9 +130,27 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
         <head>
+          <link rel="manifest" href="/manifest.json" />
+          <link rel="apple-touch-icon" href="/img/log.png" />
+          <meta name="theme-color" content="#000000" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="apple-mobile-web-app-title" content="101 Hub" />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.register('/sw.js').catch(() => {
+                    console.log('Service Worker registration failed');
+                  });
+                }
+              `
+            }}
           />
         </head>
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
