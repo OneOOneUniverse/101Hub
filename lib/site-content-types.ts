@@ -42,6 +42,7 @@ export type Product = {
   discount?: number; // Optional discount percentage (0-100)
   deliveryFee?: number; // Optional per-product delivery fee
   noDeliveryFee?: boolean; // Optional flag for no delivery fee
+  requireFullPaymentBeforeDelivery?: boolean; // Optional flag to require full payment upfront instead of down payment
 };
 
 export type ServicePackage = {
@@ -138,6 +139,8 @@ export type DeliverySettings = {
 export type PaymentSettings = {
   paystackEnabled: boolean;
   manualEnabled: boolean;
+  downPaymentEnabled: boolean;
+  downPaymentPercentage: number;
 };
 
 export type PaymentWalkthroughStep = {

@@ -43,6 +43,8 @@ const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   paystackEnabled: true,
   manualEnabled: true,
+  downPaymentEnabled: true,
+  downPaymentPercentage: 40,
 };
 
 function withDeliveryDefaults(data: SiteContent): SiteContent {
@@ -1503,6 +1505,29 @@ export default function AdminPage() {
                     <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1"><TruckIcon size={14} /> This product ships for free</p>
                   )}
                 </div>
+
+                <div className="flex flex-col justify-start gap-2 pt-1 border-t border-black/10 mt-4">
+                  <span className="text-sm font-semibold text-[var(--brand-deep)]">Payment Requirements</span>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={product.requireFullPaymentBeforeDelivery === true}
+                      onChange={(event) => {
+                        const products = [...content.products];
+                        products[index] = {
+                          ...product,
+                          requireFullPaymentBeforeDelivery: event.target.checked || undefined,
+                        };
+                        setContent({ ...content, products });
+                      }}
+                      className="h-4 w-4 accent-[var(--brand)]"
+                    />
+                    <span className="text-sm text-[var(--ink)]">Require full payment before delivery</span>
+                  </label>
+                  {product.requireFullPaymentBeforeDelivery && (
+                    <p className="text-xs text-amber-700 font-semibold">⚠️ Customers must pay full amount upfront (no down payment option)</p>
+                  )}
+                </div>
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
@@ -2360,7 +2385,7 @@ export default function AdminPage() {
                     setContent({
                       ...content,
                       paymentSettings: {
-                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
+                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
                         paystackEnabled: event.target.checked,
                       },
                     })
@@ -2381,7 +2406,7 @@ export default function AdminPage() {
                     setContent({
                       ...content,
                       paymentSettings: {
-                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
+                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
                         manualEnabled: event.target.checked,
                       },
                     })
@@ -2389,6 +2414,54 @@ export default function AdminPage() {
                   className="h-5 w-5 accent-[var(--brand)]"
                 />
               </label>
+
+              <label className="flex items-center justify-between gap-4 cursor-pointer border-t border-black/10 pt-4">
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">Down Payment Option</p>
+                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">Allow customers to pay a down payment (partial payment) now and full balance later.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={content.paymentSettings?.downPaymentEnabled ?? true}
+                  onChange={(event) =>
+                    setContent({
+                      ...content,
+                      paymentSettings: {
+                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
+                        downPaymentEnabled: event.target.checked,
+                      },
+                    })
+                  }
+                  className="h-5 w-5 accent-[var(--brand)]"
+                />
+              </label>
+
+              {content.paymentSettings?.downPaymentEnabled !== false ? (
+                <div className="border-t border-black/10 pt-4">
+                  <Field label="Down Payment Percentage">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={content.paymentSettings?.downPaymentPercentage ?? 40}
+                        onChange={(event) =>
+                          setContent({
+                            ...content,
+                            paymentSettings: {
+                              ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
+                              downPaymentPercentage: Math.max(1, Math.min(100, Number(event.target.value) || 40)),
+                            },
+                          })
+                        }
+                        className={inputClassName()}
+                      />
+                      <span className="text-sm font-bold text-[var(--brand-deep)]">%</span>
+                    </div>
+                    <p className="text-xs text-[var(--ink-soft)] mt-1">Percentage of total order amount required as down payment (1-100%)</p>
+                  </Field>
+                </div>
+              ) : null}
             </div>
 
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">

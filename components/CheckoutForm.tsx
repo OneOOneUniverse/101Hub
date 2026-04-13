@@ -94,6 +94,14 @@ export default function CheckoutForm() {
     }
   }, [products, items]);
 
+  // Check if any item in cart requires full payment upfront
+  const anyItemRequiresFullPayment = useMemo(() => {
+    return items.some((line) => {
+      const product = products.find((p) => p.id === line.productId);
+      return product?.requireFullPaymentBeforeDelivery === true;
+    });
+  }, [items, products]);
+
   const totals = useMemo(() => {
     const deliverySettings = content?.deliverySettings;
     const totalQty = items.reduce((sum, line) => sum + line.qty, 0);
@@ -138,10 +146,24 @@ export default function CheckoutForm() {
 
     const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
     const total = subtotal + delivery + processingFee;
-    const downpayment = total * 0.4;
+    
+    // Calculate down payment based on settings (or default to 40% if not specified)
+    // But if any item requires full payment, don't allow down payment
+    const downPaymentPercentage = (content?.paymentSettings?.downPaymentPercentage ?? 40) / 100;
+    const downpayment = (!anyItemRequiresFullPayment && (content?.paymentSettings?.downPaymentEnabled ?? true)) ? total * downPaymentPercentage : 0;
 
     return { subtotal, delivery, processingFee, total, downpayment };
-  }, [items, products, location, deliveryType, content?.deliverySettings]);
+  }, [items, products, location, deliveryType, content?.deliverySettings, content?.paymentSettings, anyItemRequiresFullPayment]);
+
+  // Determine payment amount: full total if full payment required, otherwise down payment
+  const paymentAmount = useMemo(() => {
+    // If any item requires full payment, charge the full total
+    if (anyItemRequiresFullPayment) {
+      return totals.total;
+    }
+    // Otherwise charge the down payment
+    return totals.downpayment;
+  }, [totals, anyItemRequiresFullPayment]);
 
   if (loading) {
     return (
@@ -319,7 +341,8 @@ export default function CheckoutForm() {
     }
     const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
     const total = subtotal + delivery + processingFee;
-    const downpayment = total * 0.4;
+    const downPaymentPercentage = (content?.paymentSettings?.downPaymentPercentage ?? 40) / 100;
+    const downpayment = (content?.paymentSettings?.downPaymentEnabled ?? true) ? total * downPaymentPercentage : 0;
 
     setResult({
       success: true,
@@ -431,17 +454,27 @@ export default function CheckoutForm() {
               <span>GHS {result.totals.total.toFixed(2)}</span>
             </div>
 
+            {/* Full Payment info */}
+            {anyItemRequiresFullPayment ? (
+              <div className="mt-3 rounded-lg bg-red-50 p-3 border border-red-200">
+                <p className="text-sm font-bold text-red-700 mb-1">Full Payment Collected</p>
+                <p className="text-xs text-red-600">Full payment received. Item(s) will be prepared for delivery.</p>
+              </div>
+            ) : null}
+
             {/* Downpayment info */}
-            <div className="mt-3 rounded-lg bg-amber-50 p-3 border border-amber-200">
-              <div className="flex justify-between mb-1">
-                <span className="text-[var(--ink-soft)] font-semibold">Downpayment (40%)</span>
-                <span className="font-bold text-amber-900">GHS {result.totals.downpayment.toFixed(2)}</span>
+            {content?.paymentSettings?.downPaymentEnabled !== false && result.totals.downpayment > 0 ? (
+              <div className="mt-3 rounded-lg bg-amber-50 p-3 border border-amber-200">
+                <div className="flex justify-between mb-1">
+                  <span className="text-[var(--ink-soft)] font-semibold">Downpayment ({(content?.paymentSettings?.downPaymentPercentage ?? 40)}%)</span>
+                  <span className="font-bold text-amber-900">GHS {result.totals.downpayment.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[var(--ink-soft)]">Remaining on delivery ({100 - (content?.paymentSettings?.downPaymentPercentage ?? 40)}%)</span>
+                  <span className="font-semibold text-[var(--ink)]">GHS {(result.totals.total - result.totals.downpayment).toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-[var(--ink-soft)]">Remaining on delivery (60%)</span>
-                <span className="font-semibold text-[var(--ink)]">GHS {(result.totals.total - result.totals.downpayment).toFixed(2)}</span>
-              </div>
-            </div>
+            ) : null}
           </div>
         </div>
 
@@ -590,15 +623,25 @@ export default function CheckoutForm() {
           })()}
         </div>
 
-        {/* Downpayment Amount Display */}
-        <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-          <p className="text-xs text-amber-900 mb-2">Downpayment Required</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-amber-900">GHS {totals.downpayment.toFixed(2)}</span>
-            <span className="text-sm text-amber-800">(40% of total)</span>
+        {/* Full Payment Warning for certain products */}
+        {anyItemRequiresFullPayment ? (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+            <p className="text-sm font-bold text-red-700 mb-1">⚠️ Full Payment Required</p>
+            <p className="text-xs text-red-600">One or more items in your cart require full payment upfront. Down payment option is not available for this order.</p>
           </div>
-          <p className="text-xs text-amber-700 mt-2">Remaining GHS {(totals.total - totals.downpayment).toFixed(2)} (60%) payable at delivery</p>
-        </div>
+        ) : null}
+
+        {/* Downpayment Amount Display */}
+        {content?.paymentSettings?.downPaymentEnabled !== false && totals.downpayment > 0 ? (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+            <p className="text-xs text-amber-900 mb-2">Downpayment Required</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-black text-amber-900">GHS {totals.downpayment.toFixed(2)}</span>
+              <span className="text-sm text-amber-800">({content?.paymentSettings?.downPaymentPercentage ?? 40}% of total)</span>
+            </div>
+            <p className="text-xs text-amber-700 mt-2">Remaining GHS {(totals.total - totals.downpayment).toFixed(2)} ({100 - (content?.paymentSettings?.downPaymentPercentage ?? 40)}%) payable at delivery</p>
+          </div>
+        ) : null}
 
         {/* Full Name */}
         <div>
@@ -932,7 +975,7 @@ export default function CheckoutForm() {
           <div className="space-y-3 border-t border-black/10 pt-4">
             <p className="text-sm font-semibold text-[var(--ink)]">Complete Your Payment</p>
             <PaystackButton
-              amount={totals.downpayment}
+              amount={paymentAmount}
               orderRef={paystackOrderRef}
               customerEmail={email || "guest@101hub.com"}
               customerName={customerName}

@@ -35,6 +35,8 @@ function addToCart(productId: string) {
   window.dispatchEvent(new Event("101hub:product-added"));
 }
 
+type SortOption = "newest" | "oldest" | "price-asc" | "price-desc" | "name-asc" | "brand-asc";
+
 function ProductsPageContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
@@ -43,6 +45,7 @@ function ProductsPageContent() {
   const [query, setQuery] = useState(searchQuery);
   const [category, setCategory] = useState("All");
   const [addedId, setAddedId] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [reviewSummaryByProduct, setReviewSummaryByProduct] = useState<
     Record<string, { average: number; count: number }>
   >({});
@@ -97,24 +100,45 @@ function ProductsPageContent() {
       return categoryMatch && searchMatch;
     });
 
-    // Sort by dateAdded (newest first), then by badge priority
+    // Apply sorting based on sortBy state
     result.sort((a, b) => {
-      // Products with dateAdded come first (sorted newest first)
-      if (a.dateAdded && b.dateAdded) {
-        return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+      switch (sortBy) {
+        case "price-asc":
+          return a.price - b.price;
+        case "price-desc":
+          return b.price - a.price;
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "brand-asc":
+          // Assuming brand is stored in a field, using name as brand proxy
+          return a.name.localeCompare(b.name);
+        case "oldest":
+          // Sort by dateAdded oldest first
+          if (a.dateAdded && b.dateAdded) {
+            return new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
+          }
+          if (a.dateAdded) return 1;
+          if (b.dateAdded) return -1;
+          return 0;
+        case "newest":
+        default:
+          // Sort by dateAdded newest first
+          if (a.dateAdded && b.dateAdded) {
+            return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          }
+          if (a.dateAdded) return -1;
+          if (b.dateAdded) return 1;
+
+          // Then items with "New" badge
+          if (a.badge === "New" && b.badge !== "New") return -1;
+          if (a.badge !== "New" && b.badge === "New") return 1;
+
+          return 0;
       }
-      if (a.dateAdded) return -1;
-      if (b.dateAdded) return 1;
-
-      // Then items with "New" badge
-      if (a.badge === "New" && b.badge !== "New") return -1;
-      if (a.badge !== "New" && b.badge === "New") return 1;
-
-      return 0;
     });
 
     return result;
-  }, [category, products, query]);
+  }, [category, products, query, sortBy]);
 
   if (loading) {
     return (
@@ -210,13 +234,25 @@ function ProductsPageContent() {
           </div>
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 flex gap-3 flex-col sm:flex-row sm:items-center">
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search products"
-            className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm"
           />
+          <select
+            value={sortBy}
+            onChange={(event) => setSortBy(event.target.value as SortOption)}
+            className="rounded-lg border border-black/15 px-3 py-2 text-sm bg-white cursor-pointer"
+          >
+            <option value="newest">Date Added (Newest)</option>
+            <option value="oldest">Date Added (Oldest)</option>
+            <option value="price-asc">Price (Low to High)</option>
+            <option value="price-desc">Price (High to Low)</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="brand-asc">Brand (A-Z)</option>
+          </select>
         </div>
       </section>
 
