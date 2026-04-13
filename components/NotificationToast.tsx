@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Notification } from '@/lib/notifications';
+import { Notification } from '@/lib/notification-types';
 
 interface ToastProps {
   notification: Notification;

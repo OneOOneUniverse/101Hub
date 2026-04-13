@@ -25,13 +25,9 @@ import {
 import PendingPaymentsDashboard from "@/components/PendingPaymentsDashboard";
 import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
 import ServiceRequestsDashboard from "@/components/ServiceRequestsDashboard";
+import AdminNotificationPoller from "@/components/AdminNotificationPoller";
 import ImageUploadButton from "@/components/ImageUploadButton";
 import GalleryImageManager from "@/components/GalleryImageManager";
-import {
-  useAdminOrderUpdates,
-  useAdminPendingPayments,
-  useAdminServiceRequests,
-} from "@/lib/use-notifications";
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -302,11 +298,6 @@ export default function AdminPage() {
       });
   }, [content, productSearch]);
 
-  // Enable real-time notifications for admin (with error handling)
-  useAdminOrderUpdates();
-  useAdminPendingPayments();
-  useAdminServiceRequests();
-
   useEffect(() => {
     void loadContent();
   }, []);
@@ -528,6 +519,7 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
+      <AdminNotificationPoller />
       <section className="panel p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

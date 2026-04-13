@@ -18,10 +18,7 @@ import {
   formatEstimatedDelivery,
   type OrderData,
 } from "@/lib/order-status";
-import {
-  useCustomerOrderUpdates,
-  useCustomerOrderMessages,
-} from "@/lib/use-notifications";
+
 
 export default function OrderTrackingPage() {
   const params = useParams();
@@ -34,10 +31,6 @@ export default function OrderTrackingPage() {
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState("");
   const [showConfirmDelivery, setShowConfirmDelivery] = useState(false);
-
-  // Enable real-time notifications for this order (with error handling)
-  useCustomerOrderUpdates(orderRef);
-  useCustomerOrderMessages(orderRef);
 
   useEffect(() => {
     async function fetchOrder() {

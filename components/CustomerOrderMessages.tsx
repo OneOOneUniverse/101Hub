@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNotifications } from "@/components/NotificationProvider";
 
 type CustomerMessage = {
   id: number;
@@ -17,6 +18,8 @@ interface CustomerOrderMessagesProps {
 export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessagesProps) {
   const [messages, setMessages] = useState<CustomerMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const prevCountRef = useRef(-1);
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     async function loadMessages() {
@@ -25,7 +28,19 @@ export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessage
         const res = await fetch(`/api/orders/${encodeURIComponent(orderRef)}/messages`);
         const data = (await res.json()) as { messages?: CustomerMessage[] };
         if (res.ok) {
-          setMessages(data.messages ?? []);
+          const fetched = data.messages ?? [];
+          setMessages(fetched);
+
+          // Toast when new messages arrive (skip initial load)
+          if (prevCountRef.current !== -1 && fetched.length > prevCountRef.current) {
+            const newest = fetched[0];
+            addNotification(
+              'message',
+              '💬 New message from 101 Hub',
+              newest?.message ?? 'You have a new update on your order'
+            );
+          }
+          prevCountRef.current = fetched.length;
         }
       } catch (err) {
         console.error("Failed to load messages:", err);
@@ -39,7 +54,7 @@ export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessage
       void loadMessages();
     }, 10000);
     return () => clearInterval(interval);
-  }, [orderRef]);
+  }, [orderRef, addNotification]);
 
   if (loading && messages.length === 0) {
     return null;
