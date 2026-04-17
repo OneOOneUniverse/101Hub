@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import Script from "next/script";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import LayoutWrapper from "@/components/LayoutWrapper";
@@ -142,17 +143,6 @@ export default async function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                if ('serviceWorker' in navigator) {
-                  navigator.serviceWorker.register('/sw.js').catch(() => {
-                    console.log('Service Worker registration failed');
-                  });
-                }
-              `
-            }}
-          />
         </head>
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
           <NotificationProvider>
@@ -163,6 +153,16 @@ export default async function RootLayout({
               </LayoutWrapper>
             </div>
           </NotificationProvider>
+          <Script
+            id="sw-register"
+            strategy="afterInteractive"
+          >{`
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.register('/sw.js').catch(() => {
+                console.log('Service Worker registration failed');
+              });
+            }
+          `}</Script>
         </body>
       </html>
     </ClerkProvider>

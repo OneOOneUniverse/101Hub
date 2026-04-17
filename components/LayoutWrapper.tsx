@@ -5,6 +5,7 @@ import GenNavbar from "@/components/GenNavbar";
 import FloatingCart from "@/components/FloatingCart";
 import NavSearch from "@/components/NavSearch";
 import SiteFooter from "@/components/SiteFooter";
+import LiveSupportChat from "@/components/LiveSupportChat";
 import { useCartCount } from "@/lib/use-cart-count";
 import { useSyncBrowsingDataToProfile, useLoadUserBrowsingData } from "@/lib/use-sync-browsing-data";
 import type { FooterContent } from "@/lib/site-content-types";
@@ -99,6 +100,8 @@ export default function LayoutWrapper({
           onClose={() => setCartOpen(false)}
         />
       ) : null}
+      {/* Live support chat widget — persists across all pages */}
+      <LiveSupportChat />
     </>
   );
 }
