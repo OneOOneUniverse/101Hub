@@ -207,7 +207,7 @@ export default function FloatingCart({
               <button
                 onClick={() => {
                   if (confirm("Are you sure you want to clear your entire cart?")) {
-                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.setItem(STORAGE_KEY, "[]");
                     setLines([]);
                     window.dispatchEvent(new Event("101hub:cart-updated"));
                   }

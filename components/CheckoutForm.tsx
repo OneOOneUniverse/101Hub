@@ -198,7 +198,6 @@ export default function CheckoutForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
-    setShowPaymentAnimation(true);
     setError("");
     setPaymentProofError("");
 
@@ -209,6 +208,9 @@ export default function CheckoutForm() {
         setSubmitting(false);
         return;
       }
+
+      // Show animation only after validation passes
+      setShowPaymentAnimation(true);
 
       let paymentProofBase64 = "";
       if (paymentMethod === "manual" && paymentProof) {

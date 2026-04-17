@@ -36,7 +36,7 @@ export function validateAndCleanCart(
  */
 export function clearCart(): void {
   try {
-    localStorage.removeItem("101hub-cart");
+    localStorage.setItem("101hub-cart", "[]");
     window.dispatchEvent(new Event("101hub:cart-updated"));
   } catch {
     // Ignore errors

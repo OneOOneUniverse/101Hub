@@ -58,16 +58,17 @@ export function useLoadUserBrowsingData() {
 
         const data = await response.json();
 
-        // Only sync if localStorage is empty or has less items
+        // Only restore from profile if localStorage has NO cart key at all (first visit)
+        // If localCart exists (even as "[]"), the user has been active — don't overwrite
         const localCart = localStorage.getItem(CART_STORAGE_KEY);
         const localWishlist = localStorage.getItem(WISHLIST_STORAGE_KEY);
 
-        if (!localCart || (data.cart && data.cart.length > 0)) {
-          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(data.cart || []));
+        if (localCart === null && data.cart && data.cart.length > 0) {
+          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(data.cart));
         }
 
-        if (!localWishlist || (data.wishlist && data.wishlist.length > 0)) {
-          localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(data.wishlist || []));
+        if (localWishlist === null && data.wishlist && data.wishlist.length > 0) {
+          localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(data.wishlist));
         }
 
         // Trigger refresh events so components update

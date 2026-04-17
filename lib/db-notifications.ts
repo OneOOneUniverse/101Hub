@@ -3,7 +3,7 @@
  * Import only in API routes / server components — uses supabaseAdmin.
  */
 import { supabaseAdmin } from './supabase';
-import { sendPushToUser } from './web-push';
+import { sendPushToUser, sendPushToAdmins } from './web-push';
 
 export type DbNotificationType =
   | 'order'
@@ -48,13 +48,19 @@ export async function createDbNotification(params: CreateNotificationParams) {
     return null;
   }
 
-  // Fire-and-forget: send push notification to the user's devices
-  void sendPushToUser(userId, {
+  // Fire-and-forget: send push notification
+  const pushPayload = {
     title,
     body: message,
     url: (data.link as string) ?? '/',
     tag: type,
-  });
+  };
+
+  if (targetRole === 'admin') {
+    void sendPushToAdmins(pushPayload);
+  } else {
+    void sendPushToUser(userId, pushPayload);
+  }
 
   return row;
 }

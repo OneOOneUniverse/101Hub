@@ -246,12 +246,12 @@ export default function AnimatedPaymentModal({
           margin: 10px 0 0 -30px;
         }
 
-        .payment-card-container:hover .card {
-          animation: slide-top 1.2s cubic-bezier(0.645, 0.045, 0.355, 1) both;
+        .payment-card-container .card {
+          animation: slide-top 1.2s 0.5s cubic-bezier(0.645, 0.045, 0.355, 1) both;
         }
 
-        .payment-card-container:hover .post {
-          animation: slide-post 1s cubic-bezier(0.165, 0.84, 0.44, 1) both;
+        .payment-card-container .post {
+          animation: slide-post 1s 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) both;
         }
 
         .post {
@@ -330,8 +330,8 @@ export default function AnimatedPaymentModal({
           text-align: center;
         }
 
-        .payment-card-container:hover .dollar {
-          animation: fade-in-fwd 0.3s 1s backwards;
+        .payment-card-container .dollar {
+          animation: fade-in-fwd 0.3s 1.5s backwards;
         }
 
         .payment-modal-footer {

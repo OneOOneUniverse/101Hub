@@ -85,32 +85,42 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
 
 /**
  * Send push to all admin-subscribed devices.
- * Looks for subscriptions where user_id matches admin users.
- * For simplicity, sends to all subscriptions with target "__admin__".
+ * Resolves admin user IDs via Clerk using ADMIN_EMAILS, then sends only to those.
  */
 export async function sendPushToAdmins(payload: PushPayload) {
   if (!ensureVapid()) return;
 
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  if (!adminEmails.length) return;
+
+  // Resolve admin Clerk user IDs from their emails
+  let adminUserIds: string[] = [];
+  try {
+    const { clerkClient } = await import('@clerk/nextjs/server');
+    const client = await clerkClient();
+    const results = await Promise.all(
+      adminEmails.map((email) =>
+        client.users.getUserList({ emailAddress: [email], limit: 1 }),
+      ),
+    );
+    adminUserIds = results.flatMap((r) => r.data.map((u) => u.id));
+  } catch (err) {
+    console.error('[push] Failed to resolve admin user IDs:', err);
+    return;
+  }
+
+  if (!adminUserIds.length) return;
+
   const { data: subs, error } = await supabaseAdmin
     .from('push_subscriptions')
-    .select('id, subscription, user_id');
+    .select('id, subscription')
+    .in('user_id', adminUserIds);
 
   if (error || !subs?.length) return;
 
-  // We need to know which user_ids are admins.
-  // For push, we store admin subscriptions normally — the filtering happens
-  // at notification creation time (target_role='admin').
-  // For now, send to ALL subscribed users when it's an admin broadcast.
-  // In practice this is fine because admins are few.
-  // If you want to restrict: maintain an admin_users table or check Clerk metadata.
-
-  // Simple approach: look up admin emails from env
-  const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (!adminEmails.length) return;
-
-  // For a small store, just send the push – admin devices are the ones that matter
-  // We'll filter by checking which subscriptions belong to admin user IDs
-  // This requires a separate lookup. For now, send to all (store has few users).
   const staleIds: string[] = [];
 
   await Promise.allSettled(
