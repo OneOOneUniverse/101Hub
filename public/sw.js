@@ -37,6 +37,43 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// ─── Push Notifications ──────────────────────────────
+self.addEventListener('push', (event) => {
+  let data = { title: '101Hub', body: 'You have a new notification', icon: '/img/log.png', url: '/' };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch { /* fallback */ }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon || '/img/log.png',
+      badge: '/img/log.png',
+      data: { url: data.url || '/' },
+      vibrate: [200, 100, 200],
+      tag: data.tag || 'default',
+      renotify: true,
+    })
+  );
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});
+
 // Fetch event - Network first, fall back to cache
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {

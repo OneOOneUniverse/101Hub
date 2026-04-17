@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { notifyUser } from "@/lib/db-notifications";
+import { sendOrderMessageEmail } from "@/lib/email";
 
 type SendOrderMessagePayload = {
   orderRef?: string;
@@ -59,7 +61,7 @@ export async function POST(request: Request) {
     // Verify order exists
     const { data: orderExists, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id")
+      .select("id, clerk_user_id, customer_email, customer_name")
       .eq("order_ref", orderRef)
       .single();
 
@@ -88,6 +90,25 @@ export async function POST(request: Request) {
         { error: "Could not send message." },
         { status: 500 }
       );
+    }
+
+    // Notify the customer about the new message
+    const clerkId = orderExists.clerk_user_id as string | null;
+    if (clerkId) {
+      void notifyUser(
+        clerkId,
+        'message',
+        '💬 New Message on Your Order',
+        `Admin sent a message about order ${orderRef}: "${message.slice(0, 80)}${message.length > 80 ? '…' : ''}"`,
+        { order_ref: orderRef, link: '/orders' },
+      );
+    }
+
+    // Email the customer about the message
+    const custEmail = orderExists.customer_email as string | null;
+    const custName = orderExists.customer_name as string;
+    if (custEmail) {
+      void sendOrderMessageEmail(custEmail, custName, orderRef, message);
     }
 
     return NextResponse.json(

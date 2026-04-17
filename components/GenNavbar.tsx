@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import CartBadge from "./CartBadge";
+import NotificationBell from "./NotificationBell";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { getAvatarById } from "@/lib/avatar-options";
 
@@ -180,6 +181,8 @@ export default function GenNavbar({
         <div className="gen-cart-desktop">
           {features.cart && onCartClick && <CartBadge onClick={onCartClick} />}
         </div>
+        {/* Notification bell */}
+        <NotificationBell />
         {/* Profile avatar — always visible on all screen sizes */}
         <div className="gen-profile-wrap" ref={profileRef}>
           <button
