@@ -88,9 +88,10 @@ export default function NotificationBell() {
       if (!vapidKey) return;
       const registration = await navigator.serviceWorker.ready;
       const existing = await registration.pushManager.getSubscription();
+      const keyArray = urlBase64ToUint8Array(vapidKey);
       const subscription = existing ?? await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey).buffer as ArrayBuffer,
+        applicationServerKey: keyArray.buffer as ArrayBuffer,
       });
       await fetch('/api/notifications/push-subscribe', {
         method: 'POST',

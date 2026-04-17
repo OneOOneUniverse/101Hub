@@ -81,16 +81,16 @@ export async function PUT(request: Request) {
   const isAdmin = await isCurrentUserAdmin();
 
   if (body.all) {
-    // Mark all as read
+    // Mark all as read (including broadcast notifications)
     let query = supabaseAdmin
       .from('notifications')
       .update({ read: true })
       .eq('read', false);
 
     if (isAdmin) {
-      query = query.or(`user_id.eq.${user.id},target_role.eq.admin`);
+      query = query.or(`user_id.eq.${user.id},target_role.eq.admin,user_id.eq.__broadcast__`);
     } else {
-      query = query.eq('user_id', user.id);
+      query = query.or(`user_id.eq.${user.id},user_id.eq.__broadcast__`);
     }
 
     await query;
