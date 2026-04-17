@@ -179,23 +179,27 @@ export async function POST(request: Request) {
     console.error("[checkout] Supabase insert failed:", dbError.message);
   }
 
-  // Fire-and-forget: persistent notifications
-  void notifyAdmins(
-    'order',
-    '📦 New Order Received',
-    `${body.customerName} placed order ${orderRef} (GHS ${total.toFixed(2)}) — ${paymentMethod === 'manual' ? 'Awaiting payment verification' : 'Paid via Paystack'}`,
-    { order_ref: orderRef, link: '/admin' },
-  );
+  // Persistent notifications (awaited so serverless doesn't kill them)
+  try {
+    await notifyAdmins(
+      'order',
+      '📦 New Order Received',
+      `${body.customerName} placed order ${orderRef} (GHS ${total.toFixed(2)}) — ${paymentMethod === 'manual' ? 'Awaiting payment verification' : 'Paid via Paystack'}`,
+      { order_ref: orderRef, link: '/admin' },
+    );
+  } catch (e) { console.error('[checkout] notifyAdmins failed:', e); }
 
   // Notify the customer if they're signed in
   if (clerkUser?.id) {
-    void notifyUser(
-      clerkUser.id,
-      'order',
-      '🎉 Order Confirmed!',
-      `Your order ${orderRef} has been received. We'll notify you when it's on its way!`,
-      { order_ref: orderRef, link: '/orders' },
-    );
+    try {
+      await notifyUser(
+        clerkUser.id,
+        'order',
+        '🎉 Order Confirmed!',
+        `Your order ${orderRef} has been received. We'll notify you when it's on its way!`,
+        { order_ref: orderRef, link: '/orders' },
+      );
+    } catch (e) { console.error('[checkout] notifyUser failed:', e); }
   }
 
   // Fire-and-forget — add/update the customer in Brevo subscriber list

@@ -99,28 +99,32 @@ export async function POST(req: NextRequest) {
     .eq("id", chatId);
 
   // Send notification based on sender role
-  if (role === "customer") {
-    // Notify admin that a customer sent a support message
-    const preview = (content ?? "Image").slice(0, 80);
-    void notifyAdmins("message", "💬 New Support Message", preview, {
-      chatId,
-      link: "/admin?tab=support",
-    });
-  } else if (role === "admin") {
-    // Notify the customer if they are a logged-in user
-    const { data: chat } = await supabaseAdmin
-      .from("support_chats")
-      .select("user_id")
-      .eq("id", chatId)
-      .single();
-
-    if (chat?.user_id) {
+  try {
+    if (role === "customer") {
+      // Notify admin that a customer sent a support message
       const preview = (content ?? "Image").slice(0, 80);
-      void notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
+      await notifyAdmins("message", "💬 New Support Message", preview, {
         chatId,
-        link: "/",
+        link: "/admin?tab=support",
       });
+    } else if (role === "admin") {
+      // Notify the customer if they are a logged-in user
+      const { data: chat } = await supabaseAdmin
+        .from("support_chats")
+        .select("user_id")
+        .eq("id", chatId)
+        .single();
+
+      if (chat?.user_id) {
+        const preview = (content ?? "Image").slice(0, 80);
+        await notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
+          chatId,
+          link: "/",
+        });
+      }
     }
+  } catch (notifErr) {
+    console.error("[support/messages] Notification failed:", notifErr);
   }
 
   return NextResponse.json(msg);

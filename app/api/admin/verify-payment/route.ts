@@ -68,23 +68,25 @@ export async function POST(request: Request) {
     // Persistent notification for the customer
     const clerkId = order.clerk_user_id as string | null;
     if (clerkId) {
-      if (body.action === 'approve') {
-        void notifyUser(
-          clerkId,
-          'payment',
-          '✅ Payment Verified!',
-          `Your payment for order ${orderRef} has been confirmed. We're preparing your order!`,
-          { order_ref: orderRef, link: '/orders' },
-        );
-      } else {
-        void notifyUser(
-          clerkId,
-          'payment',
-          '⚠️ Payment Issue',
-          `We couldn't verify your payment for order ${orderRef}.${body.reason ? ` Reason: ${body.reason}` : ''} Please contact us.`,
-          { order_ref: orderRef, link: '/orders' },
-        );
-      }
+      try {
+        if (body.action === 'approve') {
+          await notifyUser(
+            clerkId,
+            'payment',
+            '✅ Payment Verified!',
+            `Your payment for order ${orderRef} has been confirmed. We're preparing your order!`,
+            { order_ref: orderRef, link: '/orders' },
+          );
+        } else {
+          await notifyUser(
+            clerkId,
+            'payment',
+            '⚠️ Payment Issue',
+            `We couldn't verify your payment for order ${orderRef}.${body.reason ? ` Reason: ${body.reason}` : ''} Please contact us.`,
+            { order_ref: orderRef, link: '/orders' },
+          );
+        }
+      } catch (e) { console.error('[verify-payment] notifyUser failed:', e); }
     }
 
     return NextResponse.json(

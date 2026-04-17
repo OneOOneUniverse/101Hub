@@ -55,18 +55,22 @@ export async function POST(req: NextRequest) {
     .eq("id", chatId);
 
   // Notify the customer (if logged in) that admin replied
-  const { data: chat } = await supabaseAdmin
-    .from("support_chats")
-    .select("user_id")
-    .eq("id", chatId)
-    .single();
+  try {
+    const { data: chat } = await supabaseAdmin
+      .from("support_chats")
+      .select("user_id")
+      .eq("id", chatId)
+      .single();
 
-  if (chat?.user_id) {
-    const preview = (content ?? "Image").slice(0, 80);
-    void notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
-      chatId,
-      link: "/",
-    });
+    if (chat?.user_id) {
+      const preview = (content ?? "Image").slice(0, 80);
+      await notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
+        chatId,
+        link: "/",
+      });
+    }
+  } catch (notifErr) {
+    console.error("[admin/support-chats] Notification failed:", notifErr);
   }
 
   return NextResponse.json(msg);

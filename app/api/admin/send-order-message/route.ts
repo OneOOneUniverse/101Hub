@@ -95,13 +95,15 @@ export async function POST(request: Request) {
     // Notify the customer about the new message
     const clerkId = orderExists.clerk_user_id as string | null;
     if (clerkId) {
-      void notifyUser(
-        clerkId,
-        'message',
-        '💬 New Message on Your Order',
-        `Admin sent a message about order ${orderRef}: "${message.slice(0, 80)}${message.length > 80 ? '…' : ''}"`,
-        { order_ref: orderRef, link: '/orders' },
-      );
+      try {
+        await notifyUser(
+          clerkId,
+          'message',
+          '💬 New Message on Your Order',
+          `Admin sent a message about order ${orderRef}: "${message.slice(0, 80)}${message.length > 80 ? '…' : ''}"`,
+          { order_ref: orderRef, link: '/orders' },
+        );
+      } catch (e) { console.error('[send-order-message] notifyUser failed:', e); }
     }
 
     // Email the customer about the message

@@ -48,7 +48,7 @@ export async function createDbNotification(params: CreateNotificationParams) {
     return null;
   }
 
-  // Fire-and-forget: send push notification
+  // Send push notification (awaited so serverless doesn't kill it)
   const pushPayload = {
     title,
     body: message,
@@ -56,10 +56,14 @@ export async function createDbNotification(params: CreateNotificationParams) {
     tag: type,
   };
 
-  if (targetRole === 'admin') {
-    void sendPushToAdmins(pushPayload);
-  } else {
-    void sendPushToUser(userId, pushPayload);
+  try {
+    if (targetRole === 'admin') {
+      await sendPushToAdmins(pushPayload);
+    } else {
+      await sendPushToUser(userId, pushPayload);
+    }
+  } catch (pushErr) {
+    console.error('[notifications] Push send failed:', pushErr);
   }
 
   return row;

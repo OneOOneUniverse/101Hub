@@ -76,13 +76,15 @@ export async function POST(request: Request) {
       delivered: `Order ${body.orderRef} has been delivered. Enjoy your purchase!`,
       completed: `Order ${body.orderRef} is now marked complete. Thank you for shopping with us!`,
     };
-    void notifyUser(
-      clerkId,
-      'status_update',
-      statusLabels[newStatus] ?? `Order status: ${newStatus}`,
-      statusMessages[newStatus] ?? `Your order ${body.orderRef} status has been updated to ${newStatus}.`,
-      { order_ref: body.orderRef, link: '/orders' },
-    );
+    try {
+      await notifyUser(
+        clerkId,
+        'status_update',
+        statusLabels[newStatus] ?? `Order status: ${newStatus}`,
+        statusMessages[newStatus] ?? `Your order ${body.orderRef} status has been updated to ${newStatus}.`,
+        { order_ref: body.orderRef, link: '/orders' },
+      );
+    } catch (e) { console.error('[update-order-status] notifyUser failed:', e); }
   }
 
   // Email the customer about the status change
