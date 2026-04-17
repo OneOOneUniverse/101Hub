@@ -172,6 +172,7 @@ export default function GenNavbar({
         ) : null}
         <li><Link href="/faqs">FAQs</Link></li>
         <li><Link href="/orders">Track Order</Link></li>
+        <li><Link href="/referral">🎯 Referrals</Link></li>
         <li><Link href="/app">📱 Get App</Link></li>
       </ul>
       <div className="gen-nav-actions">

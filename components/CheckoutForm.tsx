@@ -6,6 +6,7 @@ import { CreditCardIcon, GiftIcon, TruckIcon } from "@/components/Icons";
 import { useStoreContent } from "@/lib/use-store-content";
 import PaystackButton from "@/components/PaystackButton";
 import AnimatedPaymentModal from "@/components/AnimatedPaymentModal";
+import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 import { saveOrderToLocal } from "@/lib/order-status";
 
 type CartLine = { productId: string; qty: number };
@@ -806,6 +807,20 @@ export default function CheckoutForm() {
               <p className="text-2xl font-black text-amber-900 mb-2">GHS {totals.downpayment.toFixed(2)}</p>
               <p className="text-xs text-amber-700">Down payment required (40% of total)</p>
             </div>
+
+            {/* Copyable Payment Details Card */}
+            <PaymentDetailsCard
+              title="Payment Account Details"
+              fields={
+                content?.manualPaymentDetails && content.manualPaymentDetails.length > 0
+                  ? content.manualPaymentDetails.filter((f) => f.value)
+                  : [
+                      { label: "Transaction/Phone Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+                      { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                      { label: "Bank Name", value: "MTN Mobile Money", icon: "🏦" },
+                    ]
+              }
+            />
 
             {/* Step-by-step Walkthrough */}
             <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">

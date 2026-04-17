@@ -22,39 +22,68 @@ export default async function Home() {
         />
       ) : null}
       <section className="panel overflow-hidden">
-        <div className="grid gap-4 px-4 py-6 sm:gap-6 sm:grid-cols-2 sm:items-center sm:px-6 sm:py-8 md:px-10 md:py-12">
-          <div className="space-y-3 sm:space-y-4">
-            <p className="inline-flex rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--brand-deep)]">
-              {content.home.badge}
-            </p>
-            <h1 className="text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
-              {content.home.title}
-            </h1>
-            <p className="text-sm text-[var(--ink-soft)] sm:text-base">
-              {content.home.description}
-            </p>
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <Link
-                href={content.home.primaryCtaHref}
-                className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] sm:px-5 sm:py-2.5 sm:text-sm"
-              >
-                {content.home.primaryCtaLabel}
-              </Link>
-              <Link
-                href={content.home.secondaryCtaHref}
-                className="rounded-full border border-[var(--brand)] px-4 py-2 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:px-5 sm:py-2.5 sm:text-sm"
-              >
-                {content.home.secondaryCtaLabel}
-              </Link>
-            </div>
-          </div>
-          <div className="grid gap-2 sm:gap-3 text-xs sm:text-sm">
-            {content.home.highlights.map((highlight) => (
-              <div key={highlight.id} className="panel px-3 py-2 sm:px-4 sm:py-3">
-                <p className="font-bold text-[var(--brand-deep)]">{highlight.title}</p>
-                <p className="text-[var(--ink-soft)]">{highlight.description}</p>
+        {/* Hero with video background */}
+        <div className="relative isolate">
+          {/* Video background — desktop (landscape) */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover hidden sm:block"
+            src={content.home.heroVideoUrl || "/hero-video.mp4"}
+          />
+          {/* Video background — mobile (portrait) */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover sm:hidden"
+            src={content.home.heroVideoMobileUrl || "/Web Search Tab Intro.mp4"}
+          />
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-black/55" />
+
+          {/* Content on top of video */}
+          <div className="relative z-10 px-4 py-10 sm:px-6 sm:py-14 md:px-10 md:py-20">
+            <div className="mx-auto max-w-2xl text-center space-y-4 sm:space-y-5">
+              <p className="inline-flex rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                {content.home.badge}
+              </p>
+              <h1 className="text-2xl font-black leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-lg">
+                {content.home.title}
+              </h1>
+              <p className="text-sm text-white/80 sm:text-base md:text-lg max-w-xl mx-auto">
+                {content.home.description}
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 pt-1 sm:gap-4">
+                <Link
+                  href={content.home.primaryCtaHref}
+                  className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-[var(--brand-deep)] sm:px-7 sm:py-3 sm:text-sm transition-transform active:scale-95"
+                >
+                  {content.home.primaryCtaLabel}
+                </Link>
+                <Link
+                  href={content.home.secondaryCtaHref}
+                  className="rounded-full border-2 border-white/60 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-xs font-bold text-white hover:bg-white/20 sm:px-7 sm:py-3 sm:text-sm transition-transform active:scale-95"
+                >
+                  {content.home.secondaryCtaLabel}
+                </Link>
               </div>
-            ))}
+            </div>
+
+            {/* Highlight cards row */}
+            {content.home.highlights.length > 0 && (
+              <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto">
+                {content.home.highlights.map((highlight) => (
+                  <div key={highlight.id} className="rounded-xl bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3 text-center">
+                    <p className="font-bold text-white text-sm">{highlight.title}</p>
+                    <p className="text-white/70 text-xs mt-0.5">{highlight.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

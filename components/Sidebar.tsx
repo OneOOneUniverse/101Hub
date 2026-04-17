@@ -23,6 +23,7 @@ export default function Sidebar() {
       </div>
       <nav className="flex flex-col gap-2 p-4 text-[var(--ink-soft)]">
         <Link href="/profile" className="hover:text-[var(--brand-deep)] py-2">Profile</Link>
+        <Link href="/referral" className="hover:text-[var(--brand-deep)] py-2">🎯 Referral Program</Link>
         <Link href="/settings" className="hover:text-[var(--brand-deep)] py-2">Account Settings</Link>
         <Link href="/notifications" className="hover:text-[var(--brand-deep)] py-2">Notifications</Link>
         <Link href="/privacy" className="hover:text-[var(--brand-deep)] py-2">Privacy</Link>

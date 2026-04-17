@@ -12,6 +12,7 @@ import {
   type FAQ,
   type FooterContent,
   type LocationDeliveryFee,
+  type ManualPaymentField,
   type PaymentSettings,
   type Product,
   type PromoSlide,
@@ -28,6 +29,7 @@ import ServiceRequestsDashboard from "@/components/ServiceRequestsDashboard";
 import AdminNotificationPoller from "@/components/AdminNotificationPoller";
 import ImageUploadButton from "@/components/ImageUploadButton";
 import GalleryImageManager from "@/components/GalleryImageManager";
+import AdminSupportChats from "@/components/AdminSupportChats";
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -223,8 +225,10 @@ type AdminSectionId =
   | "categories"
   | "delivery"
   | "payments"
+  | "payment-details"
   | "services"
   | "payment-walkthrough"
+  | "support-chat"
   | "footer"
   | "sms-templates"
   | "sms"
@@ -241,8 +245,10 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "categories", label: "Categories" },
   { id: "delivery", label: "Delivery" },
   { id: "payments", label: "Payments" },
+  { id: "payment-details", label: "Payment Details" },
   { id: "services", label: "Services" },
   { id: "payment-walkthrough", label: "Payment Walkthrough" },
+  { id: "support-chat", label: "💬 Support Chat" },
   { id: "footer", label: "Footer" },
   { id: "sms-templates", label: "SMS Templates" },
   { id: "sms", label: "Broadcast SMS" },
@@ -790,6 +796,40 @@ export default function AdminPage() {
             />
           </Field>
         </div>
+
+        <Field label="Hero Background Video URL">
+          <input
+            value={content.home.heroVideoUrl ?? ""}
+            onChange={(event) =>
+              setContent({
+                ...content,
+                home: { ...content.home, heroVideoUrl: event.target.value },
+              })
+            }
+            placeholder="/hero-video.mp4 or https://cdn.example.com/video.mp4"
+            className={inputClassName()}
+          />
+          <p className="mt-1 text-xs text-[var(--ink-soft)]">
+            Upload a video to your CDN/public folder and paste the URL. The video plays on autoplay, muted, looped behind the hero text. Leave empty to use the default video.
+          </p>
+        </Field>
+
+        <Field label="Hero Background Video URL (Mobile / Portrait)">
+          <input
+            value={content.home.heroVideoMobileUrl ?? ""}
+            onChange={(event) =>
+              setContent({
+                ...content,
+                home: { ...content.home, heroVideoMobileUrl: event.target.value },
+              })
+            }
+            placeholder="/hero-video-mobile.mp4 or https://cdn.example.com/portrait-video.mp4"
+            className={inputClassName()}
+          />
+          <p className="mt-1 text-xs text-[var(--ink-soft)]">
+            Portrait/vertical video shown on mobile screens only. Leave empty to use the default mobile video.
+          </p>
+        </Field>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
@@ -2772,6 +2812,126 @@ export default function AdminPage() {
                 {smsResult.error}
               </p>
             ) : null}
+          </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "support-chat" ? (
+        <Section
+          title="💬 Live Support Chat"
+          description="View and respond to customer support conversations in real time."
+        >
+          <AdminSupportChats />
+        </Section>
+      ) : null}
+
+      {activeSection === "payment-details" ? (
+        <Section
+          title="Payment Details"
+          description="Configure the payment account details shown to customers during manual bank transfer / mobile money checkout. These fields appear with copy-to-clipboard buttons."
+        >
+          <div className="space-y-4">
+            {(content?.manualPaymentDetails ?? [
+              { label: "Transaction/Phone Number", value: "", icon: "📱" },
+              { label: "Account Name", value: "", icon: "👤" },
+              { label: "Bank Name", value: "", icon: "🏦" },
+            ]).map((field, index) => (
+              <div key={index} className="rounded-xl border border-black/10 bg-white p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{field.icon}</span>
+                  <span className="text-sm font-bold text-[var(--ink)]">{field.label}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Field label="Label">
+                    <input
+                      type="text"
+                      value={field.label}
+                      onChange={(e) => {
+                        setContent((current) => {
+                          if (!current) return current;
+                          const details = [...(current.manualPaymentDetails ?? [
+                            { label: "Transaction/Phone Number", value: "", icon: "📱" },
+                            { label: "Account Name", value: "", icon: "👤" },
+                            { label: "Bank Name", value: "", icon: "🏦" },
+                          ])];
+                          details[index] = { ...details[index], label: e.target.value };
+                          return { ...current, manualPaymentDetails: details };
+                        });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Value (what customer copies)">
+                    <input
+                      type="text"
+                      value={field.value}
+                      onChange={(e) => {
+                        setContent((current) => {
+                          if (!current) return current;
+                          const details = [...(current.manualPaymentDetails ?? [
+                            { label: "Transaction/Phone Number", value: "", icon: "📱" },
+                            { label: "Account Name", value: "", icon: "👤" },
+                            { label: "Bank Name", value: "", icon: "🏦" },
+                          ])];
+                          details[index] = { ...details[index], value: e.target.value };
+                          return { ...current, manualPaymentDetails: details };
+                        });
+                      }}
+                      placeholder="e.g. 0548656980"
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Icon (emoji)">
+                    <input
+                      type="text"
+                      value={field.icon}
+                      onChange={(e) => {
+                        setContent((current) => {
+                          if (!current) return current;
+                          const details = [...(current.manualPaymentDetails ?? [
+                            { label: "Transaction/Phone Number", value: "", icon: "📱" },
+                            { label: "Account Name", value: "", icon: "👤" },
+                            { label: "Bank Name", value: "", icon: "🏦" },
+                          ])];
+                          details[index] = { ...details[index], icon: e.target.value };
+                          return { ...current, manualPaymentDetails: details };
+                        });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContent((current) => {
+                      if (!current) return current;
+                      const details = [...(current.manualPaymentDetails ?? [])];
+                      details.splice(index, 1);
+                      return { ...current, manualPaymentDetails: details };
+                    });
+                  }}
+                  className="text-xs font-bold text-red-600 hover:underline"
+                >
+                  Remove Field
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => {
+                setContent((current) => {
+                  if (!current) return current;
+                  const details = [...(current.manualPaymentDetails ?? [])];
+                  details.push({ label: "", value: "", icon: "💳" });
+                  return { ...current, manualPaymentDetails: details };
+                });
+              }}
+              className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)]"
+            >
+              + Add Payment Field
+            </button>
           </div>
         </Section>
       ) : null}

@@ -89,6 +89,8 @@ export type HomeContent = {
   primaryCtaHref: string;
   secondaryCtaLabel: string;
   secondaryCtaHref: string;
+  heroVideoUrl?: string;
+  heroVideoMobileUrl?: string;
   highlights: HighlightCard[];
 };
 
@@ -195,6 +197,12 @@ export type SmsTemplate = {
   createdAt?: string;
 };
 
+export type ManualPaymentField = {
+  label: string;
+  value: string;
+  icon: string;
+};
+
 export type SiteContent = {
   storeName: string;
   storeDescription: string;
@@ -212,6 +220,7 @@ export type SiteContent = {
   deliverySettings: DeliverySettings;
   paymentSettings: PaymentSettings;
   paymentWalkthrough?: PaymentWalkthroughStep[];
+  manualPaymentDetails?: ManualPaymentField[];
   smsTemplates?: SmsTemplate[];
   faqs?: FAQ[];
   updatedAt: string;
