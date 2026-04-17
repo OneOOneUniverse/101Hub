@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { notifyUser } from "@/lib/db-notifications";
@@ -15,7 +16,42 @@ export async function GET() {
     .eq("status", "open")
     .order("updated_at", { ascending: false });
 
-  return NextResponse.json(chats ?? []);
+  // Resolve Clerk user IDs to display names
+  const results = chats ?? [];
+  const userIds = results
+    .map((c: { user_id: string | null }) => c.user_id)
+    .filter((id): id is string => !!id);
+
+  const nameMap: Record<string, string> = {};
+  if (userIds.length > 0) {
+    try {
+      const client = await clerkClient();
+      const uniqueIds = [...new Set(userIds)];
+      const resolved = await Promise.allSettled(
+        uniqueIds.map((uid) => client.users.getUser(uid)),
+      );
+      for (const r of resolved) {
+        if (r.status === "fulfilled" && r.value) {
+          const u = r.value;
+          const name =
+            [u.firstName, u.lastName].filter(Boolean).join(" ") ||
+            u.username ||
+            u.emailAddresses[0]?.emailAddress ||
+            u.id;
+          nameMap[u.id] = name;
+        }
+      }
+    } catch (err) {
+      console.error("[support-chats] Failed to resolve user names:", err);
+    }
+  }
+
+  const enriched = results.map((chat: { user_id: string | null }) => ({
+    ...chat,
+    user_name: chat.user_id ? nameMap[chat.user_id] ?? null : null,
+  }));
+
+  return NextResponse.json(enriched);
 }
 
 /** POST — admin sends a proactive message to a specific chat */

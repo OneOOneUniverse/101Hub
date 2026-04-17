@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 type Chat = {
   id: number;
   user_id: string | null;
+  user_name: string | null;
   session_id: string;
   status: string;
   page_url: string | null;
@@ -157,7 +158,9 @@ export default function AdminSupportChats() {
                 }`}
               >
                 <p className="text-sm font-semibold text-[var(--ink)] truncate">
-                  {chat.user_id ? `User: ${chat.user_id.slice(0, 12)}...` : `Guest: ${chat.session_id.slice(0, 8)}...`}
+                  {chat.user_id
+                    ? chat.user_name ?? `User: ${chat.user_id.slice(0, 12)}...`
+                    : `Guest: ${chat.session_id.slice(0, 8)}...`}
                 </p>
                 <p className="text-[10px] text-[var(--ink-soft)] mt-0.5">
                   {new Date(chat.updated_at).toLocaleString()}

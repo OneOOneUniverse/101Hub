@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gadget-hub-v1';
+const CACHE_NAME = 'gadget-hub-v2';
 const urlsToCache = [
   '/',
   '/products',
@@ -77,6 +77,12 @@ self.addEventListener('notificationclick', (event) => {
 // Fetch event - Network first, fall back to cache
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Never cache API routes — they return user-specific, authenticated data
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 

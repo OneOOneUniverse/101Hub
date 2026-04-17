@@ -3,7 +3,7 @@
  * Safe to import in client-side layout components.
  */
 
-export type NotificationType = 'order' | 'message' | 'service' | 'payment' | 'status_update';
+export type NotificationType = 'order' | 'message' | 'service' | 'payment' | 'status_update' | 'promo' | 'system';
 
 export interface Notification {
   id: string;

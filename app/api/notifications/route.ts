@@ -28,10 +28,11 @@ export async function GET(request: Request) {
     .limit(limit);
 
   if (isAdmin) {
-    // Admin sees their own + all admin-targeted notifications
-    query = query.or(`user_id.eq.${user.id},target_role.eq.admin`);
+    // Admin sees their own + all admin-targeted + broadcast notifications
+    query = query.or(`user_id.eq.${user.id},target_role.eq.admin,user_id.eq.__broadcast__`);
   } else {
-    query = query.eq('user_id', user.id);
+    // Users see their own + broadcast notifications
+    query = query.or(`user_id.eq.${user.id},user_id.eq.__broadcast__`);
   }
 
   if (unreadOnly) {
@@ -46,15 +47,15 @@ export async function GET(request: Request) {
   }
 
   // Unread count
-  const countQuery = supabaseAdmin
+  let countQuery = supabaseAdmin
     .from('notifications')
     .select('id', { count: 'exact', head: true })
     .eq('read', false);
 
   if (isAdmin) {
-    countQuery.or(`user_id.eq.${user.id},target_role.eq.admin`);
+    countQuery = countQuery.or(`user_id.eq.${user.id},target_role.eq.admin,user_id.eq.__broadcast__`);
   } else {
-    countQuery.eq('user_id', user.id);
+    countQuery = countQuery.or(`user_id.eq.${user.id},user_id.eq.__broadcast__`);
   }
 
   const { count } = await countQuery;
