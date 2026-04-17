@@ -125,7 +125,7 @@ export default function GenNavbar({
 
   return (
     <nav className={`gen-nav${menuOpen ? " mobile-open" : ""}`} id="gen-nav">
-      <div className="gen-logo">
+      <Link href="/" className="gen-logo">
         {logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -143,7 +143,7 @@ export default function GenNavbar({
           <Image src="/img/log.png" alt={storeName} width={36} height={36} />
         )}
         <span className="gen-logo-text">{storeName}</span>
-      </div>
+      </Link>
       <button
         className="gen-hamburger"
         id="gen-ham"
@@ -245,7 +245,7 @@ export default function GenNavbar({
         }
         .gen-nav *, .gen-nav *::before, .gen-nav *::after { box-sizing: border-box; }
         .gen-nav ul { list-style: none; margin: 0; padding: 0; }
-        .gen-logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-right: auto; }
+        .gen-logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-right: auto; text-decoration: none; }
         .gen-logo-img { height: 40px; width: auto; max-width: 160px; object-fit: contain; display: block; }
         .gen-logo-text { color: #fff; font-size: 18px; font-weight: 600; white-space: nowrap; }
         .gen-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; align-items: center; justify-content: center; flex-direction:column; gap:0; }

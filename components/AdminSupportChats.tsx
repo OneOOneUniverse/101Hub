@@ -29,7 +29,7 @@ export default function AdminSupportChats() {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -77,9 +77,10 @@ export default function AdminSupportChats() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [selectedChat, loadMessages]);
 
-  // Scroll to bottom
+  // Scroll to bottom of messages container
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
   // Send reply
@@ -187,7 +188,7 @@ export default function AdminSupportChats() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-gray-50" style={{ maxHeight: 320 }}>
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-gray-50" style={{ maxHeight: 320 }}>
               {messages.length === 0 && (
                 <p className="text-center text-xs text-gray-400 mt-8">No messages yet.</p>
               )}
@@ -216,7 +217,7 @@ export default function AdminSupportChats() {
                   </div>
                 );
               })}
-              <div ref={bottomRef} />
+
             </div>
 
             {/* Reply Bar */}
