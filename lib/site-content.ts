@@ -5,6 +5,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import seedContent from "@/data/site-content.json";
 import {
+  type BlackFridayContent,
   type Category,
   type CategoryFeature,
   type DeliverySettings,
@@ -184,6 +185,7 @@ function sanitizeFeatures(value: unknown, fallback: SiteFeatures): SiteFeatures 
   return {
     promoSlider: toBoolean(candidate.promoSlider, fallback.promoSlider),
     flashSale: toBoolean(candidate.flashSale, fallback.flashSale),
+    blackFriday: toBoolean(candidate.blackFriday, fallback.blackFriday),
     services: toBoolean(candidate.services, fallback.services),
     wishlist: toBoolean(candidate.wishlist, fallback.wishlist),
     reviews: toBoolean(candidate.reviews, fallback.reviews),
@@ -233,6 +235,23 @@ function sanitizeFlashSale(value: unknown, fallback: FlashSaleContent): FlashSal
     featuredProductIds: Array.isArray(candidate.featuredProductIds)
       ? candidate.featuredProductIds.filter((item): item is string => typeof item === "string")
       : fallback.featuredProductIds,
+  };
+}
+
+function sanitizeBlackFriday(value: unknown, fallback: BlackFridayContent): BlackFridayContent {
+  const candidate = typeof value === "object" && value !== null ? value as Partial<BlackFridayContent> : {};
+  const candidateEndsAt = typeof candidate.endsAt === "string" ? candidate.endsAt : "";
+  const fallbackEndsAt = typeof fallback.endsAt === "string" ? fallback.endsAt : "";
+  const parsedEndsAt = candidateEndsAt ? new Date(candidateEndsAt) : new Date(fallbackEndsAt);
+  const normalizedEndsAt = Number.isFinite(parsedEndsAt.getTime()) ? parsedEndsAt.toISOString() : undefined;
+
+  return {
+    discountPercentage: Math.min(95, Math.max(1, toNumber(candidate.discountPercentage, fallback.discountPercentage))),
+    headline: toText(candidate.headline, fallback.headline),
+    description: toText(candidate.description, fallback.description),
+    endsAt: normalizedEndsAt,
+    linkUrl: toText(candidate.linkUrl, fallback.linkUrl),
+    linkText: toText(candidate.linkText, fallback.linkText),
   };
 }
 
@@ -416,6 +435,7 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     categories,
     allCategoryImage: toOptionalText(candidate.allCategoryImage) ?? defaultContent.allCategoryImage,
     flashSale: sanitizeFlashSale(candidate.flashSale, defaultContent.flashSale),
+    blackFriday: sanitizeBlackFriday(candidate.blackFriday, defaultContent.blackFriday),
     deliverySettings: sanitizeDeliverySettings(candidate.deliverySettings ?? (defaultContent as SiteContent).deliverySettings),
     paymentSettings: sanitizePaymentSettings(candidate.paymentSettings ?? (defaultContent as SiteContent & { paymentSettings?: PaymentSettings }).paymentSettings ?? {}),
     smsTemplates: rawSmsTemplates.map((item, index) => sanitizeSmsTemplate(item, index)),

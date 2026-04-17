@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PromoSlider from "@/components/PromoSlider";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
+import BlackFridayBanner from "@/components/BlackFridayBanner";
 import HeroVideoBackground from "@/components/HeroVideoBackground";
 import { getSiteContent } from "@/lib/site-content";
 
@@ -12,6 +13,9 @@ export default async function Home() {
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {content.features.promoSlider ? <PromoSlider slides={content.promoSlides} /> : null}
+      {content.features.blackFriday ? (
+        <BlackFridayBanner content={content.blackFriday} />
+      ) : null}
       {content.features.flashSale ? (
         <FlashSaleTimer
           key={`${content.flashSale.durationHours}-${content.flashSale.endsAt ?? "none"}-${content.updatedAt}-home`}

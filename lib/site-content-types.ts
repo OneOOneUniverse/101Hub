@@ -110,9 +110,19 @@ export type FlashSaleContent = {
   featuredProductIds: string[];
 };
 
+export type BlackFridayContent = {
+  discountPercentage: number;
+  headline: string;
+  description: string;
+  endsAt?: string;
+  linkUrl: string;
+  linkText: string;
+};
+
 export type SiteFeatures = {
   promoSlider: boolean;
   flashSale: boolean;
+  blackFriday: boolean;
   services: boolean;
   wishlist: boolean;
   reviews: boolean;
@@ -220,6 +230,7 @@ export type SiteContent = {
   categories: Category[];
   allCategoryImage?: string;
   flashSale: FlashSaleContent;
+  blackFriday: BlackFridayContent;
   deliverySettings: DeliverySettings;
   paymentSettings: PaymentSettings;
   paymentWalkthrough?: PaymentWalkthroughStep[];

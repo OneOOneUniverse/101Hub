@@ -10,6 +10,7 @@ import WishlistButton from "@/components/WishlistButton";
 import ProductCardShare from "@/components/ProductCardShare";
 import PromoSlider from "@/components/PromoSlider";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
+import BlackFridayBanner from "@/components/BlackFridayBanner";
 import { getReviewStats } from "@/lib/product-feedback";
 import { emitCartUpdate } from "@/lib/use-cart-count";
 
@@ -161,6 +162,9 @@ function ProductsPageContent() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {content.features.promoSlider ? <PromoSlider slides={content.promoSlides} /> : null}
+      {content.features.blackFriday ? (
+        <BlackFridayBanner content={content.blackFriday} />
+      ) : null}
       {content.features.flashSale ? (
         <FlashSaleTimer
           key={`${content.flashSale.durationHours}-${content.flashSale.endsAt ?? "none"}-${content.updatedAt}-products`}

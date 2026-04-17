@@ -39,11 +39,11 @@ type ReferralData = {
 };
 
 const TIER_THEMES = [
-  { emoji: "🥉", from: "#cd7f32", to: "#8B4513", grid: "rgba(205,127,50,0.08)" },
-  { emoji: "🥈", from: "#d1d5db", to: "#6b7280", grid: "rgba(192,192,192,0.08)" },
-  { emoji: "🥇", from: "#fbbf24", to: "#b45309", grid: "rgba(251,191,36,0.08)" },
-  { emoji: "💎", from: "#a78bfa", to: "#6d28d9", grid: "rgba(167,139,250,0.08)" },
-  { emoji: "👑", from: "#f472b6", to: "#be185d", grid: "rgba(244,114,182,0.08)" },
+  { emoji: "🥉", from: "#cd7f32", to: "#8B4513", grid: "rgba(205,127,50,0.08)", dark: "#3d2510", mid: "#5c3a1a" },
+  { emoji: "🥈", from: "#d1d5db", to: "#6b7280", grid: "rgba(192,192,192,0.08)", dark: "#2a2d33", mid: "#3f4349" },
+  { emoji: "🥇", from: "#fbbf24", to: "#b45309", grid: "rgba(251,191,36,0.08)", dark: "#3b2e07", mid: "#5c480e" },
+  { emoji: "💎", from: "#a78bfa", to: "#6d28d9", grid: "rgba(167,139,250,0.08)", dark: "#1e1040", mid: "#2d1a5c" },
+  { emoji: "👑", from: "#f472b6", to: "#be185d", grid: "rgba(244,114,182,0.08)", dark: "#3b0825", mid: "#5c0f39" },
 ];
 
 export default function ReferralDashboard() {
@@ -123,6 +123,24 @@ export default function ReferralDashboard() {
         @keyframes ref-float-in {
           from { opacity: 0; transform: translateY(14px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes tier-pulse {
+          0%   { box-shadow: 0 0 1rem var(--tier-glow); }
+          70%  { box-shadow: 0 0 2.5rem var(--tier-glow); }
+          100% { box-shadow: 0 0 1rem var(--tier-glow); }
+        }
+        @keyframes tier-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes tier-mist-anim {
+          0%   { transform: translateX(-50%) scaleY(0.7); opacity: 0.3; }
+          50%  { transform: translateX(0%) scaleY(1.3); opacity: 0.5; }
+          100% { transform: translateX(-50%) scaleY(0.7); opacity: 0.3; }
+        }
+        @keyframes tier-marquee-slide {
+          0%   { transform: translate3d(-20%, 0, 0); }
+          100% { transform: translate3d(-85%, 0, 0); }
         }
 
         /* ── Analytics-inspired analysis card ── */
@@ -219,19 +237,30 @@ export default function ReferralDashboard() {
         }
         .ref-tier-card {
           position: relative;
-          border-radius: 18px;
+          padding: 2px;
+          box-sizing: border-box;
+          border-radius: 0px 1.5rem;
           overflow: hidden;
+          backdrop-filter: blur(40px);
+          background-image: radial-gradient(#2121218a, #212121cc),
+            linear-gradient(35deg, var(--tier-dark) 62%, var(--tier-from) 100%);
+          background-origin: border-box;
+          background-clip: content-box, border-box;
+          box-shadow: 1px 1px 2rem var(--tier-glow);
           transform-style: preserve-3d;
-          transition: transform 0.5s cubic-bezier(0.23,1,0.32,1), box-shadow 0.5s ease;
+          transition: all 0.5s cubic-bezier(0.23,1,0.32,1);
         }
         .ref-tier-card:hover {
-          transform: rotateX(4deg) rotateY(-6deg) scale(1.05);
+          transform: rotateY(15deg) scale(1.03);
+        }
+        .ref-tier-card.unlocked {
+          animation: tier-pulse 3s infinite;
         }
         .ref-tier-card::after {
           content: "";
           position: absolute;
           inset: 0;
-          border-radius: 18px;
+          border-radius: 0px 1.5rem;
           pointer-events: none;
           background: linear-gradient(
             115deg,
@@ -250,26 +279,90 @@ export default function ReferralDashboard() {
         .ref-tier-card:hover::after {
           background-position: 0% 0%;
         }
-        .ref-tier-card .tier-grid-bg {
+        .tier-card-inner {
+          position: relative;
+          width: 100%;
+          overflow: hidden;
+          border-radius: 0px 0.8rem;
+        }
+        .tier-marquee {
           position: absolute;
           inset: 0;
-          pointer-events: none;
           z-index: 0;
           overflow: hidden;
+          border-radius: 0px 0.8rem;
+          filter: opacity(0.18);
+          pointer-events: none;
         }
-        .ref-tier-card .tier-grid-bg::before {
-          content: "";
+        .tier-marquee-inner {
+          width: fit-content;
+          display: flex;
+          position: relative;
+          animation: tier-marquee-slide 30s linear infinite;
+        }
+        .tier-marquee-text {
+          display: flex;
+          text-transform: uppercase;
+          font-size: 5rem;
+          font-weight: 900;
+          align-items: center;
+          line-height: 0.9em;
+          color: transparent;
+          -webkit-text-stroke-width: 2px;
+          -webkit-text-stroke-color: rgba(255,255,255,0.6);
+          white-space: nowrap;
+          padding-right: 1rem;
+        }
+        .tier-blur-overlay {
           position: absolute;
-          inset: -20px;
-          background-image:
-            linear-gradient(var(--tier-grid-color) 1px, transparent 1px),
-            linear-gradient(90deg, var(--tier-grid-color) 1px, transparent 1px);
-          background-size: 20px 20px;
-          opacity: 0.5;
-          animation: ref-grid-scroll 20s linear infinite;
+          inset: 0;
+          z-index: 1;
+          border-radius: 0px 0.8rem;
+          backdrop-filter: blur(2px);
+          background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+          pointer-events: none;
         }
-        .ref-tier-card.unlocked {
-          animation: ref-glow-pulse 3s ease-in-out infinite;
+        .tier-hex-wrap {
+          position: relative;
+          width: 3.5rem;
+          height: 3rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+          margin-bottom: 0.5rem;
+        }
+        .tier-hex-spin {
+          position: absolute;
+          width: 200%;
+          height: 200%;
+          animation: tier-spin 5s linear infinite;
+        }
+        .tier-hex-inner {
+          display: flex;
+          width: 85%;
+          height: 85%;
+          align-items: center;
+          justify-content: center;
+          clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+          background-color: #212121;
+          font-size: 1.2rem;
+        }
+        .tier-mist-wrap {
+          position: absolute;
+          width: 120%;
+          height: 35%;
+          overflow: hidden;
+          filter: blur(1rem);
+          bottom: 0;
+          left: -10%;
+          z-index: 1;
+          pointer-events: none;
+        }
+        .tier-mist {
+          width: 100%;
+          height: 100%;
+          animation: tier-mist-anim 10s infinite both;
         }
         .ref-tier-perf {
           width: calc(100% - 24px);
@@ -414,6 +507,7 @@ export default function ReferralDashboard() {
           {tiers.map((tier, idx) => {
             const unlocked = totalPoints >= tier.min_points;
             const t = TIER_THEMES[idx % TIER_THEMES.length];
+            const tierLabel = `${tier.name} ${tier.name} ${tier.name} ${tier.name}`;
             return (
               <div
                 key={tier.id}
@@ -423,56 +517,102 @@ export default function ReferralDashboard() {
                 <div
                   className={`ref-tier-card${unlocked ? " unlocked" : ""}`}
                   style={{
-                    "--tier-glow": `${t.from}50`,
-                    "--tier-grid-color": t.grid,
-                    background: `linear-gradient(160deg, ${t.from}18, #111 60%, ${t.to}10)`,
-                    border: `1.5px solid ${unlocked ? `${t.from}60` : "rgba(255,255,255,0.06)"}`,
-                    boxShadow: unlocked
-                      ? `0 8px 32px ${t.from}25, inset 0 1px 0 ${t.from}15`
-                      : "0 4px 12px rgba(0,0,0,0.25)",
-                    opacity: unlocked ? 1 : 0.55,
+                    "--tier-glow": t.from,
+                    "--tier-from": t.from,
+                    "--tier-dark": t.dark,
+                    opacity: unlocked ? 1 : 0.5,
                   } as React.CSSProperties}
                 >
-                  <div className="tier-grid-bg" />
+                  {/* Inner card with diagonal stripe bg */}
+                  <div
+                    className="tier-card-inner"
+                    style={{
+                      background: `linear-gradient(346.80deg, ${t.dark} 30%, ${t.mid} 30%, transparent 30%, transparent 32%, ${t.dark} 32%, ${t.dark} 35%, transparent 35%)`,
+                      minHeight: 230,
+                    }}
+                  >
+                    {/* Scrolling marquee text background */}
+                    <div className="tier-marquee">
+                      <div className="tier-marquee-inner">
+                        <span className="tier-marquee-text">{tierLabel}</span>
+                        <span className="tier-marquee-text">{tierLabel}</span>
+                        <span className="tier-marquee-text">{tierLabel}</span>
+                      </div>
+                    </div>
 
-                  {/* Card body */}
-                  <div className="relative z-[1] p-5 flex flex-col items-center text-center" style={{ minHeight: 200 }}>
-                    <span className="text-3xl mb-2">{t.emoji}</span>
-                    <span
-                      className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2 shrink-0"
-                      style={{
-                        background: `linear-gradient(135deg, ${t.from}, ${t.to})`,
-                        boxShadow: unlocked ? `0 0 16px ${t.from}50` : "none",
-                      }}
-                    >
-                      {unlocked ? "✓" : tier.name[0]}
-                    </span>
+                    {/* Blur overlay */}
+                    <div className="tier-blur-overlay" />
 
-                    {/* Perforation line */}
-                    <div className="ref-tier-perf my-2" />
+                    {/* Mist / glow at bottom */}
+                    <div className="tier-mist-wrap">
+                      <div
+                        className="tier-mist"
+                        style={{ background: `radial-gradient(circle, ${t.from}a0 10%, transparent 50%)` }}
+                      />
+                    </div>
 
-                    <p className="text-sm font-bold text-white mb-0.5">{tier.name}</p>
-                    <p className="text-xs text-gray-400">
-                      {tier.min_points.toLocaleString()} pts
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1.5">
-                      {tier.discount_percent > 0
-                        ? `${tier.discount_percent}% discount`
-                        : "No discount"}
-                      {tier.free_shipping ? " · Free Shipping" : ""}
-                    </p>
-                    {unlocked && (
-                      <span
-                        className="mt-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
+                    {/* Card content */}
+                    <div style={{ position: "relative", zIndex: 2, padding: "1.25rem", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" as const }}>
+                      {/* Spinning hexagonal badge */}
+                      <div className="tier-hex-wrap">
+                        <div
+                          className="tier-hex-spin"
+                          style={{
+                            background: `conic-gradient(${t.to} 0%, #fff 10%, ${t.from} 25%, ${t.to} 50%, ${t.from} 70%, ${t.from}80 90%)`,
+                          }}
+                        />
+                        <div className="tier-hex-inner">
+                          {unlocked ? "✓" : t.emoji}
+                        </div>
+                      </div>
+
+                      {/* Perforation line */}
+                      <div className="ref-tier-perf" style={{ margin: "0.5rem auto" }} />
+
+                      {/* Tier name with text stroke */}
+                      <p
                         style={{
-                          background: `${t.from}15`,
-                          color: t.from,
-                          border: `1px solid ${t.from}30`,
+                          fontWeight: 900,
+                          fontSize: "0.95rem",
+                          textTransform: "uppercase" as const,
+                          letterSpacing: "0.15rem",
+                          color: "transparent",
+                          WebkitTextStrokeWidth: "1px",
+                          WebkitTextStrokeColor: "#fff",
+                          marginBottom: 4,
                         }}
                       >
-                        Unlocked
-                      </span>
-                    )}
+                        {tier.name}
+                      </p>
+
+                      <p style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
+                        {tier.min_points.toLocaleString()} pts
+                      </p>
+                      <p style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: 6 }}>
+                        {tier.discount_percent > 0
+                          ? `${tier.discount_percent}% discount`
+                          : "No discount"}
+                        {tier.free_shipping ? " · Free Shipping" : ""}
+                      </p>
+                      {unlocked && (
+                        <span
+                          style={{
+                            marginTop: 12,
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            textTransform: "uppercase" as const,
+                            letterSpacing: "0.1em",
+                            padding: "2px 10px",
+                            borderRadius: 9999,
+                            background: `${t.from}15`,
+                            color: t.from,
+                            border: `1px solid ${t.from}30`,
+                          }}
+                        >
+                          Unlocked
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

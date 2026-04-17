@@ -50,6 +50,51 @@ function splitTime(distanceMs: number) {
   return { days, hours, minutes, seconds };
 }
 
+/** A single rolling-digit column — slides to show the current value */
+function RollingDigit({ value, max }: { value: number; max: number }) {
+  const digits = Array.from({ length: max + 1 }, (_, i) => i);
+  return (
+    <div
+      style={{
+        width: 55,
+        height: 40,
+        overflow: "hidden",
+        borderRadius: 6,
+        background: "rgba(255,255,255,0.06)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          transform: `translateY(-${value * 40}px)`,
+          transition: "transform 0.45s cubic-bezier(.4,0,.2,1)",
+          willChange: "transform",
+        }}
+      >
+        {digits.map((d) => (
+          <span
+            key={d}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: 40,
+              fontSize: "1.6rem",
+              fontWeight: 800,
+              color: "#fff",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {String(d).padStart(2, "0")}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function FlashSaleTimer({
   durationHours,
   endsAt,
@@ -59,18 +104,15 @@ export default function FlashSaleTimer({
 }: Readonly<FlashSaleTimerProps>) {
   const [targetTime, setTargetTime] = useState<number>(() => getNextTarget(durationHours));
   const [now, setNow] = useState<number>(() => Date.now());
+  const [hovered, setHovered] = useState(false);
 
-  // Sync target from localStorage after mount to avoid SSR/client mismatch
   useEffect(() => {
     setTargetTime(loadOrCreateTarget(durationHours));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const configuredEndTime = useMemo(() => {
-    if (!endsAt) {
-      return null;
-    }
-
+    if (!endsAt) return null;
     const parsed = new Date(endsAt);
     return Number.isFinite(parsed.getTime()) ? parsed.getTime() : null;
   }, [endsAt]);
@@ -81,13 +123,13 @@ export default function FlashSaleTimer({
       setNow(currentTime);
 
       if (!configuredEndTime) {
-          setTargetTime((currentTarget) => {
-            if (currentTime < currentTarget) return currentTarget;
-            const next = getNextTarget(durationHours);
-            try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* ignore */ }
-            return next;
-          });
-        }
+        setTargetTime((currentTarget) => {
+          if (currentTime < currentTarget) return currentTarget;
+          const next = getNextTarget(durationHours);
+          try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* ignore */ }
+          return next;
+        });
+      }
     }, 1000);
 
     return () => window.clearInterval(timer);
@@ -97,43 +139,179 @@ export default function FlashSaleTimer({
   const remaining = useMemo(() => splitTime(effectiveTarget - now), [effectiveTarget, now]);
 
   return (
-    <Link
-      href="/flash-sale"
-      className="group mt-4 block rounded-2xl border border-[var(--brand)]/20 bg-gradient-to-r from-[var(--brand)]/10 via-white to-[var(--accent)]/10 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-      aria-label="Go to flash sale page"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--brand-deep)]">
-            {eyebrow}
-          </p>
-          <h2 className="mt-1 text-lg font-black text-[var(--ink)] sm:text-xl">
-            {title}
-          </h2>
-          <p className="mt-1 text-sm text-[var(--ink-soft)]">
-            {description}
-          </p>
+    <>
+      <style>{`
+        @keyframes bf-letter-jump {
+          0%   { transform: translateY(0) scale(1); }
+          50%  { transform: translateY(-8px) scale(1.12); }
+          100% { transform: translateY(0) scale(1); }
+        }
+      `}</style>
+      <Link
+        href="/flash-sale"
+        aria-label="Go to flash sale page"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "1rem",
+          padding: "1.25rem 1rem",
+          borderRadius: "1rem",
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          border: "1px solid rgba(101, 75, 255, 0.35)",
+          marginTop: "1rem",
+          textDecoration: "none",
+          transition: "transform 0.25s, box-shadow 0.25s",
+          transform: hovered ? "translateY(-3px)" : "translateY(0)",
+          boxShadow: hovered ? "0 8px 32px rgba(101, 75, 255, 0.25)" : "none",
+        }}
+      >
+        {/* Coupon card */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            border: "1px solid rgba(101, 75, 255, 0.5)",
+            borderRadius: 12,
+            overflow: "hidden",
+            width: "100%",
+            maxWidth: 500,
+          }}
+        >
+          {/* Discount badge */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: "1rem 1.25rem",
+              background: "linear-gradient(135deg, #654bff, #8b5cf6)",
+              color: "#fff",
+              minWidth: 85,
+            }}
+          >
+            <span style={{ fontSize: "1.8rem", fontWeight: 900, lineHeight: 1 }}>
+              {eyebrow.match(/\d+/)?.[0] ?? "⚡"}
+            </span>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                fontWeight: 700,
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                marginTop: 2,
+              }}
+            >
+              SALE
+            </span>
+          </div>
+
+          {/* Dashed divider */}
+          <div
+            style={{
+              width: 0,
+              height: 80,
+              borderRight: "3px dashed rgba(101, 75, 255, 0.4)",
+              flexShrink: 0,
+            }}
+          />
+
+          {/* Content */}
+          <div style={{ padding: "0.75rem 1rem", flex: 1, minWidth: 0 }}>
+            <h2
+              style={{
+                fontWeight: 800,
+                fontSize: "0.85rem",
+                color: "#fff",
+                display: "flex",
+                flexWrap: "wrap",
+                lineHeight: 1.4,
+                margin: 0,
+              }}
+            >
+              {title.split("").map((char, i) => (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    animation: hovered ? `bf-letter-jump 0.25s ease-out ${i * 0.03}s 1 normal both` : "none",
+                  }}
+                >
+                  {char === " " ? "\u00A0" : char}
+                </span>
+              ))}
+            </h2>
+            <p
+              style={{
+                fontSize: "0.75rem",
+                color: "#959595",
+                lineHeight: 1.3,
+                marginTop: "0.35rem",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {description}
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 text-center">
-          <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
-            <p className="text-lg font-black text-[var(--brand-deep)]">{String(remaining.days).padStart(2, "0")}</p>
-            <p className="text-[10px] uppercase tracking-wide text-[var(--ink-soft)]">Days</p>
-          </div>
-          <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
-            <p className="text-lg font-black text-[var(--brand-deep)]">{String(remaining.hours).padStart(2, "0")}</p>
-            <p className="text-[10px] uppercase tracking-wide text-[var(--ink-soft)]">Hours</p>
-          </div>
-          <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
-            <p className="text-lg font-black text-[var(--brand-deep)]">{String(remaining.minutes).padStart(2, "0")}</p>
-            <p className="text-[10px] uppercase tracking-wide text-[var(--ink-soft)]">Minutes</p>
-          </div>
-          <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
-            <p className="text-lg font-black text-[var(--brand-deep)]">{String(remaining.seconds).padStart(2, "0")}</p>
-            <p className="text-[10px] uppercase tracking-wide text-[var(--ink-soft)]">Seconds</p>
-          </div>
+        {/* Rolling timer */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 0,
+            width: "fit-content",
+          }}
+        >
+          {(
+            [
+              { value: remaining.days, max: 31, label: "days" },
+              { value: remaining.hours, max: 23, label: "hrs" },
+              { value: remaining.minutes, max: 59, label: "min" },
+              { value: remaining.seconds, max: 59, label: "sec" },
+            ] as const
+          ).map((slot, idx) => (
+            <div key={slot.label} style={{ display: "contents" }}>
+              {idx > 0 && (
+                <span
+                  style={{
+                    color: "#fff",
+                    fontSize: "1.5rem",
+                    fontWeight: 700,
+                    lineHeight: "40px",
+                    width: 14,
+                    textAlign: "center",
+                  }}
+                >
+                  :
+                </span>
+              )}
+              <div style={{ textAlign: "center", width: 55 }}>
+                <RollingDigit value={slot.value} max={slot.max} />
+                <p
+                  style={{
+                    fontSize: "0.65rem",
+                    color: "#959595",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    marginTop: 2,
+                  }}
+                >
+                  {slot.label}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-    </Link>
+      </Link>
+    </>
   );
 }

@@ -10,6 +10,7 @@
   "features": {
     "promoSlider": true,
     "flashSale": true,
+    "blackFriday": false,
     "services": true,
     "wishlist": true,
     "reviews": true,
@@ -921,6 +922,13 @@
       "product-y2fw6n",
       "product-x5vuiu"
     ]
+  },
+  "blackFriday": {
+    "discountPercentage": 37,
+    "headline": "BLACK FRIDAY",
+    "description": "The Black Friday deals are here! Massive discounts on all products — don't miss out.",
+    "linkUrl": "/flash-sale",
+    "linkText": "Shop the Deals"
   },
   "deliverySettings": {
     "defaultFee": 15,

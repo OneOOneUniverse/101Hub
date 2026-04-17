@@ -222,6 +222,7 @@ type AdminSectionId =
   | "homepage"
   | "promo"
   | "flash"
+  | "black-friday"
   | "products"
   | "categories"
   | "delivery"
@@ -243,6 +244,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "homepage", label: "Homepage" },
   { id: "promo", label: "Promo Slider" },
   { id: "flash", label: "Flash Sale" },
+  { id: "black-friday", label: "🖤 Black Friday" },
   { id: "products", label: "Products" },
   { id: "categories", label: "Categories" },
   { id: "delivery", label: "Delivery" },
@@ -1404,6 +1406,109 @@ export default function AdminPage() {
               );
             })}
           </div>
+        </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "black-friday" ? (
+        <Section title="🖤 Black Friday Promo" description="Configure the Black Friday banner — toggle it on from Features to show it on the homepage and products page.">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <Field label="Discount percentage">
+            <input
+              type="number"
+              min={1}
+              max={95}
+              value={content.blackFriday.discountPercentage}
+              onChange={(event) =>
+                setContent({
+                  ...content,
+                  blackFriday: {
+                    ...content.blackFriday,
+                    discountPercentage: Number(event.target.value || 1),
+                  },
+                })
+              }
+              className={inputClassName()}
+            />
+          </Field>
+          <Field label="Headline text">
+            <input
+              value={content.blackFriday.headline}
+              onChange={(event) =>
+                setContent({
+                  ...content,
+                  blackFriday: { ...content.blackFriday, headline: event.target.value },
+                })
+              }
+              className={inputClassName()}
+              placeholder="e.g. BLACK FRIDAY"
+            />
+          </Field>
+          <Field label="End date/time (optional)">
+            <input
+              type="datetime-local"
+              value={isoToDateTimeLocal(content.blackFriday.endsAt)}
+              onChange={(event) =>
+                setContent({
+                  ...content,
+                  blackFriday: {
+                    ...content.blackFriday,
+                    endsAt: dateTimeLocalToIso(event.target.value),
+                  },
+                })
+              }
+              className={inputClassName()}
+            />
+          </Field>
+        </div>
+
+        <Field label="Description">
+          <textarea
+            value={content.blackFriday.description}
+            onChange={(event) =>
+              setContent({
+                ...content,
+                blackFriday: { ...content.blackFriday, description: event.target.value },
+              })
+            }
+            className={inputClassName(true)}
+            placeholder="The Black Friday deals are here! Massive discounts on all products."
+          />
+        </Field>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Link URL">
+            <input
+              value={content.blackFriday.linkUrl}
+              onChange={(event) =>
+                setContent({
+                  ...content,
+                  blackFriday: { ...content.blackFriday, linkUrl: event.target.value },
+                })
+              }
+              className={inputClassName()}
+              placeholder="/flash-sale"
+            />
+          </Field>
+          <Field label="Button text">
+            <input
+              value={content.blackFriday.linkText}
+              onChange={(event) =>
+                setContent({
+                  ...content,
+                  blackFriday: { ...content.blackFriday, linkText: event.target.value },
+                })
+              }
+              className={inputClassName()}
+              placeholder="Shop the Deals"
+            />
+          </Field>
+        </div>
+
+        <div className="rounded-xl border border-black/10 bg-[var(--surface)] p-4">
+          <p className="text-xs text-[var(--ink-soft)]">
+            <strong>Tip:</strong> Enable the &quot;Black Friday&quot; toggle in the <button type="button" onClick={() => setActiveSection("features")} className="text-[var(--brand)] font-semibold underline">Features</button> section to make the promo banner visible. Set an end date for a countdown timer to appear automatically.
+          </p>
         </div>
         </Section>
       ) : null}
