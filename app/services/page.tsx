@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
@@ -13,6 +13,21 @@ type ServiceResult = {
 };
 
 export default function ServicesPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="panel p-4 sm:p-6">
+          <h1 className="text-2xl font-black sm:text-3xl">Services</h1>
+          <p className="mt-2 text-sm text-[var(--ink-soft)] sm:text-base">Loading services...</p>
+        </section>
+      }
+    >
+      <ServicesContent />
+    </Suspense>
+  );
+}
+
+function ServicesContent() {
   const { content, loading, error: contentError } = useStoreContent();
   const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
