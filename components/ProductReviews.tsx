@@ -60,14 +60,14 @@ export default function ProductReviews({ productId, baseRating }: ProductReviews
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-4 grid gap-3 rounded-xl border border-black/10 bg-white p-4 sm:grid-cols-2">
+      <form onSubmit={handleSubmit} className="form-styled mt-4 grid gap-3 p-4 sm:grid-cols-2">
         <input
           value={author}
           onChange={(event) => setAuthor(event.target.value)}
           placeholder="Your name (optional)"
-          className="rounded-lg border border-black/15 px-3 py-2"
+          className="input-styled"
         />
-        <div className="flex items-center gap-2 rounded-lg border border-black/15 px-3 py-2">
+        <div className="flex items-center gap-2 rounded-lg border-2 border-[rgba(255,107,53,0.25)] px-3 py-2 transition-all hover:border-[var(--brand)]">
           <span className="text-sm font-semibold text-[var(--ink-soft)]">Your rating</span>
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((value) => {
@@ -97,12 +97,12 @@ export default function ProductReviews({ productId, baseRating }: ProductReviews
           value={comment}
           onChange={(event) => setComment(event.target.value)}
           placeholder="Write a short review"
-          className="sm:col-span-2 min-h-28 rounded-lg border border-black/15 px-3 py-2"
+          className="input-styled sm:col-span-2 min-h-28"
         />
         <div className="sm:col-span-2 flex justify-end">
           <button
             type="submit"
-            className="rounded-full bg-[var(--brand)] px-5 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)]"
+            className="btn-styled rounded-full w-auto px-5 py-2 text-sm"
           >
             Submit Review
           </button>

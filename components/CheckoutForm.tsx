@@ -554,7 +554,7 @@ export default function CheckoutForm() {
         onClose={() => setShowPaymentAnimation(false)}
       />
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-      <form onSubmit={handleSubmit} className="panel space-y-4 p-6">
+      <form onSubmit={handleSubmit} className="form-styled space-y-5 p-5 sm:p-6">
         <h1 className="text-2xl font-black">Checkout</h1>
 
         {/* Invalid products warning */}
@@ -577,10 +577,11 @@ export default function CheckoutForm() {
         )}
 
         {/* Payment Method Selection */}
-        <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 space-y-3">
-          <p className="text-sm font-semibold text-blue-900 flex items-center gap-1.5">
+        <div className="form-section">
+          <div className="form-section-header flex items-center gap-1.5">
             <CreditCardIcon size={16} /> Payment Method
-          </p>
+          </div>
+          <div className="space-y-3">
           {(() => {
             const paystackAllowed = isPaystackConfigured && (content.paymentSettings?.paystackEnabled ?? true);
             const manualAllowed = content.paymentSettings?.manualEnabled ?? true;
@@ -622,6 +623,7 @@ export default function CheckoutForm() {
               </div>
             );
           })()}
+          </div>
         </div>
 
         {/* Full Payment Warning for certain products */}
@@ -644,67 +646,77 @@ export default function CheckoutForm() {
           </div>
         ) : null}
 
-        {/* Full Name */}
-        <div>
-          <label htmlFor="name" className="mb-1 block text-sm font-semibold">
-            Full Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="name"
-            required
-            placeholder="e.g. Kwame Mensah"
-            value={customerName}
-            onChange={(event) => setCustomerName(event.target.value)}
-            className="w-full rounded-lg border border-black/15 px-3 py-2"
-          />
+        {/* Personal Info Section */}
+        <div className="form-section">
+          <div className="form-section-header">Personal Information</div>
+          <div className="space-y-4">
+            {/* Full Name */}
+            <div>
+              <label htmlFor="name" className="mb-1 block text-sm font-semibold">
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="name"
+                required
+                placeholder="e.g. Kwame Mensah"
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+                className="input-styled"
+              />
+            </div>
+
+            {/* Email (required) */}
+            <div>
+              <label htmlFor="email" className="mb-1 block text-sm font-semibold">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="input-styled"
+              />
+              <p className="mt-1 text-xs text-[var(--ink-soft)]">We'll send your order confirmation to this email</p>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label htmlFor="phone" className="mb-1 block text-sm font-semibold">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="phone"
+                required
+                placeholder="+233 ..."
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                className="input-styled"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Email (required) */}
-        <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-semibold">
-            Email Address <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            placeholder="you@example.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-lg border border-black/15 px-3 py-2"
-          />
-          <p className="mt-1 text-xs text-[var(--ink-soft)]">We'll send your order confirmation to this email</p>
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label htmlFor="phone" className="mb-1 block text-sm font-semibold">
-            Phone Number <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="phone"
-            required
-            placeholder="+233 ..."
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            className="w-full rounded-lg border border-black/15 px-3 py-2"
-          />
-        </div>
-
-        {/* Delivery Address */}
-        <div>
-          <label htmlFor="address" className="mb-1 block text-sm font-semibold">
-            Delivery Address <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="address"
-            required
-            placeholder="Street, area, city..."
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            className="h-24 w-full rounded-lg border border-black/15 px-3 py-2"
-          />
-        </div>
+        {/* Delivery Details Section */}
+        <div className="form-section">
+          <div className="form-section-header">Delivery Details</div>
+          <div className="space-y-4">
+            {/* Delivery Address */}
+            <div>
+              <label htmlFor="address" className="mb-1 block text-sm font-semibold">
+                Delivery Address <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="address"
+                required
+                placeholder="Street, area, city..."
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                className="input-styled h-24"
+              />
+            </div>
 
         {/* Delivery Location */}
         {content.deliverySettings.locationFees.length > 0 && (content.deliverySettings.deliveryTypes ?? []).length === 0 && (
@@ -717,7 +729,7 @@ export default function CheckoutForm() {
               required
               value={location}
               onChange={(event) => setLocation(event.target.value)}
-              className="w-full rounded-lg border border-black/15 px-3 py-2"
+              className="input-styled"
             >
               <option value="">— Select your area —</option>
               {content.deliverySettings.locationFees.map((loc) => (
@@ -745,7 +757,7 @@ export default function CheckoutForm() {
               required
               value={deliveryType}
               onChange={(event) => setDeliveryType(event.target.value)}
-              className="w-full rounded-lg border border-black/15 px-3 py-2"
+              className="input-styled"
             >
               <option value="">— Choose delivery method —</option>
               {content.deliverySettings.deliveryTypes.map((dt) => (
@@ -794,8 +806,10 @@ export default function CheckoutForm() {
             placeholder="Landmark, delivery instructions..."
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            className="h-20 w-full rounded-lg border border-black/15 px-3 py-2"
+            className="input-styled h-20"
           />
+        </div>
+          </div>
         </div>
 
         {/* Payment Method Specific Fields */}
@@ -1012,7 +1026,7 @@ export default function CheckoutForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-styled rounded-full disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Placing order..." : "Place Order"}
           </button>

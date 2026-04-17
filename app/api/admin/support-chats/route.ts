@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { notifyUser } from "@/lib/db-notifications";
 
 /** GET — list all open support chats for the admin panel */
 export async function GET() {
@@ -52,6 +53,21 @@ export async function POST(req: NextRequest) {
     .from("support_chats")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", chatId);
+
+  // Notify the customer (if logged in) that admin replied
+  const { data: chat } = await supabaseAdmin
+    .from("support_chats")
+    .select("user_id")
+    .eq("id", chatId)
+    .single();
+
+  if (chat?.user_id) {
+    const preview = (content ?? "Image").slice(0, 80);
+    void notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
+      chatId,
+      link: "/",
+    });
+  }
 
   return NextResponse.json(msg);
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { notifyAdmins, notifyUser } from "@/lib/db-notifications";
 
 /** GET — fetch messages for a chat session */
 export async function GET(req: NextRequest) {
@@ -96,6 +97,31 @@ export async function POST(req: NextRequest) {
     .from("support_chats")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", chatId);
+
+  // Send notification based on sender role
+  if (role === "customer") {
+    // Notify admin that a customer sent a support message
+    const preview = (content ?? "Image").slice(0, 80);
+    void notifyAdmins("message", "💬 New Support Message", preview, {
+      chatId,
+      link: "/admin?tab=support",
+    });
+  } else if (role === "admin") {
+    // Notify the customer if they are a logged-in user
+    const { data: chat } = await supabaseAdmin
+      .from("support_chats")
+      .select("user_id")
+      .eq("id", chatId)
+      .single();
+
+    if (chat?.user_id) {
+      const preview = (content ?? "Image").slice(0, 80);
+      void notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
+        chatId,
+        link: "/",
+      });
+    }
+  }
 
   return NextResponse.json(msg);
 }

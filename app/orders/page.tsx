@@ -94,7 +94,7 @@ export default function OrderLookupPage() {
               value={ref}
               onChange={(e) => { setRef(e.target.value); setError(""); }}
               placeholder="e.g. GH-1775572945466"
-              className="w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 font-mono text-sm font-semibold focus:border-[var(--brand)] focus:outline-none"
+              className="input-styled font-mono font-semibold"
               autoComplete="off"
               spellCheck={false}
             />
@@ -112,7 +112,7 @@ export default function OrderLookupPage() {
           <button
             type="submit"
             disabled={checking}
-            className="w-full rounded-full bg-[var(--brand)] py-3 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-60 transition-colors"
+            className="btn-styled rounded-full text-sm disabled:opacity-60"
           >
             {checking ? "Searching…" : "Track Order"}
           </button>

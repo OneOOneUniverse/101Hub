@@ -199,7 +199,7 @@ export default function ServicesPage() {
       </div>
 
       {/* Request Service Form */}
-      <form onSubmit={onSubmit} className="panel space-y-3 sm:space-y-4 p-4 sm:p-6">
+      <form onSubmit={onSubmit} className="form-styled space-y-3 sm:space-y-4 p-4 sm:p-6">
         <h2 className="text-xl font-black sm:text-2xl">Request a Service</h2>
         <p className="text-sm text-[var(--ink-soft)]">
           Fill out this form to request one of our services. We'll be in touch within 24 hours.
@@ -213,7 +213,7 @@ export default function ServicesPage() {
             id="pkg"
             value={packageId}
             onChange={(event) => setPackageId(event.target.value)}
-            className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="input-styled text-sm"
           >
             {services.map((item) => (
               <option key={item.id} value={item.id}>
@@ -233,7 +233,7 @@ export default function ServicesPage() {
             value={customerName}
             onChange={(event) => setCustomerName(event.target.value)}
             placeholder="John Doe"
-            className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="input-styled text-sm"
           />
         </div>
 
@@ -247,7 +247,7 @@ export default function ServicesPage() {
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="+233 548656980"
-            className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="input-styled text-sm"
           />
         </div>
 
@@ -261,7 +261,7 @@ export default function ServicesPage() {
             value={issue}
             onChange={(event) => setIssue(event.target.value)}
             placeholder="Describe the issue or what you need..."
-            className="h-20 sm:h-24 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="input-styled h-20 sm:h-24 text-sm"
           />
         </div>
 
@@ -274,7 +274,7 @@ export default function ServicesPage() {
             value={preferredTime}
             onChange={(event) => setPreferredTime(event.target.value)}
             placeholder="e.g., Next week Saturday afternoon"
-            className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="input-styled text-sm"
           />
         </div>
 
@@ -294,7 +294,7 @@ export default function ServicesPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-[var(--brand)] px-4 py-3 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+          className="btn-styled rounded-lg text-sm disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? "Submitting..." : "Request Service"}
         </button>

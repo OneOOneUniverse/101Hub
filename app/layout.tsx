@@ -6,6 +6,7 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import { NotificationProvider } from "@/components/NotificationProvider";
+import SiteLoader from "@/components/SiteLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -145,6 +146,7 @@ export default async function RootLayout({
           />
         </head>
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
+          <SiteLoader />
           <NotificationProvider>
             <div className="relative flex min-h-screen flex-col overflow-x-hidden">
               <Sidebar />
