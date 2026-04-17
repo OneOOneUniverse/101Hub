@@ -3,7 +3,7 @@
  * Import only in API routes / server components — uses supabaseAdmin.
  */
 import { supabaseAdmin } from './supabase';
-import { sendPushToUser, sendPushToAdmins } from './web-push';
+import { sendPushToUser, sendPushToAdmins, sendPushToAllUsers } from './web-push';
 
 export type DbNotificationType =
   | 'order'
@@ -107,4 +107,38 @@ export async function notifyUser(
     message,
     data,
   });
+}
+
+/**
+ * Broadcast a notification to ALL users via push.
+ * Creates a DB row with user_id='__broadcast__' for logging,
+ * then sends push to every subscribed device.
+ */
+export async function notifyAllUsers(
+  type: DbNotificationType,
+  title: string,
+  message: string,
+  data?: Record<string, unknown>,
+) {
+  // Insert a broadcast record for audit
+  await supabaseAdmin.from('notifications').insert({
+    user_id: '__broadcast__',
+    target_role: 'user',
+    type,
+    title,
+    message,
+    data: data ?? {},
+  });
+
+  // Push to every subscribed device
+  try {
+    await sendPushToAllUsers({
+      title,
+      body: message,
+      url: (data?.link as string) ?? '/',
+      tag: type,
+    });
+  } catch (err) {
+    console.error('[notifications] Broadcast push failed:', err);
+  }
 }

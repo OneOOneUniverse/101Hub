@@ -296,6 +296,61 @@ export async function sendPaymentVerifiedEmail(customerEmail: string, customerNa
   });
 }
 
+/**
+ * Send a broadcast email to a list of recipients.
+ * Sends in BCC batches of 50 to avoid SMTP limits and timeouts.
+ * Returns { sent: number, failed: number }.
+ */
+export async function sendBroadcastEmail(
+  recipients: string[],
+  subject: string,
+  bodyHtml: string,
+): Promise<{ sent: number; failed: number }> {
+  if (!isEmailConfigured()) {
+    console.warn('[email] Broadcast skipped: SMTP not configured');
+    return { sent: 0, failed: 0 };
+  }
+
+  const html = wrapLayout(`
+    <div style="font-size:14px;color:#333;line-height:1.6">
+      ${bodyHtml}
+    </div>
+    <div style="text-align:center;margin:28px 0 12px">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? ''}/products"
+         style="display:inline-block;padding:12px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px">
+        Shop Now
+      </a>
+    </div>
+    <p style="margin:16px 0 0;font-size:11px;color:#aaa;text-align:center">
+      You are receiving this because you have an account on ${STORE_NAME}.
+    </p>
+  `);
+
+  const BATCH_SIZE = 50;
+  let sent = 0;
+  let failed = 0;
+  const transporter = getTransporter();
+
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE);
+    try {
+      await transporter.sendMail({
+        from: fromAddress(),
+        to: process.env.SMTP_USER, // "To" is the store itself
+        bcc: batch,                // Recipients in BCC for privacy
+        subject,
+        html,
+      });
+      sent += batch.length;
+    } catch (err) {
+      console.error(`[email] Broadcast batch ${i}-${i + batch.length} failed:`, err);
+      failed += batch.length;
+    }
+  }
+
+  return { sent, failed };
+}
+
 /** Send payment rejected email to customer */
 export async function sendPaymentRejectedEmail(customerEmail: string, customerName: string, orderRef: string, reason?: string) {
   await safeSend({

@@ -107,7 +107,7 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
     <div className="space-y-6 sm:space-y-8">
       <section className="panel p-4 sm:p-6 md:p-8">
         <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-[1.25fr_1fr]">
-          <ProductGallery productName={product.name} images={gallery} />
+          <ProductGallery productName={product.name} images={gallery} videos={product.videos} />
 
           <div className="space-y-3 sm:space-y-4">
             <p className="inline-flex rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--brand-deep)]">

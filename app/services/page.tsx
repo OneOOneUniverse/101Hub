@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
 
@@ -13,12 +14,15 @@ type ServiceResult = {
 
 export default function ServicesPage() {
   const { content, loading, error: contentError } = useStoreContent();
+  const searchParams = useSearchParams();
+  const formRef = useRef<HTMLFormElement>(null);
   const services = useMemo(() => content?.services ?? [], [content?.services]);
   const [packageId, setPackageId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [issue, setIssue] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
+  const [requestedDate, setRequestedDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [result, setResult] = useState<ServiceResult | null>(null);
@@ -28,6 +32,18 @@ export default function ServicesPage() {
       setPackageId(services[0].id);
     }
   }, [packageId, services]);
+
+  // Handle ?contact=serviceId from detail page
+  useEffect(() => {
+    const contactId = searchParams.get("contact");
+    if (contactId && services.length > 0) {
+      const match = services.find((s) => s.id === contactId);
+      if (match) {
+        setPackageId(match.id);
+        setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      }
+    }
+  }, [searchParams, services]);
 
   if (loading) {
     return (
@@ -73,6 +89,7 @@ export default function ServicesPage() {
           phone,
           issue,
           preferredTime,
+          requestedDate: requestedDate || undefined,
         }),
       });
       const contentType = response.headers.get("content-type") || "";
@@ -95,6 +112,7 @@ export default function ServicesPage() {
       setPhone("");
       setIssue("");
       setPreferredTime("");
+      setRequestedDate("");
       setPackageId(services[0]?.id ?? "");
     } catch {
       setSubmitError("Network error. Please try again.");
@@ -199,7 +217,7 @@ export default function ServicesPage() {
       </div>
 
       {/* Request Service Form */}
-      <form onSubmit={onSubmit} className="form-styled space-y-3 sm:space-y-4 p-4 sm:p-6">
+      <form ref={formRef} onSubmit={onSubmit} className="form-styled space-y-3 sm:space-y-4 p-4 sm:p-6">
         <h2 className="text-xl font-black sm:text-2xl">Request a Service</h2>
         <p className="text-sm text-[var(--ink-soft)]">
           Fill out this form to request one of our services. We'll be in touch within 24 hours.
@@ -265,17 +283,40 @@ export default function ServicesPage() {
           />
         </div>
 
-        <div>
-          <label htmlFor="time" className="mb-1 block text-xs font-semibold sm:text-sm">
-            Preferred Schedule (optional)
-          </label>
-          <input
-            id="time"
-            value={preferredTime}
-            onChange={(event) => setPreferredTime(event.target.value)}
-            placeholder="e.g., Next week Saturday afternoon"
-            className="input-styled text-sm"
-          />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="date" className="mb-1 block text-xs font-semibold sm:text-sm">
+              Preferred Date
+            </label>
+            <input
+              id="date"
+              type="date"
+              required
+              value={requestedDate}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(event) => setRequestedDate(event.target.value)}
+              className="input-styled text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="time" className="mb-1 block text-xs font-semibold sm:text-sm">
+              Preferred Time
+            </label>
+            <select
+              id="time"
+              required
+              value={preferredTime}
+              onChange={(event) => setPreferredTime(event.target.value)}
+              className="input-styled text-sm"
+            >
+              <option value="">-- Select a time --</option>
+              <option value="Morning">🌅 Morning (8 AM – 12 PM)</option>
+              <option value="Afternoon">☀️ Afternoon (12 PM – 4 PM)</option>
+              <option value="Evening">🌙 Evening (4 PM – 8 PM)</option>
+              <option value="Flexible">🔄 Flexible (Any time)</option>
+            </select>
+          </div>
         </div>
 
         {submitError ? (

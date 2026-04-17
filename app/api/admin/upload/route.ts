@@ -37,19 +37,33 @@ export async function POST(request: Request) {
 
   const file = formData.get("file");
   const folder = formData.get("folder");
+  const mediaType = formData.get("type"); // "image" or "video"
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file provided." }, { status: 400 });
   }
 
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
-  if (!allowedTypes.includes(file.type)) {
-    return NextResponse.json({ error: "Only image files are allowed (JPEG, PNG, WebP, GIF, AVIF)." }, { status: 400 });
+  const isVideo = mediaType === "video";
+
+  const allowedImageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
+  const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
+
+  if (isVideo) {
+    if (!allowedVideoTypes.includes(file.type)) {
+      return NextResponse.json({ error: "Only video files are allowed (MP4, WebM, MOV, AVI)." }, { status: 400 });
+    }
+  } else {
+    if (!allowedImageTypes.includes(file.type)) {
+      return NextResponse.json({ error: "Only image files are allowed (JPEG, PNG, WebP, GIF, AVIF)." }, { status: 400 });
+    }
   }
 
-  const maxSize = 10 * 1024 * 1024; // 10 MB
+  const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100 MB video, 10 MB image
   if (file.size > maxSize) {
-    return NextResponse.json({ error: "File too large. Maximum size is 10 MB." }, { status: 400 });
+    return NextResponse.json(
+      { error: `File too large. Maximum size is ${isVideo ? "100" : "10"} MB.` },
+      { status: 400 }
+    );
   }
 
   const arrayBuffer = await file.arrayBuffer();
@@ -58,14 +72,14 @@ export async function POST(request: Request) {
   const uploadFolder =
     typeof folder === "string" && folder.trim()
       ? `gadget-hub/${folder.trim().replace(/[^a-z0-9-_/]/gi, "-")}`
-      : "gadget-hub/products";
+      : `gadget-hub/${isVideo ? "videos" : "products"}`;
 
   try {
     const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: uploadFolder,
-          resource_type: "image",
+          resource_type: isVideo ? "video" : "image",
           use_filename: true,
           unique_filename: true,
         },
@@ -82,6 +96,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: result.secure_url });
   } catch {
-    return NextResponse.json({ error: "Image upload failed. Check Cloudinary credentials." }, { status: 500 });
+    return NextResponse.json({ error: `${isVideo ? "Video" : "Image"} upload failed. Check Cloudinary credentials.` }, { status: 500 });
   }
 }

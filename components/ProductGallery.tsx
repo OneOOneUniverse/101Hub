@@ -3,20 +3,47 @@
 import { useState } from "react";
 import Image from "next/image";
 
+type GalleryItem = { type: "image"; src: string } | { type: "video"; src: string };
+
 type ProductGalleryProps = {
   productName: string;
   images: string[];
+  videos?: string[];
 };
 
-export default function ProductGallery({ productName, images }: ProductGalleryProps) {
+/** Apply Cloudinary video optimizations if the URL is from Cloudinary */
+function optimizeVideo(url: string): string {
+  if (!url.includes("res.cloudinary.com")) return url;
+  return url.replace("/upload/", "/upload/q_auto,f_auto,w_960,br_2m/");
+}
+
+export default function ProductGallery({ productName, images, videos }: ProductGalleryProps) {
+  // Build gallery items: videos first, then images
+  const items: GalleryItem[] = [];
+  if (videos) {
+    for (const v of videos) items.push({ type: "video", src: optimizeVideo(v) });
+  }
+  for (const img of images) items.push({ type: "image", src: img });
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const activeImage = images[activeIndex] ?? images[0];
-  const hasMultipleImages = images.length > 1;
+  const activeItem = items[activeIndex] ?? items[0];
+  const hasMultipleItems = items.length > 1;
 
   return (
     <>
       <div className="space-y-3 gallery-container mx-auto sm:space-y-4">
+        {activeItem.type === "video" ? (
+          <div className="relative overflow-hidden rounded-lg border border-black/10">
+            <video
+              src={activeItem.src}
+              controls
+              playsInline
+              preload="metadata"
+              className="h-64 max-w-full w-auto object-cover sm:h-80 md:h-96 mx-auto"
+            />
+          </div>
+        ) : (
         <button
           type="button"
           onClick={() => setIsFullscreen(true)}
@@ -24,7 +51,7 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
           aria-label="View full image"
         >
           <Image
-            src={activeImage}
+            src={activeItem.src}
             alt={`${productName} view ${activeIndex + 1}`}
             width={800}
             height={800}
@@ -39,9 +66,10 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
             </svg>
           </div>
         </button>
-        {hasMultipleImages ? (
+        )}
+        {hasMultipleItems ? (
           <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 max-w-full mx-auto">
-            {images.map((src, index) => {
+            {items.map((item, index) => {
               const isActive = index === activeIndex;
 
               return (
@@ -54,11 +82,21 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
                       ? "border-[var(--brand)] shadow-[0_0_0_2px_rgba(15,118,110,0.16)]"
                       : "border-black/10 hover:border-[var(--brand)]/50"
                   }`}
-                  aria-label={`Show ${productName} image ${index + 1}`}
+                  aria-label={`Show ${productName} ${item.type === "video" ? "video" : `image ${index + 1}`}`}
                   aria-pressed={isActive}
                 >
+                  {item.type === "video" ? (
+                    <div className="relative h-16 w-full sm:h-20 md:h-24 bg-black/5 flex items-center justify-center">
+                      <video src={item.src} muted preload="metadata" className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                  ) : (
                   <Image
-                    src={src}
+                    src={item.src}
                     alt={`${productName} thumbnail ${index + 1}`}
                     width={96}
                     height={96}
@@ -66,6 +104,7 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
                     quality={60}
                     className="h-16 w-full object-cover sm:h-20 md:h-24"
                   />
+                  )}
                 </button>
               );
             })}
@@ -93,12 +132,12 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
           </button>
 
           <div className="flex items-center justify-center gap-4 max-h-screen max-w-4xl">
-            {images.length > 1 && (
+            {items.length > 1 && (
               <button
                 type="button"
-                onClick={() => setActiveIndex((activeIndex - 1 + images.length) % images.length)}
+                onClick={() => setActiveIndex((activeIndex - 1 + items.length) % items.length)}
                 className="text-white hover:text-gray-300 p-2"
-                aria-label="Previous image"
+                aria-label="Previous"
               >
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -107,8 +146,17 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
             )}
 
               <div className="flex flex-col items-center">
+                {activeItem.type === "video" ? (
+                  <video
+                    src={activeItem.src}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="max-h-[70vh] max-w-full rounded-lg"
+                  />
+                ) : (
                 <Image
-                  src={activeImage}
+                  src={activeItem.src}
                   alt={`${productName} fullscreen view ${activeIndex + 1}`}
                   width={1200}
                   height={1200}
@@ -116,19 +164,20 @@ export default function ProductGallery({ productName, images }: ProductGalleryPr
                   sizes="(max-width: 768px) 100vw, 80vw"
                   className="max-h-[70vh] max-w-full object-contain rounded-lg"
                 />
-              {images.length > 1 && (
+                )}
+              {items.length > 1 && (
                 <p className="mt-4 text-white text-sm">
-                  {activeIndex + 1} / {images.length}
+                  {activeIndex + 1} / {items.length}
                 </p>
               )}
             </div>
 
-            {images.length > 1 && (
+            {items.length > 1 && (
               <button
                 type="button"
-                onClick={() => setActiveIndex((activeIndex + 1) % images.length)}
+                onClick={() => setActiveIndex((activeIndex + 1) % items.length)}
                 className="text-white hover:text-gray-300 p-2"
-                aria-label="Next image"
+                aria-label="Next"
               >
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

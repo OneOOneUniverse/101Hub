@@ -18,6 +18,7 @@ type ServiceRequestPayload = {
   phone?: string;
   issue?: string;
   preferredTime?: string;
+  requestedDate?: string;
 };
 
 /** Normalize and validate Ghana phone numbers to E.164 format (+233XXXXXXXXX) */
@@ -198,6 +199,7 @@ export async function POST(request: Request) {
     customer_phone: normalizedPhone,
     issue: body.issue,
     preferred_time: body.preferredTime || null,
+    requested_date: body.requestedDate || null,
     status: "pending",
   }).select().single();
 

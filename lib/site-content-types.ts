@@ -38,6 +38,7 @@ export type Product = {
   badge?: string;
   image?: string;
   images?: string[];
+  videos?: string[]; // Optional product videos (shown in gallery)
   dateAdded?: string; // ISO 8601 timestamp for sorting (newest first)
   discount?: number; // Optional discount percentage (0-100)
   deliveryFee?: number; // Optional per-product delivery fee
@@ -91,6 +92,8 @@ export type HomeContent = {
   secondaryCtaHref: string;
   heroVideoUrl?: string;
   heroVideoMobileUrl?: string;
+  heroVideos?: string[];
+  heroMobileVideos?: string[];
   highlights: HighlightCard[];
 };
 

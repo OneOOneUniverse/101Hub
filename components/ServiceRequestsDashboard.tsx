@@ -10,25 +10,34 @@ type ServiceRequest = {
   customer_phone: string;
   issue: string;
   preferred_time: string | null;
+  requested_date: string | null;
   status: string;
   created_at: string;
 };
 
-function statusBadge(status: string) {
-  const badges: { [key: string]: { bg: string; text: string; emoji: string } } = {
-    pending: { bg: "bg-yellow-100", text: "text-yellow-900", emoji: "⏳" },
-    assigned: { bg: "bg-blue-100", text: "text-blue-900", emoji: "👤" },
-    completed: { bg: "bg-green-100", text: "text-green-900", emoji: "✅" },
-    cancelled: { bg: "bg-red-100", text: "text-red-900", emoji: "❌" },
-  };
+type StatusKey = "pending" | "approved" | "declined" | "completed" | "assigned" | "cancelled";
 
-  const badge = badges[status] || badges.pending;
+const STATUS_CONFIG: Record<StatusKey, { bg: string; text: string; emoji: string; label: string }> = {
+  pending:   { bg: "bg-yellow-100", text: "text-yellow-800", emoji: "⏳", label: "Pending" },
+  approved:  { bg: "bg-blue-100",   text: "text-blue-800",   emoji: "✅", label: "Approved" },
+  declined:  { bg: "bg-red-100",    text: "text-red-800",    emoji: "✗",  label: "Declined" },
+  completed: { bg: "bg-green-100",  text: "text-green-800",  emoji: "🎉", label: "Completed" },
+  assigned:  { bg: "bg-indigo-100", text: "text-indigo-800", emoji: "👤", label: "Assigned" },
+  cancelled: { bg: "bg-gray-100",   text: "text-gray-800",   emoji: "❌", label: "Cancelled" },
+};
 
+function StatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_CONFIG[status as StatusKey] ?? STATUS_CONFIG.pending;
   return (
-    <span className={`inline-block rounded-full ${badge.bg} px-3 py-1 text-xs font-bold ${badge.text}`}>
-      {badge.emoji} {status.charAt(0).toUpperCase() + status.slice(1)}
+    <span className={`inline-flex items-center gap-1 rounded-full ${cfg.bg} px-2.5 py-1 text-xs font-bold ${cfg.text}`}>
+      {cfg.emoji} {cfg.label}
     </span>
   );
+}
+
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 }
 
 export default function ServiceRequestsDashboard() {
@@ -36,10 +45,9 @@ export default function ServiceRequestsDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | StatusKey>("all");
 
-  useEffect(() => {
-    void load();
-  }, []);
+  useEffect(() => { void load(); }, []);
 
   async function load() {
     setLoading(true);
@@ -67,7 +75,6 @@ export default function ServiceRequestsDashboard() {
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not update request");
-      // Refresh list after update
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update request");
@@ -76,14 +83,21 @@ export default function ServiceRequestsDashboard() {
     }
   }
 
-  const statusList = ["pending", "assigned", "completed", "cancelled"];
+  // ── Counts for summary cards ──
+  const pendingCount = requests.filter((r) => r.status === "pending").length;
+  const approvedCount = requests.filter((r) => r.status === "approved").length;
+  const completedCount = requests.filter((r) => r.status === "completed").length;
+  const declinedCount = requests.filter((r) => r.status === "declined").length;
+
+  const filtered = filter === "all" ? requests : requests.filter((r) => r.status === filter);
 
   return (
-    <section className="panel space-y-4 p-6">
-      <div>
+    <section className="space-y-5">
+      {/* Header */}
+      <div className="panel p-5 sm:p-6">
         <h2 className="text-2xl font-black text-[var(--brand-deep)]">🔧 Service Requests</h2>
         <p className="mt-1 text-sm text-[var(--ink-soft)]">
-          Manage customer service requests and track status
+          Manage incoming service bookings — approve, decline, or mark complete.
         </p>
       </div>
 
@@ -91,97 +105,167 @@ export default function ServiceRequestsDashboard() {
         <p className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>
       )}
 
+      {/* ── Summary Stats ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Pending", count: pendingCount, color: "text-yellow-600", bg: "bg-yellow-50", border: "border-yellow-200" },
+          { label: "Approved", count: approvedCount, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" },
+          { label: "Completed", count: completedCount, color: "text-green-600", bg: "bg-green-50", border: "border-green-200" },
+          { label: "Declined", count: declinedCount, color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
+        ].map((s) => (
+          <div key={s.label} className={`rounded-xl border ${s.border} ${s.bg} p-4 text-center`}>
+            <p className={`text-2xl font-black ${s.color}`}>{s.count}</p>
+            <p className="text-xs font-semibold text-[var(--ink-soft)] mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Filter Tabs ── */}
+      <div className="flex flex-wrap gap-2">
+        {(["all", "pending", "approved", "completed", "declined"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setFilter(tab)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+              filter === tab
+                ? "bg-[var(--brand-deep)] text-white"
+                : "bg-[var(--surface)] border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--brand)]/10"
+            }`}
+          >
+            {tab === "all" ? `All (${requests.length})` : `${tab.charAt(0).toUpperCase() + tab.slice(1)} (${requests.filter((r) => r.status === tab).length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Loading / Empty States ── */}
       {loading && (
-        <p className="text-sm text-[var(--ink-soft)]">Loading service requests...</p>
+        <div className="panel p-6 animate-pulse">
+          <div className="h-5 bg-gray-200 rounded w-1/3 mb-3" />
+          <div className="h-4 bg-gray-200 rounded w-2/3 mb-2" />
+          <div className="h-4 bg-gray-200 rounded w-1/2" />
+        </div>
       )}
 
-      {!loading && requests.length === 0 && (
-        <p className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-700">
-          ✅ No service requests at the moment
-        </p>
+      {!loading && filtered.length === 0 && (
+        <div className="panel p-6 text-center text-[var(--ink-soft)]">
+          {filter === "all"
+            ? "✅ No service requests yet"
+            : `No ${filter} requests`}
+        </div>
       )}
 
-      {!loading && requests.length > 0 && (
-        <div className="space-y-3 overflow-x-auto">
-          <table width="100%" className="text-sm">
-            <thead>
-              <tr className="border-b-2 border-black/10">
-                <th className="p-3 text-left font-bold">Ticket</th>
-                <th className="p-3 text-left font-bold">Package</th>
-                <th className="p-3 text-left font-bold">Customer</th>
-                <th className="p-3 text-left font-bold">Phone</th>
-                <th className="p-3 text-left font-bold">Status</th>
-                <th className="p-3 text-left font-bold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((req) => (
-                <tr key={req.id} className="border-b border-black/5 hover:bg-black/2">
-                  <td className="p-3 font-mono text-xs">{req.ticket_ref}</td>
-                  <td className="p-3">{req.package_name}</td>
-                  <td className="p-3 font-semibold">{req.customer_name}</td>
-                  <td className="p-3">
-                    <a href={`tel:${req.customer_phone}`} className="text-blue-600 hover:underline">
+      {/* ── Request Cards ── */}
+      {!loading && filtered.length > 0 && (
+        <div className="space-y-3">
+          {filtered.map((req) => {
+            const isPending = req.status === "pending";
+            const isUpdating = updating === req.ticket_ref;
+
+            return (
+              <article
+                key={req.id}
+                className={`panel p-4 sm:p-5 border-l-4 ${
+                  isPending
+                    ? "border-l-yellow-400"
+                    : req.status === "approved"
+                    ? "border-l-blue-400"
+                    : req.status === "completed"
+                    ? "border-l-green-400"
+                    : "border-l-red-300"
+                }`}
+              >
+                {/* Top row: ticket + status */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-mono text-[var(--ink-soft)]">{req.ticket_ref}</p>
+                    <h3 className="text-base font-bold text-[var(--ink)] truncate">{req.package_name}</h3>
+                  </div>
+                  <StatusBadge status={req.status} />
+                </div>
+
+                {/* Customer info grid */}
+                <div className="grid gap-2 sm:grid-cols-2 text-sm mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">👤</span>
+                    <span className="font-semibold text-[var(--ink)]">{req.customer_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📞</span>
+                    <a href={`tel:${req.customer_phone}`} className="text-blue-600 font-medium hover:underline">
                       {req.customer_phone}
                     </a>
-                  </td>
-                  <td className="p-3">{statusBadge(req.status)}</td>
-                  <td className="p-3">
-                    <select
-                      value={req.status}
-                      onChange={(e) => updateStatus(req.ticket_ref, e.target.value)}
-                      disabled={updating === req.ticket_ref}
-                      className="rounded border border-black/15 px-2 py-1 text-xs disabled:opacity-50"
-                    >
-                      {statusList.map((s) => (
-                        <option key={s} value={s}>
-                          {s.charAt(0).toUpperCase() + s.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <details className="text-sm">
-            <summary className="cursor-pointer font-semibold text-[var(--ink-soft)]">
-              View Details for Each Request
-            </summary>
-            <div className="mt-4 space-y-4">
-              {requests.map((req) => (
-                <article key={req.id} className="rounded-lg border border-black/10 bg-black/2 p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-mono text-[var(--ink-soft)]">{req.ticket_ref}</p>
-                      <p className="text-base font-bold">{req.package_name}</p>
-                      <p className="mt-2 text-sm text-[var(--ink-soft)]">
-                        <strong>Customer:</strong> {req.customer_name}
-                      </p>
-                      <p className="text-sm text-[var(--ink-soft)]">
-                        <strong>Phone:</strong> {req.customer_phone}
-                      </p>
-                      {req.preferred_time && (
-                        <p className="text-sm text-[var(--ink-soft)]">
-                          <strong>Preferred Time:</strong> {req.preferred_time}
-                        </p>
-                      )}
-                      <div className="mt-3 rounded-lg bg-white/50 p-3">
-                        <p className="text-xs font-semibold text-[var(--ink-soft)]">Issue</p>
-                        <p className="text-sm">{req.issue}</p>
-                      </div>
-                      <p className="mt-2 text-xs text-[var(--ink-soft)]">
-                        Received: {new Date(req.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0">
-                      {statusBadge(req.status)}
-                    </div>
                   </div>
-                </article>
-              ))}
-            </div>
-          </details>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📅</span>
+                    <span className="text-[var(--ink)]">{formatDate(req.requested_date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🕐</span>
+                    <span className="text-[var(--ink)]">{req.preferred_time || "Not specified"}</span>
+                  </div>
+                </div>
+
+                {/* Customer notes */}
+                <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 mb-3">
+                  <p className="text-xs font-semibold text-[var(--ink-soft)] mb-1">Customer Notes</p>
+                  <p className="text-sm text-[var(--ink)]">{req.issue}</p>
+                </div>
+
+                {/* Timestamp */}
+                <p className="text-xs text-[var(--ink-soft)] mb-3">
+                  Received: {new Date(req.created_at).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </p>
+
+                {/* ── Action Buttons ── */}
+                <div className="flex flex-wrap gap-2">
+                  {isPending && (
+                    <>
+                      <button
+                        onClick={() => updateStatus(req.ticket_ref, "approved")}
+                        disabled={isUpdating}
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      >
+                        {isUpdating ? "..." : "✅ Approve"}
+                      </button>
+                      <button
+                        onClick={() => updateStatus(req.ticket_ref, "declined")}
+                        disabled={isUpdating}
+                        className="rounded-lg bg-red-100 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-200 disabled:opacity-50 transition-colors"
+                      >
+                        {isUpdating ? "..." : "✗ Decline"}
+                      </button>
+                    </>
+                  )}
+                  {req.status === "approved" && (
+                    <button
+                      onClick={() => updateStatus(req.ticket_ref, "completed")}
+                      disabled={isUpdating}
+                      className="rounded-lg bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                    >
+                      {isUpdating ? "..." : "🎉 Mark Complete"}
+                    </button>
+                  )}
+                  {/* WhatsApp quick message */}
+                  <a
+                    href={`https://wa.me/${req.customer_phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                      `Hi ${req.customer_name}, regarding your service request (${req.ticket_ref}) for "${req.package_name}" — `
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg bg-green-100 px-4 py-2 text-xs font-bold text-green-700 hover:bg-green-200 transition-colors"
+                  >
+                    💬 WhatsApp
+                  </a>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

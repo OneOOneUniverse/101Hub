@@ -83,7 +83,7 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
       </div>
 
       {/* Clickable overlay when actionUrl is configured */}
-      {isClickable && activeSlide.actionUrl !== "custom" && (
+      {isClickable && (
         <Link
           href={activeSlide.actionUrl || "#"}
           className="absolute inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"

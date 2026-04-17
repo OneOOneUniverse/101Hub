@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PromoSlider from "@/components/PromoSlider";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
+import HeroVideoBackground from "@/components/HeroVideoBackground";
 import { getSiteContent } from "@/lib/site-content";
 
 export const revalidate = 60; // regenerate cached page every 60 seconds
@@ -24,23 +25,16 @@ export default async function Home() {
       <section className="panel overflow-hidden">
         {/* Hero with video background */}
         <div className="relative isolate">
-          {/* Video background — desktop (landscape) */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 h-full w-full object-cover hidden sm:block"
-            src={content.home.heroVideoUrl || "/hero-video.mp4"}
-          />
-          {/* Video background — mobile (portrait) */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 h-full w-full object-cover sm:hidden"
-            src={content.home.heroVideoMobileUrl || "/Web Search Tab Intro.mp4"}
+          {/* Video background — auto-cycles through multiple videos */}
+          <HeroVideoBackground
+            desktopVideos={[
+              ...(content.home.heroVideos ?? []),
+              ...(content.home.heroVideoUrl ? [content.home.heroVideoUrl] : []),
+            ]}
+            mobileVideos={[
+              ...(content.home.heroMobileVideos ?? []),
+              ...(content.home.heroVideoMobileUrl ? [content.home.heroVideoMobileUrl] : []),
+            ]}
           />
           {/* Dark overlay for readability */}
           <div className="absolute inset-0 bg-black/55" />

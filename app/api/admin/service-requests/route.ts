@@ -11,6 +11,7 @@ type ServiceRequest = {
   customer_phone: string;
   issue: string;
   preferred_time: string | null;
+  requested_date: string | null;
   status: string;
   created_at: string;
 };
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const validStatuses = ["pending", "assigned", "completed", "cancelled"];
+  const validStatuses = ["pending", "approved", "declined", "completed", "assigned", "cancelled"];
   if (!validStatuses.includes(body.status)) {
     return NextResponse.json(
       { error: `Status must be one of: ${validStatuses.join(", ")}` },

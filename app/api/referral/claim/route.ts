@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveReferralCode, recordReferral } from "@/lib/referral";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   const user = await currentUser();
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { code } = (await req.json()) as { code?: string };
+  const { code, clickId } = (await req.json()) as { code?: string; clickId?: string };
   if (!code || typeof code !== "string") {
     return NextResponse.json({ error: "Missing referral code" }, { status: 400 });
   }
@@ -30,5 +31,19 @@ export async function POST(req: NextRequest) {
     .join(" ") || "A friend";
 
   await recordReferral(referrerId, user.id, displayName);
+
+  // ── Convert the click row: Guest → Signed Up ──
+  if (clickId && typeof clickId === "string") {
+    await supabaseAdmin
+      .from("referral_clicks")
+      .update({
+        converted_user_id: user.id,
+        converted_name: displayName,
+      })
+      .eq("id", clickId)
+      .eq("referrer_user_id", referrerId) // safety: only update if referrer matches
+      .is("converted_user_id", null);     // only convert once
+  }
+
   return NextResponse.json({ ok: true });
 }

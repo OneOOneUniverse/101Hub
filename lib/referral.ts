@@ -18,6 +18,13 @@ export type ReferredUser = {
   created_at: string;
 };
 
+export type ReferralClick = {
+  id: string;
+  converted_name: string | null;
+  converted_user_id: string | null;
+  clicked_at: string;
+};
+
 export type ReferralInfo = {
   code: string;
   totalPoints: number;
@@ -27,6 +34,10 @@ export type ReferralInfo = {
   referralCount: number;
   unlockedDiscounts: { tierName: string; discount: string }[];
   referredUsers: ReferredUser[];
+  // Click tracking
+  totalClicks: number;
+  totalConversions: number;
+  recentClicks: ReferralClick[];
 };
 
 // --------------- Helpers ---------------
@@ -154,6 +165,18 @@ export async function getReferralInfo(userId: string): Promise<ReferralInfo> {
         : `${t.discount_percent}% off`,
     }));
 
+  // Click tracking — fetch all clicks for this referrer
+  const { data: clickRows } = await supabaseAdmin
+    .from("referral_clicks")
+    .select("id, converted_name, converted_user_id, clicked_at")
+    .eq("referrer_user_id", userId)
+    .order("clicked_at", { ascending: false })
+    .limit(50);
+
+  const allClicks = (clickRows ?? []) as ReferralClick[];
+  const totalClicks = allClicks.length;
+  const totalConversions = allClicks.filter((c) => c.converted_user_id !== null).length;
+
   return {
     code,
     totalPoints,
@@ -163,5 +186,8 @@ export async function getReferralInfo(userId: string): Promise<ReferralInfo> {
     referralCount,
     unlockedDiscounts,
     referredUsers: (referralList ?? []) as ReferredUser[],
+    totalClicks,
+    totalConversions,
+    recentClicks: allClicks,
   };
 }

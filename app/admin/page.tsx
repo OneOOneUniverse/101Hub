@@ -28,6 +28,7 @@ import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
 import ServiceRequestsDashboard from "@/components/ServiceRequestsDashboard";
 import AdminNotificationPoller from "@/components/AdminNotificationPoller";
 import ImageUploadButton from "@/components/ImageUploadButton";
+import VideoUploadButton from "@/components/VideoUploadButton";
 import GalleryImageManager from "@/components/GalleryImageManager";
 import AdminSupportChats from "@/components/AdminSupportChats";
 
@@ -232,6 +233,7 @@ type AdminSectionId =
   | "footer"
   | "sms-templates"
   | "sms"
+  | "broadcast-email"
   | "faqs";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
@@ -252,6 +254,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "footer", label: "Footer" },
   { id: "sms-templates", label: "SMS Templates" },
   { id: "sms", label: "Broadcast SMS" },
+  { id: "broadcast-email", label: "📧 Broadcast Email" },
   { id: "faqs", label: "FAQs" },
 ];
 
@@ -266,6 +269,10 @@ export default function AdminPage() {
   const [smsMessage, setSmsMessage] = useState("");
   const [smsSending, setSmsSending] = useState(false);
   const [smsResult, setSmsResult] = useState<{ success?: string; error?: string } | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult, setEmailResult] = useState<{ success?: string; error?: string } | null>(null);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [newTemplateName, setNewTemplateName] = useState("");
@@ -375,6 +382,43 @@ export default function AdminPage() {
       setSmsResult({ error: "Network error — could not reach the server." });
     } finally {
       setSmsSending(false);
+    }
+  }
+
+  async function sendBroadcastEmailAction() {
+    const subj = emailSubject.trim();
+    const body = emailBody.trim();
+    if (!subj || !body) return;
+    setEmailSending(true);
+    setEmailResult(null);
+    try {
+      const response = await fetch("/api/admin/broadcast-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject: subj, body }),
+      });
+      const data = (await response.json()) as {
+        success?: boolean;
+        total?: number;
+        sent?: number;
+        failed?: number;
+        error?: string;
+      };
+      if (!response.ok) {
+        setEmailResult({ error: data.error ?? "Email broadcast failed." });
+      } else {
+        setEmailResult({
+          success: `Sent to ${data.sent ?? 0} of ${data.total ?? 0} users.${
+            (data.failed ?? 0) > 0 ? ` ${data.failed} failed.` : ""
+          }`,
+        });
+        setEmailSubject("");
+        setEmailBody("");
+      }
+    } catch {
+      setEmailResult({ error: "Network error — could not reach the server." });
+    } finally {
+      setEmailSending(false);
     }
   }
 
@@ -797,39 +841,107 @@ export default function AdminPage() {
           </Field>
         </div>
 
-        <Field label="Hero Background Video URL">
-          <input
-            value={content.home.heroVideoUrl ?? ""}
-            onChange={(event) =>
-              setContent({
-                ...content,
-                home: { ...content.home, heroVideoUrl: event.target.value },
-              })
-            }
-            placeholder="/hero-video.mp4 or https://cdn.example.com/video.mp4"
-            className={inputClassName()}
-          />
-          <p className="mt-1 text-xs text-[var(--ink-soft)]">
-            Upload a video to your CDN/public folder and paste the URL. The video plays on autoplay, muted, looped behind the hero text. Leave empty to use the default video.
+        {/* Hero Desktop Videos */}
+        <div className="space-y-3">
+          <label className="block text-sm font-semibold text-[var(--brand-deep)]">
+            Hero Background Videos (Desktop) 🎬
+          </label>
+          <p className="text-xs text-[var(--ink-soft)]">
+            Multiple videos cycle automatically. Played muted &amp; looped behind the hero text. Falls back to the default video if empty.
           </p>
-        </Field>
 
-        <Field label="Hero Background Video URL (Mobile / Portrait)">
-          <input
-            value={content.home.heroVideoMobileUrl ?? ""}
-            onChange={(event) =>
-              setContent({
-                ...content,
-                home: { ...content.home, heroVideoMobileUrl: event.target.value },
-              })
-            }
-            placeholder="/hero-video-mobile.mp4 or https://cdn.example.com/portrait-video.mp4"
-            className={inputClassName()}
-          />
-          <p className="mt-1 text-xs text-[var(--ink-soft)]">
-            Portrait/vertical video shown on mobile screens only. Leave empty to use the default mobile video.
+          {(content.home.heroVideos?.length ?? 0) > 0 && (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {content.home.heroVideos!.map((vUrl, vIdx) => (
+                <div key={`dhero-${vIdx}`} className="relative group rounded-lg overflow-hidden border-2 border-black/10 hover:border-[var(--brand)]">
+                  <video src={vUrl} muted preload="metadata" className="w-full h-20 object-cover" />
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                  </div>
+                  <div className="absolute top-1 left-1 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">#{vIdx + 1}</div>
+                  <button type="button" onClick={() => {
+                    const vids = (content.home.heroVideos ?? []).filter((_, i) => i !== vIdx);
+                    setContent({ ...content, home: { ...content.home, heroVideos: vids.length ? vids : undefined } });
+                  }} className="absolute top-1 right-1 p-1 bg-red-500/90 hover:bg-red-600 text-white rounded transition opacity-0 group-hover:opacity-100" title="Remove">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <VideoUploadButton
+              folder="hero"
+              onUpload={(url) =>
+                setContent({ ...content, home: { ...content.home, heroVideos: [...(content.home.heroVideos ?? []), url] } })
+              }
+              label="Upload Desktop Video"
+            />
+            <div className="flex gap-2 flex-1 min-w-[200px]">
+              <input id="hero-desktop-url" placeholder="Paste video URL…" className={inputClassName()} />
+              <button type="button" onClick={() => {
+                const inp = document.getElementById("hero-desktop-url") as HTMLInputElement;
+                const url = inp?.value.trim();
+                if (url && url.startsWith("http")) {
+                  setContent({ ...content, home: { ...content.home, heroVideos: [...(content.home.heroVideos ?? []), url] } });
+                  inp.value = "";
+                }
+              }} className="whitespace-nowrap rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition">Add</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Hero Mobile Videos */}
+        <div className="space-y-3">
+          <label className="block text-sm font-semibold text-[var(--brand-deep)]">
+            Hero Background Videos (Mobile / Portrait) 📱
+          </label>
+          <p className="text-xs text-[var(--ink-soft)]">
+            Portrait/vertical videos shown on mobile screens only. Falls back to the default mobile video if empty.
           </p>
-        </Field>
+
+          {(content.home.heroMobileVideos?.length ?? 0) > 0 && (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {content.home.heroMobileVideos!.map((vUrl, vIdx) => (
+                <div key={`mhero-${vIdx}`} className="relative group rounded-lg overflow-hidden border-2 border-black/10 hover:border-[var(--brand)]">
+                  <video src={vUrl} muted preload="metadata" className="w-full h-20 object-cover" />
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                  </div>
+                  <div className="absolute top-1 left-1 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">#{vIdx + 1}</div>
+                  <button type="button" onClick={() => {
+                    const vids = (content.home.heroMobileVideos ?? []).filter((_, i) => i !== vIdx);
+                    setContent({ ...content, home: { ...content.home, heroMobileVideos: vids.length ? vids : undefined } });
+                  }} className="absolute top-1 right-1 p-1 bg-red-500/90 hover:bg-red-600 text-white rounded transition opacity-0 group-hover:opacity-100" title="Remove">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <VideoUploadButton
+              folder="hero"
+              onUpload={(url) =>
+                setContent({ ...content, home: { ...content.home, heroMobileVideos: [...(content.home.heroMobileVideos ?? []), url] } })
+              }
+              label="Upload Mobile Video"
+            />
+            <div className="flex gap-2 flex-1 min-w-[200px]">
+              <input id="hero-mobile-url" placeholder="Paste video URL…" className={inputClassName()} />
+              <button type="button" onClick={() => {
+                const inp = document.getElementById("hero-mobile-url") as HTMLInputElement;
+                const url = inp?.value.trim();
+                if (url && url.startsWith("http")) {
+                  setContent({ ...content, home: { ...content.home, heroMobileVideos: [...(content.home.heroMobileVideos ?? []), url] } });
+                  inp.value = "";
+                }
+              }} className="whitespace-nowrap rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition">Add</button>
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
@@ -1019,48 +1131,57 @@ export default function AdminPage() {
                     />
                   </Field>
                   <Field label="Link To">
-                    <select
-                      value={
-                        slide.actionUrl === "" ||
-                        slide.actionUrl === "/flash-sale" ||
-                        slide.actionUrl === "/products" ||
-                        slide.actionUrl === "/services" ||
-                        slide.actionUrl === "/wishlist" ||
-                        slide.actionUrl === "/cart"
-                          ? slide.actionUrl ?? ""
-                          : slide.actionUrl
-                          ? "custom"
-                          : ""
-                      }
-                      onChange={(event) => {
-                        const promoSlides = [...content.promoSlides];
-                        if (event.target.value === "custom") {
-                          // Keep current custom URL or show input
-                          promoSlides[index] = { ...slide, actionUrl: slide.actionUrl };
-                        } else {
-                          promoSlides[index] = { ...slide, actionUrl: event.target.value || undefined };
-                        }
-                        setContent({ ...content, promoSlides });
-                      }}
-                      className={inputClassName()}
-                    >
-                      <option value="">-- No Link --</option>
-                      <option value="/flash-sale">Flash Sale</option>
-                      <option value="/products">All Products</option>
-                      <option value="/services">Services</option>
-                      <option value="/wishlist">Wishlist</option>
-                      <option value="/cart">Shopping Cart</option>
-                      <option value="custom">Custom URL...</option>
-                    </select>
+                    {(() => {
+                      const KNOWN_ROUTES = [
+                        { value: "/flash-sale", label: "Flash Sale" },
+                        { value: "/products", label: "All Products" },
+                        { value: "/services", label: "Services" },
+                        { value: "/wishlist", label: "Wishlist" },
+                        { value: "/cart", label: "Shopping Cart" },
+                        { value: "/referral", label: "Referrals" },
+                        { value: "/orders", label: "Orders" },
+                        { value: "/profile", label: "Profile" },
+                        { value: "/faqs", label: "FAQs" },
+                        { value: "/checkout", label: "Checkout" },
+                        { value: "/signup", label: "Sign Up" },
+                        { value: "/login", label: "Log In" },
+                      ];
+                      const knownValues = new Set(KNOWN_ROUTES.map((r) => r.value));
+                      const isCustom = !!slide.actionUrl && !knownValues.has(slide.actionUrl);
+                      return (
+                        <select
+                          value={isCustom ? "custom" : slide.actionUrl ?? ""}
+                          onChange={(event) => {
+                            const promoSlides = [...content.promoSlides];
+                            if (event.target.value === "custom") {
+                              // Set a placeholder so the custom input appears
+                              promoSlides[index] = {
+                                ...slide,
+                                actionUrl: knownValues.has(slide.actionUrl ?? "") ? "" : slide.actionUrl || "",
+                              };
+                            } else {
+                              promoSlides[index] = { ...slide, actionUrl: event.target.value || undefined };
+                            }
+                            setContent({ ...content, promoSlides });
+                          }}
+                          className={inputClassName()}
+                        >
+                          <option value="">-- No Link --</option>
+                          {KNOWN_ROUTES.map((r) => (
+                            <option key={r.value} value={r.value}>{r.label}</option>
+                          ))}
+                          <option value="custom">Custom URL...</option>
+                        </select>
+                      );
+                    })()}
                   </Field>
                 </div>
 
-                {slide.actionUrl &&
-                  slide.actionUrl !== "/flash-sale" &&
-                  slide.actionUrl !== "/products" &&
-                  slide.actionUrl !== "/services" &&
-                  slide.actionUrl !== "/wishlist" &&
-                  slide.actionUrl !== "/cart" && (
+                {/* Show custom URL input when the selected value isn't a known route */}
+                {slide.actionUrl !== undefined &&
+                  ![ "/flash-sale", "/products", "/services", "/wishlist", "/cart",
+                     "/referral", "/orders", "/profile", "/faqs", "/checkout",
+                     "/signup", "/login" ].includes(slide.actionUrl) && (
                     <Field label="Custom URL">
                       <input
                         type="text"
@@ -1596,6 +1717,118 @@ export default function AdminPage() {
                     productSlug={product.slug}
                     label="Product Gallery Images (Variation/Detail Images) 🖼️"
                   />
+                </div>
+
+                {/* Product Videos */}
+                <div className="lg:col-span-2">
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-[var(--brand-deep)]">
+                      Product Videos (Optional) 🎬
+                    </label>
+                    <p className="text-xs text-[var(--ink-soft)]">
+                      Upload or paste video URLs. Videos appear before images in the product gallery. Max 100 MB each.
+                    </p>
+
+                    {/* Current videos preview */}
+                    {(product.videos?.length ?? 0) > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-emerald-900">
+                          Current Videos ({product.videos!.length})
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {product.videos!.map((vUrl, vIdx) => (
+                            <div key={`${vUrl}-${vIdx}`} className="relative group rounded-lg overflow-hidden border-2 border-black/10 hover:border-[var(--brand)]">
+                              <video src={vUrl} muted preload="metadata" className="w-full h-24 object-cover" />
+                              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                              </div>
+                              <div className="absolute top-1 left-1 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                                #{vIdx + 1}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const products = [...content.products];
+                                  const newVideos = (product.videos ?? []).filter((_, i) => i !== vIdx);
+                                  products[index] = { ...product, videos: newVideos.length ? newVideos : undefined };
+                                  setContent({ ...content, products });
+                                }}
+                                className="absolute top-1 right-1 p-1 bg-red-500/90 hover:bg-red-600 text-white rounded transition opacity-0 group-hover:opacity-100"
+                                title="Remove video"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Upload + paste */}
+                    <div className="border border-black/10 rounded-lg p-4 bg-[var(--surface)] space-y-3">
+                      <div>
+                        <p className="text-xs font-semibold text-[var(--ink-soft)] mb-2">Upload from Computer</p>
+                        <VideoUploadButton
+                          folder={`products/${product.slug || product.id}`}
+                          onUpload={(url) => {
+                            const products = [...content.products];
+                            products[index] = { ...product, videos: [...(product.videos ?? []), url] };
+                            setContent({ ...content, products });
+                          }}
+                          label="Upload Video"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-px flex-1 bg-black/10"></div>
+                        <span className="text-[10px] font-semibold text-[var(--ink-soft)]">OR</span>
+                        <div className="h-px flex-1 bg-black/10"></div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-[var(--ink-soft)] mb-2">Paste Video URL</p>
+                        <div className="flex gap-2">
+                          <input
+                            id={`video-url-${product.id}`}
+                            placeholder="https://res.cloudinary.com/.../video.mp4"
+                            className={inputClassName()}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const inp = document.getElementById(`video-url-${product.id}`) as HTMLInputElement;
+                              const url = inp?.value.trim();
+                              if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+                                const products = [...content.products];
+                                products[index] = { ...product, videos: [...(product.videos ?? []), url] };
+                                setContent({ ...content, products });
+                                inp.value = "";
+                              }
+                            }}
+                            className="whitespace-nowrap rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {(product.videos?.length ?? 0) > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Remove all product videos?")) {
+                            const products = [...content.products];
+                            products[index] = { ...product, videos: undefined };
+                            setContent({ ...content, products });
+                          }
+                        }}
+                        className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 transition"
+                      >
+                        Clear All Videos
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -2932,6 +3165,71 @@ export default function AdminPage() {
             >
               + Add Payment Field
             </button>
+          </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "broadcast-email" ? (
+        <Section
+          title="📧 Broadcast Email"
+          description="Send an email to every registered user. Uses your configured SMTP settings (Gmail). Supports basic HTML in the body."
+        >
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--brand-deep)]">Subject</label>
+              <input
+                type="text"
+                value={emailSubject}
+                onChange={(e) => {
+                  setEmailSubject(e.target.value);
+                  setEmailResult(null);
+                }}
+                placeholder="e.g. New arrivals just dropped!"
+                className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-semibold text-[var(--brand-deep)]">Body (HTML supported)</label>
+                <span className="text-xs text-[var(--ink-soft)]">{emailBody.length} chars</span>
+              </div>
+              <textarea
+                value={emailBody}
+                onChange={(e) => {
+                  setEmailBody(e.target.value);
+                  setEmailResult(null);
+                }}
+                rows={8}
+                placeholder={"Write your email content here…\n\nYou can use basic HTML like <b>bold</b>, <a href=\"...\">links</a>, <br> for line breaks, etc."}
+                className="min-h-40 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)] font-mono"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => void sendBroadcastEmailAction()}
+                disabled={emailSending || !emailSubject.trim() || !emailBody.trim()}
+                className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {emailSending ? "Sending…" : "Send to All Users"}
+              </button>
+              <p className="text-xs text-[var(--ink-soft)]">
+                Recipients are all registered users from Clerk. Emails are sent in BCC batches of 50.
+              </p>
+            </div>
+
+            {emailResult?.success ? (
+              <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                {emailResult.success}
+              </p>
+            ) : null}
+            {emailResult?.error ? (
+              <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                {emailResult.error}
+              </p>
+            ) : null}
           </div>
         </Section>
       ) : null}

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { saveSiteContent, sanitizeSiteContent, getSiteContent } from "@/lib/site-content";
 import type { SiteContent } from "@/lib/site-content-types";
 import { isCurrentUserAdmin } from "@/lib/auth";
+import { notifyAllUsers } from "@/lib/db-notifications";
 
 function getDuplicates(values: string[]): string[] {
   const counts = new Map<string, number>();
@@ -114,10 +115,32 @@ export async function PUT(request: Request) {
   }
 
   try {
+    // Detect newly added products to send push notifications
+    const oldContent = await getSiteContent();
+    const oldProductIds = new Set(oldContent.products.map((p) => p.id));
+    const newProducts = content.products.filter((p) => !oldProductIds.has(p.id));
+
     const saved = await saveSiteContent(content);
     // Invalidate all pages that display site content so the Router Cache
     // and Full Route Cache serve fresh data after the admin saves changes.
     revalidatePath("/", "layout");
+
+    // Notify all users about new products (fire-and-forget, don't block response)
+    if (newProducts.length > 0) {
+      const names = newProducts.map((p) => p.name);
+      const title = newProducts.length === 1
+        ? `🆕 New Product: ${names[0]}`
+        : `🆕 ${newProducts.length} New Products Added`;
+      const body = newProducts.length === 1
+        ? `Check out "${names[0]}" now available on 101Hub!`
+        : `New arrivals: ${names.slice(0, 3).join(", ")}${names.length > 3 ? ` and ${names.length - 3} more` : ""}`;
+      const link = newProducts.length === 1
+        ? `/products/${newProducts[0].slug}`
+        : "/products";
+
+      void notifyAllUsers("promo", title, body, { link });
+    }
+
     return NextResponse.json(saved);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save content.";

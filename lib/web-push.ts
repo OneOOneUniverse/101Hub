@@ -141,3 +141,37 @@ export async function sendPushToAdmins(payload: PushPayload) {
     await supabaseAdmin.from('push_subscriptions').delete().in('id', staleIds);
   }
 }
+
+/**
+ * Send push notification to ALL subscribed users (broadcast).
+ * Fetches every push subscription and sends in batches.
+ */
+export async function sendPushToAllUsers(payload: PushPayload) {
+  if (!ensureVapid()) return;
+
+  const { data: subs, error } = await supabaseAdmin
+    .from('push_subscriptions')
+    .select('id, subscription');
+
+  if (error || !subs?.length) return;
+
+  const staleIds: string[] = [];
+
+  await Promise.allSettled(
+    subs.map(async (row) => {
+      try {
+        const sub = row.subscription as webpush.PushSubscription;
+        await webpush.sendNotification(sub, JSON.stringify(payload), { TTL: 60 * 60 * 24 });
+      } catch (err: unknown) {
+        const status = (err as { statusCode?: number }).statusCode;
+        if (status === 404 || status === 410) {
+          staleIds.push(row.id as string);
+        }
+      }
+    }),
+  );
+
+  if (staleIds.length) {
+    await supabaseAdmin.from('push_subscriptions').delete().in('id', staleIds);
+  }
+}

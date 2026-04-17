@@ -17,6 +17,13 @@ type ReferredUser = {
   created_at: string;
 };
 
+type ReferralClick = {
+  id: string;
+  converted_name: string | null;
+  converted_user_id: string | null;
+  clicked_at: string;
+};
+
 type ReferralData = {
   code: string;
   totalPoints: number;
@@ -26,6 +33,9 @@ type ReferralData = {
   referralCount: number;
   unlockedDiscounts: { tierName: string; discount: string }[];
   referredUsers: ReferredUser[];
+  totalClicks: number;
+  totalConversions: number;
+  recentClicks: ReferralClick[];
 };
 
 const TIER_THEMES = [
@@ -78,6 +88,10 @@ export default function ReferralDashboard() {
 
   const { code, totalPoints, currentTier, nextTier, tiers, referralCount, unlockedDiscounts } = data;
   const referredUsers = data.referredUsers ?? [];
+  const totalClicks = data.totalClicks ?? 0;
+  const totalConversions = data.totalConversions ?? 0;
+  const recentClicks = data.recentClicks ?? [];
+  const conversionRate = totalClicks > 0 ? Math.round((totalConversions / totalClicks) * 100) : 0;
 
   const progressPercent = nextTier
     ? Math.min(
@@ -315,20 +329,28 @@ export default function ReferralDashboard() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
               <div className="ref-stat" style={{ animationDelay: "0.1s" }}>
                 <p className="text-xl font-bold text-white">{totalPoints.toLocaleString()}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Total Points</p>
               </div>
-              <div className="ref-stat" style={{ animationDelay: "0.2s" }}>
+              <div className="ref-stat" style={{ animationDelay: "0.15s" }}>
                 <p className="text-xl font-bold text-white">{referralCount.toString()}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Friends Referred</p>
               </div>
+              <div className="ref-stat" style={{ animationDelay: "0.2s" }}>
+                <p className="text-xl font-bold text-blue-400">{totalClicks.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Link Clicks</p>
+              </div>
+              <div className="ref-stat" style={{ animationDelay: "0.25s" }}>
+                <p className="text-xl font-bold text-emerald-400">{totalConversions.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Sign-ups</p>
+              </div>
               <div className="ref-stat col-span-2 sm:col-span-1" style={{ animationDelay: "0.3s" }}>
                 <p className="text-xl font-bold" style={{ color: currentTier.badge_color }}>
-                  {currentTier.name}
+                  {conversionRate}%
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">Current Level</p>
+                <p className="text-xs text-gray-500 mt-0.5">Conversion Rate</p>
               </div>
             </div>
 
@@ -525,6 +547,83 @@ export default function ReferralDashboard() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Recent Click Activity ── */}
+      {recentClicks.length > 0 && (
+        <div className="panel p-5 sm:p-6">
+          <h3 className="font-semibold text-[var(--ink)] mb-3">
+            📊 Recent Link Activity
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border)]">
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider">Visitor</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider">Date</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentClicks.map((click) => {
+                  const isConverted = click.converted_user_id !== null;
+                  return (
+                    <tr key={click.id} className="border-b border-[var(--border)] last:border-0">
+                      <td className="py-2.5 px-3">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                              isConverted
+                                ? "bg-gradient-to-br from-emerald-400 to-emerald-600"
+                                : "bg-gradient-to-br from-gray-400 to-gray-500"
+                            }`}
+                          >
+                            {isConverted
+                              ? (click.converted_name?.[0] ?? "U").toUpperCase()
+                              : "👤"}
+                          </span>
+                          <span className={`font-medium ${
+                            isConverted ? "text-[var(--ink)]" : "text-[var(--ink-soft)] italic"
+                          }`}>
+                            {isConverted ? click.converted_name || "User" : "Guest"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 text-[var(--ink-soft)]">
+                        {new Date(click.clicked_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                        {" "}
+                        <span className="text-xs">
+                          {new Date(click.clicked_at).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        <span
+                          className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            isConverted
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            isConverted ? "bg-green-500" : "bg-gray-400"
+                          }`} />
+                          {isConverted ? "Signed Up" : "Pending"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
