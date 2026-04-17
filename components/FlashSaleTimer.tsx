@@ -9,6 +9,8 @@ type FlashSaleTimerProps = {
   eyebrow: string;
   title: string;
   description: string;
+  backgroundImage?: string;
+  backgroundVideo?: string;
 };
 
 function getNextTarget(durationHours: number): number {
@@ -101,6 +103,8 @@ export default function FlashSaleTimer({
   eyebrow,
   title,
   description,
+  backgroundImage,
+  backgroundVideo,
 }: Readonly<FlashSaleTimerProps>) {
   const [targetTime, setTargetTime] = useState<number>(() => getNextTarget(durationHours));
   const [now, setNow] = useState<number>(() => Date.now());
@@ -159,15 +163,47 @@ export default function FlashSaleTimer({
           gap: "1rem",
           padding: "1.25rem 1rem",
           borderRadius: "1rem",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          background: backgroundImage && !backgroundVideo
+            ? `linear-gradient(135deg, rgba(26,26,46,0.85), rgba(15,52,96,0.85)), url(${backgroundImage}) center/cover no-repeat`
+            : "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
           border: "1px solid rgba(101, 75, 255, 0.35)",
           marginTop: "1rem",
           textDecoration: "none",
           transition: "transform 0.25s, box-shadow 0.25s",
           transform: hovered ? "translateY(-3px)" : "translateY(0)",
           boxShadow: hovered ? "0 8px 32px rgba(101, 75, 255, 0.25)" : "none",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        {backgroundVideo ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              zIndex: 0,
+            }}
+          >
+            <source src={backgroundVideo} />
+          </video>
+        ) : null}
+        {backgroundVideo ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(135deg, rgba(26,26,46,0.85), rgba(15,52,96,0.85))",
+              zIndex: 1,
+            }}
+          />
+        ) : null}
         {/* Coupon card */}
         <div
           style={{
@@ -179,6 +215,8 @@ export default function FlashSaleTimer({
             overflow: "hidden",
             width: "100%",
             maxWidth: 500,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {/* Discount badge */}
@@ -269,6 +307,8 @@ export default function FlashSaleTimer({
             alignItems: "flex-start",
             gap: 0,
             width: "fit-content",
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {(

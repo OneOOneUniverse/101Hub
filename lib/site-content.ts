@@ -119,8 +119,6 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
 
   const noDeliveryFee = toBoolean(candidate.noDeliveryFee, fallback?.noDeliveryFee ?? false) || undefined;
 
-  const requireFullPaymentBeforeDelivery = toBoolean(candidate.requireFullPaymentBeforeDelivery, fallback?.requireFullPaymentBeforeDelivery ?? false) || undefined;
-
   return {
     id: toText(candidate.id, fallback?.id ?? `product-${index + 1}`),
     slug: normalizeSlug(rawSlug),
@@ -136,7 +134,6 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
     ...(discount !== undefined && { discount }),
     ...(deliveryFee !== undefined && { deliveryFee }),
     ...(noDeliveryFee && { noDeliveryFee }),
-    ...(requireFullPaymentBeforeDelivery && { requireFullPaymentBeforeDelivery }),
   };
 }
 
@@ -235,6 +232,8 @@ function sanitizeFlashSale(value: unknown, fallback: FlashSaleContent): FlashSal
     featuredProductIds: Array.isArray(candidate.featuredProductIds)
       ? candidate.featuredProductIds.filter((item): item is string => typeof item === "string")
       : fallback.featuredProductIds,
+    backgroundImage: toOptionalText(candidate.backgroundImage),
+    backgroundVideo: toOptionalText(candidate.backgroundVideo),
   };
 }
 
@@ -252,6 +251,14 @@ function sanitizeBlackFriday(value: unknown, fallback: BlackFridayContent): Blac
     endsAt: normalizedEndsAt,
     linkUrl: toText(candidate.linkUrl, fallback.linkUrl),
     linkText: toText(candidate.linkText, fallback.linkText),
+    pageEyebrow: toText(candidate.pageEyebrow, fallback.pageEyebrow),
+    pageTitle: toText(candidate.pageTitle, fallback.pageTitle),
+    pageDescription: toText(candidate.pageDescription, fallback.pageDescription),
+    featuredProductIds: Array.isArray(candidate.featuredProductIds)
+      ? candidate.featuredProductIds.filter((item): item is string => typeof item === "string")
+      : fallback.featuredProductIds,
+    backgroundImage: toOptionalText(candidate.backgroundImage),
+    backgroundVideo: toOptionalText(candidate.backgroundVideo),
   };
 }
 
@@ -302,8 +309,6 @@ const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   paystackEnabled: true,
   manualEnabled: true,
-  downPaymentEnabled: true,
-  downPaymentPercentage: 40,
 };
 
 function sanitizeLocationFee(value: unknown, index: number): LocationDeliveryFee {
@@ -343,8 +348,6 @@ function sanitizePaymentSettings(value: unknown): PaymentSettings {
   return {
     paystackEnabled: toBoolean(candidate.paystackEnabled, DEFAULT_PAYMENT_SETTINGS.paystackEnabled),
     manualEnabled: toBoolean(candidate.manualEnabled, DEFAULT_PAYMENT_SETTINGS.manualEnabled),
-    downPaymentEnabled: toBoolean(candidate.downPaymentEnabled, DEFAULT_PAYMENT_SETTINGS.downPaymentEnabled),
-    downPaymentPercentage: Math.max(1, Math.min(100, toNumber(candidate.downPaymentPercentage, DEFAULT_PAYMENT_SETTINGS.downPaymentPercentage))),
   };
 }
 

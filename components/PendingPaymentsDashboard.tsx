@@ -114,7 +114,7 @@ export default function PendingPaymentsDashboard() {
     <section className="panel space-y-4 p-6">
       <div>
         <h2 className="text-2xl font-black text-[var(--brand-deep)]">💳 Pending Payments</h2>
-        <p className="mt-1 text-sm text-[var(--ink-soft)]">Verify downpayments from customer orders</p>
+        <p className="mt-1 text-sm text-[var(--ink-soft)]">Verify payments from customer orders</p>
       </div>
 
       {error && <p className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}
@@ -144,7 +144,6 @@ export default function PendingPaymentsDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="font-black text-xl text-amber-900">GHS {payment.amount.toFixed(2)}</p>
-                    <p className="text-xs text-amber-700">40% downpayment</p>
                   </div>
                 </div>
 

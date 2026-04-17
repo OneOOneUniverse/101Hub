@@ -93,7 +93,7 @@ export default function BlackFridayBanner({ content }: { content: BlackFridayCon
         }
       `}</style>
       <Link
-        href={content.linkUrl || "/flash-sale"}
+        href={content.linkUrl || "/black-friday"}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
@@ -103,14 +103,46 @@ export default function BlackFridayBanner({ content }: { content: BlackFridayCon
           gap: "1.25rem",
           padding: "2rem 1.5rem",
           borderRadius: "1rem",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          background: content.backgroundImage && !content.backgroundVideo
+            ? `linear-gradient(135deg, rgba(26,26,46,0.85), rgba(15,52,96,0.85)), url(${content.backgroundImage}) center/cover no-repeat`
+            : "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
           border: "2px solid rgba(101, 75, 255, 0.4)",
           textDecoration: "none",
           transition: "transform 0.25s, box-shadow 0.25s",
           transform: hovered ? "translateY(-3px)" : "translateY(0)",
           boxShadow: hovered ? "0 8px 32px rgba(101, 75, 255, 0.3)" : "none",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        {content.backgroundVideo ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              zIndex: 0,
+            }}
+          >
+            <source src={content.backgroundVideo} />
+          </video>
+        ) : null}
+        {content.backgroundVideo ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(135deg, rgba(26,26,46,0.85), rgba(15,52,96,0.85))",
+              zIndex: 1,
+            }}
+          />
+        ) : null}
         {/* Animated headline letters */}
         <h2
           style={{
@@ -122,6 +154,8 @@ export default function BlackFridayBanner({ content }: { content: BlackFridayCon
             justifyContent: "center",
             lineHeight: 1.3,
             margin: 0,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {content.headline.split("").map((char, i) => (
@@ -147,13 +181,15 @@ export default function BlackFridayBanner({ content }: { content: BlackFridayCon
             WebkitTextFillColor: "transparent",
             margin: 0,
             lineHeight: 1,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {content.discountPercentage}% OFF
         </p>
 
         {/* Description */}
-        <p style={{ fontSize: "0.9rem", color: "#959595", textAlign: "center", margin: 0, maxWidth: 400 }}>
+        <p style={{ fontSize: "0.9rem", color: "#959595", textAlign: "center", margin: 0, maxWidth: 400, position: "relative", zIndex: 2 }}>
           {content.description}
         </p>
 
@@ -165,6 +201,8 @@ export default function BlackFridayBanner({ content }: { content: BlackFridayCon
               alignItems: "flex-start",
               gap: 0,
               width: "fit-content",
+              position: "relative",
+              zIndex: 2,
             }}
           >
             {(
@@ -222,6 +260,8 @@ export default function BlackFridayBanner({ content }: { content: BlackFridayCon
             letterSpacing: "0.05em",
             transition: "opacity 0.2s",
             opacity: hovered ? 0.9 : 1,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {content.linkText || "Shop the Deals"} →

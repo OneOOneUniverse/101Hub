@@ -23,7 +23,6 @@ export interface OrderData {
   delivery: number;
   processingFee?: number;
   total: number;
-  downpayment: number;
   deliveryType?: string;
   paymentMethod: PaymentMethod;
   paymentStatus: "pending" | "verified" | "rejected";
@@ -67,7 +66,7 @@ export function getOrderStatusDescription(status: OrderStatus): string {
     completed:
       "Your order is complete. Thank you for shopping with us!",
     cancelled:
-      "This order has been cancelled. Contact us if you paid a deposit and need a refund.",
+      "This order has been cancelled. Contact us if you need a refund.",
   };
   return descriptions[status] || "";
 }
@@ -120,10 +119,6 @@ export function getOrderTimeline(orderStatus: OrderStatus) {
     // Steps before the current one are already done
     return { ...step, completed: true, current: false };
   });
-}
-
-export function calculateRemainingBalance(order: OrderData): number {
-  return order.total - order.downpayment;
 }
 
 export function getPaymentMethodDisplay(method: PaymentMethod): string {

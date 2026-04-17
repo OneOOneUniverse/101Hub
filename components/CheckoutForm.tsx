@@ -14,6 +14,25 @@ type CartLine = { productId: string; qty: number };
 const STORAGE_KEY = "101hub-cart";
 const MANUAL_PAYMENT_NUMBER = "+233 548656980";
 
+const GHANA_REGIONS: Record<string, string[]> = {
+  "Greater Accra": ["Accra Central", "East Legon", "Cantonments", "Osu", "Labone", "Airport Residential", "Madina", "Adenta", "Achimota", "Dome", "Dansoman", "Kaneshie", "Lapaz", "Darkuman", "Tema", "Tema New Town", "Ashaiman", "Nungua", "Teshie", "Labadi", "Kasoa", "Weija", "Spintex", "Sakumono", "Lashibi", "Tsaddo", "Batsonaa", "Kpone", "Prampram"],
+  "Ashanti": ["Kumasi", "Obuasi", "Ejisu", "Konongo", "Mampong", "Bekwai", "Offinso", "Suame", "Tafo", "Asokwa", "Adum", "Bantama", "Krofrom", "Atonsu", "Ahinsan", "Abrepo", "Kwadaso", "Nhyiaeso", "Oforikrom"],
+  "Western": ["Takoradi", "Sekondi", "Tarkwa", "Axim", "Prestea", "Bogoso", "Essikado", "Agona Nkwanta", "Half Assini", "Elubo"],
+  "Central": ["Cape Coast", "Winneba", "Kasoa", "Mankessim", "Saltpond", "Dunkwa-on-Offin", "Assin Fosu", "Swedru", "Agona Swedru", "Elmina", "Anomabu"],
+  "Eastern": ["Koforidua", "Nkawkaw", "Nsawam", "Akim Oda", "Suhum", "Akosombo", "Asamankese", "Kade", "Mpraeso", "Abetifi", "Begoro", "Kibi", "Donkorkrom"],
+  "Volta": ["Ho", "Keta", "Kpando", "Hohoe", "Aflao", "Akatsi", "Sogakope", "Anloga", "Denu", "Dzodze"],
+  "Northern": ["Tamale", "Yendi", "Damongo", "Bimbilla", "Salaga", "Savelugu", "Walewale", "Zabzugu", "Tolon", "Kumbungu"],
+  "Upper East": ["Bolgatanga", "Navrongo", "Bawku", "Paga", "Zebilla", "Sandema", "Tongo", "Pusiga"],
+  "Upper West": ["Wa", "Tumu", "Lawra", "Jirapa", "Nandom", "Nadowli", "Lambussie", "Gwollu"],
+  "Bono": ["Sunyani", "Berekum", "Dormaa Ahenkro", "Wenchi", "Techiman", "Nkoranza", "Atebubu", "Kintampo"],
+  "Bono East": ["Techiman", "Atebubu", "Kintampo", "Nkoranza", "Kwame Danso", "Yeji", "Prang"],
+  "Ahafo": ["Goaso", "Bechem", "Duayaw Nkwanta", "Kukuom", "Kenyasi", "Hwidiem", "Acherensua"],
+  "Savannah": ["Damongo", "Bole", "Salaga", "Sawla", "Buipe", "Tolon"],
+  "North East": ["Nalerigu", "Gambaga", "Walewale", "Chereponi", "Bunkpurugu", "Yunyoo"],
+  "Western North": ["Sefwi Wiawso", "Bibiani", "Enchi", "Juaboso", "Sefwi Bekwai", "Akontombra", "Bodi", "Dadieso"],
+  "Oti": ["Dambai", "Nkwanta", "Kadjebi", "Jasikan", "Krachi", "Kete Krachi"],
+};
+
 type OrderLine = { name: string; qty: number; unitPrice: number; lineTotal: number };
 
 type PaymentMethod = "paystack" | "manual";
@@ -25,7 +44,7 @@ type CheckoutResult = {
   message: string;
   customer: { name: string; phone: string; address: string; note: string; deliveryType?: string };
   lines: OrderLine[];
-  totals: { subtotal: number; delivery: number; processingFee: number; total: number; downpayment: number };
+  totals: { subtotal: number; delivery: number; processingFee: number; total: number };
   storePhone: string;
   storeEmail: string;
 };
@@ -51,6 +70,8 @@ export default function CheckoutForm() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [region, setRegion] = useState("");
+  const [town, setTown] = useState("");
   const [location, setLocation] = useState("");
   const [deliveryType, setDeliveryType] = useState("");
   const [note, setNote] = useState("");
@@ -94,14 +115,6 @@ export default function CheckoutForm() {
       setItems(validItems);
     }
   }, [products, items]);
-
-  // Check if any item in cart requires full payment upfront
-  const anyItemRequiresFullPayment = useMemo(() => {
-    return items.some((line) => {
-      const product = products.find((p) => p.id === line.productId);
-      return product?.requireFullPaymentBeforeDelivery === true;
-    });
-  }, [items, products]);
 
   const totals = useMemo(() => {
     const deliverySettings = content?.deliverySettings;
@@ -147,24 +160,12 @@ export default function CheckoutForm() {
 
     const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
     const total = subtotal + delivery + processingFee;
-    
-    // Calculate down payment based on settings (or default to 40% if not specified)
-    // But if any item requires full payment, don't allow down payment
-    const downPaymentPercentage = (content?.paymentSettings?.downPaymentPercentage ?? 40) / 100;
-    const downpayment = (!anyItemRequiresFullPayment && (content?.paymentSettings?.downPaymentEnabled ?? true)) ? total * downPaymentPercentage : 0;
 
-    return { subtotal, delivery, processingFee, total, downpayment };
-  }, [items, products, location, deliveryType, content?.deliverySettings, content?.paymentSettings, anyItemRequiresFullPayment]);
+    return { subtotal, delivery, processingFee, total };
+  }, [items, products, location, deliveryType, content?.deliverySettings]);
 
-  // Determine payment amount: full total if full payment required, otherwise down payment
-  const paymentAmount = useMemo(() => {
-    // If any item requires full payment, charge the full total
-    if (anyItemRequiresFullPayment) {
-      return totals.total;
-    }
-    // Otherwise charge the down payment
-    return totals.downpayment;
-  }, [totals, anyItemRequiresFullPayment]);
+  // Payment amount is the full total
+  const paymentAmount = totals.total;
 
   if (loading) {
     return (
@@ -223,6 +224,8 @@ export default function CheckoutForm() {
         });
       }
 
+      const fullAddress = [address, town, region].filter(Boolean).join(", ");
+
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -230,7 +233,7 @@ export default function CheckoutForm() {
           customerName,
           email,
           phone,
-          address,
+          address: fullAddress,
           location,
           deliveryType,
           note,
@@ -282,7 +285,6 @@ export default function CheckoutForm() {
             processingFee: data.totals.processingFee,
             deliveryType: data.customer.deliveryType,
             total: data.totals.total,
-            downpayment: data.totals.downpayment,
             paymentMethod: "manual",
             paymentStatus: "pending",
             orderStatus: "payment_pending_admin_review",
@@ -344,8 +346,6 @@ export default function CheckoutForm() {
     }
     const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
     const total = subtotal + delivery + processingFee;
-    const downPaymentPercentage = (content?.paymentSettings?.downPaymentPercentage ?? 40) / 100;
-    const downpayment = (content?.paymentSettings?.downPaymentEnabled ?? true) ? total * downPaymentPercentage : 0;
 
     setResult({
       success: true,
@@ -362,7 +362,7 @@ export default function CheckoutForm() {
           lineTotal: (product?.price ?? 0) * line.qty,
         };
       }),
-      totals: { subtotal, delivery, processingFee, total, downpayment },
+      totals: { subtotal, delivery, processingFee, total },
       storePhone: process.env.NEXT_PUBLIC_STORE_PHONE ?? "+233 548656980",
       storeEmail: process.env.NEXT_PUBLIC_STORE_EMAIL ?? "",
     });
@@ -387,7 +387,6 @@ export default function CheckoutForm() {
       processingFee,
       deliveryType: deliveryType || undefined,
       total,
-      downpayment,
       paymentMethod: "paystack",
       paymentStatus: "verified",
       orderStatus: "confirmed",
@@ -456,28 +455,6 @@ export default function CheckoutForm() {
               <span>Total</span>
               <span>GHS {result.totals.total.toFixed(2)}</span>
             </div>
-
-            {/* Full Payment info */}
-            {anyItemRequiresFullPayment ? (
-              <div className="mt-3 rounded-lg bg-red-50 p-3 border border-red-200">
-                <p className="text-sm font-bold text-red-700 mb-1">Full Payment Collected</p>
-                <p className="text-xs text-red-600">Full payment received. Item(s) will be prepared for delivery.</p>
-              </div>
-            ) : null}
-
-            {/* Downpayment info */}
-            {content?.paymentSettings?.downPaymentEnabled !== false && result.totals.downpayment > 0 ? (
-              <div className="mt-3 rounded-lg bg-amber-50 p-3 border border-amber-200">
-                <div className="flex justify-between mb-1">
-                  <span className="text-[var(--ink-soft)] font-semibold">Downpayment ({(content?.paymentSettings?.downPaymentPercentage ?? 40)}%)</span>
-                  <span className="font-bold text-amber-900">GHS {result.totals.downpayment.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-[var(--ink-soft)]">Remaining on delivery ({100 - (content?.paymentSettings?.downPaymentPercentage ?? 40)}%)</span>
-                  <span className="font-semibold text-[var(--ink)]">GHS {(result.totals.total - result.totals.downpayment).toFixed(2)}</span>
-                </div>
-              </div>
-            ) : null}
           </div>
         </div>
 
@@ -551,7 +528,7 @@ export default function CheckoutForm() {
     <>
       <AnimatedPaymentModal
         isOpen={showPaymentAnimation}
-        amount={totals.downpayment}
+        amount={totals.total}
         paymentMethod={paymentMethod}
         onClose={() => setShowPaymentAnimation(false)}
       />
@@ -628,26 +605,6 @@ export default function CheckoutForm() {
           </div>
         </div>
 
-        {/* Full Payment Warning for certain products */}
-        {anyItemRequiresFullPayment ? (
-          <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-            <p className="text-sm font-bold text-red-700 mb-1">⚠️ Full Payment Required</p>
-            <p className="text-xs text-red-600">One or more items in your cart require full payment upfront. Down payment option is not available for this order.</p>
-          </div>
-        ) : null}
-
-        {/* Downpayment Amount Display */}
-        {content?.paymentSettings?.downPaymentEnabled !== false && totals.downpayment > 0 ? (
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-            <p className="text-xs text-amber-900 mb-2">Downpayment Required</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-amber-900">GHS {totals.downpayment.toFixed(2)}</span>
-              <span className="text-sm text-amber-800">({content?.paymentSettings?.downPaymentPercentage ?? 40}% of total)</span>
-            </div>
-            <p className="text-xs text-amber-700 mt-2">Remaining GHS {(totals.total - totals.downpayment).toFixed(2)} ({100 - (content?.paymentSettings?.downPaymentPercentage ?? 40)}%) payable at delivery</p>
-          </div>
-        ) : null}
-
         {/* Personal Info Section */}
         <div className="form-section">
           <div className="form-section-header">Personal Information</div>
@@ -705,15 +662,58 @@ export default function CheckoutForm() {
         <div className="form-section">
           <div className="form-section-header">Delivery Details</div>
           <div className="space-y-4">
+            {/* Region */}
+            <div>
+              <label htmlFor="region" className="mb-1 block text-sm font-semibold">
+                Region <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="region"
+                required
+                value={region}
+                onChange={(event) => {
+                  setRegion(event.target.value);
+                  setTown("");
+                }}
+                className="input-styled"
+              >
+                <option value="">— Select your region —</option>
+                {Object.keys(GHANA_REGIONS).map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Town */}
+            {region && (
+              <div>
+                <label htmlFor="town" className="mb-1 block text-sm font-semibold">
+                  Town / City <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="town"
+                  required
+                  value={town}
+                  onChange={(event) => setTown(event.target.value)}
+                  className="input-styled"
+                >
+                  <option value="">— Select your town —</option>
+                  {GHANA_REGIONS[region].map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Delivery Address */}
             <div>
               <label htmlFor="address" className="mb-1 block text-sm font-semibold">
-                Delivery Address <span className="text-red-500">*</span>
+                Street / Area Address <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="address"
                 required
-                placeholder="Street, area, city..."
+                placeholder="Street name, house number, landmark..."
                 value={address}
                 onChange={(event) => setAddress(event.target.value)}
                 className="input-styled h-24"
@@ -820,8 +820,8 @@ export default function CheckoutForm() {
             {/* Main Payment Amount */}
             <div className="rounded-lg bg-amber-50 p-4 border border-amber-200">
               <p className="text-sm font-semibold text-amber-900 mb-1">💳 Payment Amount</p>
-              <p className="text-2xl font-black text-amber-900 mb-2">GHS {totals.downpayment.toFixed(2)}</p>
-              <p className="text-xs text-amber-700">Down payment required (40% of total)</p>
+              <p className="text-2xl font-black text-amber-900 mb-2">GHS {totals.total.toFixed(2)}</p>
+              <p className="text-xs text-amber-700">Full payment required</p>
             </div>
 
             {/* Copyable Payment Details Card */}
@@ -894,7 +894,7 @@ export default function CheckoutForm() {
                         <p className="text-sm font-semibold text-blue-900">Send Transfer</p>
                         <div className="mt-1 p-2 bg-white rounded border border-blue-200">
                           <p className="text-xs text-blue-900 font-mono font-bold">{MANUAL_PAYMENT_NUMBER}</p>
-                          <p className="text-xs text-blue-800 mt-1">Amount: GHS {totals.downpayment.toFixed(2)}</p>
+                          <p className="text-xs text-blue-800 mt-1">Amount: GHS {totals.total.toFixed(2)}</p>
                         </div>
                       </div>
                     </div>
@@ -916,7 +916,7 @@ export default function CheckoutForm() {
                         <p className="text-xs text-blue-800">Take a clear screenshot showing:</p>
                         <ul className="text-xs text-blue-800 mt-1 ml-2 list-disc list-inside">
                           <li>Recipient phone number ({MANUAL_PAYMENT_NUMBER})</li>
-                          <li>Amount (GHS {totals.downpayment.toFixed(2)})</li>
+                          <li>Amount (GHS {totals.total.toFixed(2)})</li>
                           <li>Transaction status or reference number</li>
                           <li>Date/time of transaction</li>
                         </ul>
@@ -950,7 +950,7 @@ export default function CheckoutForm() {
                 <p className="text-xs font-semibold text-red-900 mb-2">✓ What We Need:</p>
                 <ul className="text-xs text-red-800 space-y-1 ml-4 list-disc">
                   <li>Screenshot of transfer confirmation screen</li>
-                  <li>Must show amount: <span className="font-bold">GHS {totals.downpayment.toFixed(2)}</span></li>
+                  <li>Must show amount: <span className="font-bold">GHS {totals.total.toFixed(2)}</span></li>
                   <li>Must show recipient: <span className="font-bold">{MANUAL_PAYMENT_NUMBER}</span></li>
                   <li>Transaction reference or status visible</li>
                   <li>Date & time visible</li>
@@ -995,7 +995,7 @@ export default function CheckoutForm() {
         {paymentMethod === "paystack" && (
           <div className="rounded-lg bg-green-50 p-4 border border-green-200">
             <p className="text-sm text-green-900">
-              You will complete payment of <span className="font-bold">GHS {totals.downpayment.toFixed(2)}</span> securely via Paystack (Card, MTN/Vodafone Mobile Money, or bank transfer).
+              You will complete payment of <span className="font-bold">GHS {totals.total.toFixed(2)}</span> securely via Paystack (Card, MTN/Vodafone Mobile Money, or bank transfer).
             </p>
           </div>
         )}
@@ -1084,18 +1084,6 @@ export default function CheckoutForm() {
             <div className="mt-2 flex items-center justify-between text-base">
               <span className="font-bold">Total</span>
               <span className="font-black">GHS {totals.total.toFixed(2)}</span>
-            </div>
-
-            {/* Downpayment Breakdown */}
-            <div className="mt-3 rounded-lg bg-amber-50 p-3 border border-amber-200 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--ink-soft)] text-xs font-semibold">Downpayment (40%)</span>
-                <span className="font-bold text-amber-900">GHS {totals.downpayment.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--ink-soft)] text-xs">On Delivery (60%)</span>
-                <span className="font-semibold text-sm">GHS {(totals.total - totals.downpayment).toFixed(2)}</span>
-              </div>
             </div>
           </div>
         </div>

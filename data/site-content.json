@@ -927,8 +927,12 @@
     "discountPercentage": 37,
     "headline": "BLACK FRIDAY",
     "description": "The Black Friday deals are here! Massive discounts on all products — don't miss out.",
-    "linkUrl": "/flash-sale",
-    "linkText": "Shop the Deals"
+    "linkUrl": "/black-friday",
+    "linkText": "Shop the Deals",
+    "pageEyebrow": "Black Friday — Biggest Sale of the Year!",
+    "pageTitle": "Black Friday Deals: Unbeatable Prices",
+    "pageDescription": "Massive discounts on handpicked products. Grab your favourites before the deals end!",
+    "featuredProductIds": []
   },
   "deliverySettings": {
     "defaultFee": 15,

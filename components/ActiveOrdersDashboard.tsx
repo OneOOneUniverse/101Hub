@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BoxIcon, CoinIcon, TruckIcon } from "@/components/Icons";
+import { BoxIcon, TruckIcon } from "@/components/Icons";
 import { formatOrderDate, formatEstimatedDelivery } from "@/lib/order-status";
 import OrderMessaging from "@/components/OrderMessaging";
 
@@ -12,7 +12,6 @@ type ActiveOrder = {
   customerAddress: string;
   orderStatus: "confirmed" | "in_transit";
   total: number;
-  downpayment: number;
   createdAt: string;
   estimatedDeliveryDate?: string;
 };
@@ -215,9 +214,6 @@ export default function ActiveOrdersDashboard() {
                   {statusBadge(order.orderStatus)}
                 </div>
               </div>
-              <p className="text-xs text-cyan-700 bg-cyan-100 rounded-lg px-3 py-2 flex items-center gap-1.5">
-                <CoinIcon size={14} className="shrink-0" /> Collect GHS {(order.total - order.downpayment).toFixed(2)} remaining balance on delivery
-              </p>
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => void updateStatus(order.orderRef, "delivered")}

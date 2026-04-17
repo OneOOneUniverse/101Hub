@@ -107,7 +107,7 @@ function orderTable(lines: OrderLine[]) {
   </table>`;
 }
 
-function totalsBlock(opts: { subtotal: number; delivery: number; processingFee: number; total: number; downpayment: number }) {
+function totalsBlock(opts: { subtotal: number; delivery: number; processingFee: number; total: number }) {
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:280px;margin-left:auto">
     <tr><td style="padding:4px 8px;font-size:14px;color:#555">Subtotal</td><td style="padding:4px 8px;text-align:right;font-size:14px">GHS ${opts.subtotal.toFixed(2)}</td></tr>
     <tr><td style="padding:4px 8px;font-size:14px;color:#555">Delivery</td><td style="padding:4px 8px;text-align:right;font-size:14px">${opts.delivery === 0 ? 'Free' : `GHS ${opts.delivery.toFixed(2)}`}</td></tr>
@@ -130,7 +130,6 @@ export interface OrderEmailData {
   delivery: number;
   processingFee: number;
   total: number;
-  downpayment: number;
   paymentMethod: string;
   paymentStatus: string;
 }
@@ -159,9 +158,8 @@ function orderConfirmationHtml(data: OrderEmailData): string {
     <div style="background:#fef3c7;border:1px solid #fcd34d;padding:14px;border-radius:8px;margin:20px 0">
       <p style="margin:0 0 6px;font-weight:700;color:#78350f;font-size:14px">💳 Payment Details</p>
       <p style="margin:0 0 3px;font-size:13px"><strong>Method:</strong> ${paymentMethodLabel}</p>
-      <p style="margin:0 0 3px;font-size:13px"><strong>Downpayment (40%):</strong> GHS ${data.downpayment.toFixed(2)}</p>
+      <p style="margin:0 0 3px;font-size:13px"><strong>Total:</strong> GHS ${data.total.toFixed(2)}</p>
       <p style="margin:0 0 3px;font-size:13px"><strong>Status:</strong> ${data.paymentStatus}</p>
-      <p style="margin:6px 0 0;font-size:12px;color:#92400e">Remaining 60% (GHS ${(data.total - data.downpayment).toFixed(2)}) payable at delivery</p>
     </div>
 
     ${data.paymentMethod === 'manual' ? `
@@ -171,7 +169,7 @@ function orderConfirmationHtml(data: OrderEmailData): string {
       <p style="margin:6px 0 4px;font-weight:600;color:#991b1b;font-size:13px">Your screenshot must show:</p>
       <ul style="margin:4px 0 8px;padding-left:20px;color:#7f1d1d;font-size:12px">
         <li>Recipient phone number</li>
-        <li>Amount: <strong>GHS ${data.downpayment.toFixed(2)}</strong></li>
+        <li>Amount: <strong>GHS ${data.total.toFixed(2)}</strong></li>
         <li>Transaction reference or confirmation status</li>
         <li>Date and time of transaction</li>
       </ul>

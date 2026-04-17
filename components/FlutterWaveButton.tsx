@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CreditCardIcon } from "@/components/Icons";
 
 type FlutterWaveButtonProps = {
-  downpayment: number;
+  amount: number;
   orderRef: string;
   customerName: string;
   customerEmail: string;
@@ -21,7 +21,7 @@ declare global {
 }
 
 export default function FlutterWaveButton({
-  downpayment,
+  amount,
   orderRef,
   customerName,
   customerEmail,
@@ -114,12 +114,12 @@ export default function FlutterWaveButton({
     }
 
     try {
-      console.log("🔄 Initiating payment...", { orderRef, amount: downpayment });
+      console.log("🔄 Initiating payment...", { orderRef, amount });
       
       const config = {
         public_key: publicKey,
         tx_ref: orderRef,
-        amount: downpayment,
+        amount,
         currency: "GHS",
         payment_options: "card,mobilemoney,ussd",
         customer: {
@@ -128,8 +128,8 @@ export default function FlutterWaveButton({
           name: customerName,
         },
         customizations: {
-          title: "101Hub Downpayment",
-          description: `40% downpayment for order ${orderRef}`,
+          title: "101Hub Payment",
+          description: `Payment for order ${orderRef}`,
           logo: "https://www.101hub.shop/img/log.png",
         },
       };
@@ -157,7 +157,7 @@ export default function FlutterWaveButton({
       console.error("❌ Payment error:", errorMsg);
       onPaymentFailure(errorMsg);
     }
-  }, [publicKey, orderRef, downpayment, customerName, customerEmail, customerPhone, onPaymentSuccess, onPaymentFailure, sdkLoaded, loadError]);
+  }, [publicKey, orderRef, amount, customerName, customerEmail, customerPhone, onPaymentSuccess, onPaymentFailure, sdkLoaded, loadError]);
 
   return (
     <>
@@ -207,7 +207,7 @@ export default function FlutterWaveButton({
             </>
           ) : (
             <>
-              <CreditCardIcon size={16} className="inline-block shrink-0" />{" "}Pay GHS {downpayment.toFixed(2)} with Flutterwave
+              <CreditCardIcon size={16} className="inline-block shrink-0" />{" "}Pay GHS {amount.toFixed(2)} with Flutterwave
             </>
           )}
         </button>

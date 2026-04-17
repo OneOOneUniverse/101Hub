@@ -47,8 +47,6 @@ const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   paystackEnabled: true,
   manualEnabled: true,
-  downPaymentEnabled: true,
-  downPaymentPercentage: 40,
 };
 
 function withDeliveryDefaults(data: SiteContent): SiteContent {
@@ -1373,6 +1371,32 @@ export default function AdminPage() {
         </div>
 
         <div className="space-y-3">
+          <h3 className="text-lg font-black text-[var(--brand-deep)]">🎨 Background Media</h3>
+          <p className="text-xs text-[var(--ink-soft)]">Upload an image or video/GIF to show behind the flash sale banner and page header. The gradient overlay keeps text readable.</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Background image">
+              {content.flashSale.backgroundImage ? (
+                <div className="mb-2 flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={content.flashSale.backgroundImage} alt="Background preview" className="h-20 w-32 rounded-lg object-cover border border-black/10" />
+                  <button type="button" onClick={() => setContent({ ...content, flashSale: { ...content.flashSale, backgroundImage: undefined } })} className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200">Remove</button>
+                </div>
+              ) : null}
+              <ImageUploadButton folder="flash-sale" label="Upload Image" onUpload={(url) => setContent({ ...content, flashSale: { ...content.flashSale, backgroundImage: url } })} />
+            </Field>
+            <Field label="Background video/GIF">
+              {content.flashSale.backgroundVideo ? (
+                <div className="mb-2 flex items-center gap-2">
+                  <video src={content.flashSale.backgroundVideo} className="h-20 w-32 rounded-lg object-cover border border-black/10" muted autoPlay loop playsInline />
+                  <button type="button" onClick={() => setContent({ ...content, flashSale: { ...content.flashSale, backgroundVideo: undefined } })} className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200">Remove</button>
+                </div>
+              ) : null}
+              <VideoUploadButton folder="flash-sale" label="Upload Video" onUpload={(url) => setContent({ ...content, flashSale: { ...content.flashSale, backgroundVideo: url } })} />
+            </Field>
+          </div>
+        </div>
+
+        <div className="space-y-3">
           <h3 className="text-lg font-black text-[var(--brand-deep)]">Featured Products</h3>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {content.products.map((product, index) => {
@@ -1411,7 +1435,7 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "black-friday" ? (
-        <Section title="🖤 Black Friday Promo" description="Configure the Black Friday banner — toggle it on from Features to show it on the homepage and products page.">
+        <Section title="🖤 Black Friday Promo" description="Configure the Black Friday banner and sale page — toggle it on from Features to show it on the homepage and products page.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Discount percentage">
             <input
@@ -1462,7 +1486,7 @@ export default function AdminPage() {
           </Field>
         </div>
 
-        <Field label="Description">
+        <Field label="Banner description">
           <textarea
             value={content.blackFriday.description}
             onChange={(event) =>
@@ -1487,7 +1511,7 @@ export default function AdminPage() {
                 })
               }
               className={inputClassName()}
-              placeholder="/flash-sale"
+              placeholder="/black-friday"
             />
           </Field>
           <Field label="Button text">
@@ -1505,9 +1529,115 @@ export default function AdminPage() {
           </Field>
         </div>
 
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <Field label="Page eyebrow">
+            <input
+              value={content.blackFriday.pageEyebrow}
+              onChange={(event) =>
+                setContent({
+                  ...content,
+                  blackFriday: { ...content.blackFriday, pageEyebrow: event.target.value },
+                })
+              }
+              className={inputClassName()}
+              placeholder="Black Friday — Biggest Sale of the Year!"
+            />
+          </Field>
+          <Field label="Page title">
+            <input
+              value={content.blackFriday.pageTitle}
+              onChange={(event) =>
+                setContent({
+                  ...content,
+                  blackFriday: { ...content.blackFriday, pageTitle: event.target.value },
+                })
+              }
+              className={inputClassName()}
+              placeholder="Black Friday Deals: Unbeatable Prices"
+            />
+          </Field>
+        </div>
+
+        <Field label="Page description">
+          <textarea
+            value={content.blackFriday.pageDescription}
+            onChange={(event) =>
+              setContent({
+                ...content,
+                blackFriday: { ...content.blackFriday, pageDescription: event.target.value },
+              })
+            }
+            className={inputClassName(true)}
+            placeholder="Massive discounts on handpicked products. Grab your favourites before the deals end!"
+          />
+        </Field>
+
+        <div className="space-y-3">
+          <h3 className="text-lg font-black text-[var(--brand-deep)]">🎨 Background Media</h3>
+          <p className="text-xs text-[var(--ink-soft)]">Upload an image or video/GIF to show behind the Black Friday banner and page header.</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Background image">
+              {content.blackFriday.backgroundImage ? (
+                <div className="mb-2 flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={content.blackFriday.backgroundImage} alt="Background preview" className="h-20 w-32 rounded-lg object-cover border border-black/10" />
+                  <button type="button" onClick={() => setContent({ ...content, blackFriday: { ...content.blackFriday, backgroundImage: undefined } })} className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200">Remove</button>
+                </div>
+              ) : null}
+              <ImageUploadButton folder="black-friday" label="Upload Image" onUpload={(url) => setContent({ ...content, blackFriday: { ...content.blackFriday, backgroundImage: url } })} />
+            </Field>
+            <Field label="Background video/GIF">
+              {content.blackFriday.backgroundVideo ? (
+                <div className="mb-2 flex items-center gap-2">
+                  <video src={content.blackFriday.backgroundVideo} className="h-20 w-32 rounded-lg object-cover border border-black/10" muted autoPlay loop playsInline />
+                  <button type="button" onClick={() => setContent({ ...content, blackFriday: { ...content.blackFriday, backgroundVideo: undefined } })} className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200">Remove</button>
+                </div>
+              ) : null}
+              <VideoUploadButton folder="black-friday" label="Upload Video" onUpload={(url) => setContent({ ...content, blackFriday: { ...content.blackFriday, backgroundVideo: url } })} />
+            </Field>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-lg font-black text-[var(--brand-deep)]">🛍️ Featured Products</h3>
+          <p className="text-xs text-[var(--ink-soft)]">Select products to feature on the Black Friday sale page.</p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {content.products.map((product, index) => {
+              const checked = content.blackFriday.featuredProductIds.includes(product.id);
+
+              return (
+                <label
+                  key={`bf-${product.id}-${index}`}
+                  className="flex items-start gap-3 rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(event) => {
+                      const featuredProductIds = event.target.checked
+                        ? [...content.blackFriday.featuredProductIds, product.id]
+                        : content.blackFriday.featuredProductIds.filter((id) => id !== product.id);
+
+                      setContent({
+                        ...content,
+                        blackFriday: { ...content.blackFriday, featuredProductIds },
+                      });
+                    }}
+                    className="mt-1 h-4 w-4 accent-[var(--brand)]"
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-[var(--brand-deep)]">{product.name}</p>
+                    <p className="text-xs text-[var(--ink-soft)]">{product.category} — GHS {product.price.toFixed(2)}</p>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="rounded-xl border border-black/10 bg-[var(--surface)] p-4">
           <p className="text-xs text-[var(--ink-soft)]">
-            <strong>Tip:</strong> Enable the &quot;Black Friday&quot; toggle in the <button type="button" onClick={() => setActiveSection("features")} className="text-[var(--brand)] font-semibold underline">Features</button> section to make the promo banner visible. Set an end date for a countdown timer to appear automatically.
+            <strong>Tip:</strong> Enable the &quot;Black Friday&quot; toggle in the <button type="button" onClick={() => setActiveSection("features")} className="text-[var(--brand)] font-semibold underline">Features</button> section to make the promo banner visible. Set an end date for a countdown timer to appear automatically. The sale page is at <code className="bg-black/5 px-1 rounded">/black-friday</code>.
           </p>
         </div>
         </Section>
@@ -1771,29 +1901,6 @@ export default function AdminPage() {
                   </label>
                   {product.noDeliveryFee && (
                     <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1"><TruckIcon size={14} /> This product ships for free</p>
-                  )}
-                </div>
-
-                <div className="flex flex-col justify-start gap-2 pt-1 border-t border-black/10 mt-4">
-                  <span className="text-sm font-semibold text-[var(--brand-deep)]">Payment Requirements</span>
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={product.requireFullPaymentBeforeDelivery === true}
-                      onChange={(event) => {
-                        const products = [...content.products];
-                        products[index] = {
-                          ...product,
-                          requireFullPaymentBeforeDelivery: event.target.checked || undefined,
-                        };
-                        setContent({ ...content, products });
-                      }}
-                      className="h-4 w-4 accent-[var(--brand)]"
-                    />
-                    <span className="text-sm text-[var(--ink)]">Require full payment before delivery</span>
-                  </label>
-                  {product.requireFullPaymentBeforeDelivery && (
-                    <p className="text-xs text-amber-700 font-semibold">⚠️ Customers must pay full amount upfront (no down payment option)</p>
                   )}
                 </div>
               </div>
@@ -2765,7 +2872,7 @@ export default function AdminPage() {
                     setContent({
                       ...content,
                       paymentSettings: {
-                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
+                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
                         paystackEnabled: event.target.checked,
                       },
                     })
@@ -2786,7 +2893,7 @@ export default function AdminPage() {
                     setContent({
                       ...content,
                       paymentSettings: {
-                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
+                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
                         manualEnabled: event.target.checked,
                       },
                     })
@@ -2794,54 +2901,6 @@ export default function AdminPage() {
                   className="h-5 w-5 accent-[var(--brand)]"
                 />
               </label>
-
-              <label className="flex items-center justify-between gap-4 cursor-pointer border-t border-black/10 pt-4">
-                <div>
-                  <p className="text-sm font-bold text-[var(--brand-deep)]">Down Payment Option</p>
-                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">Allow customers to pay a down payment (partial payment) now and full balance later.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={content.paymentSettings?.downPaymentEnabled ?? true}
-                  onChange={(event) =>
-                    setContent({
-                      ...content,
-                      paymentSettings: {
-                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
-                        downPaymentEnabled: event.target.checked,
-                      },
-                    })
-                  }
-                  className="h-5 w-5 accent-[var(--brand)]"
-                />
-              </label>
-
-              {content.paymentSettings?.downPaymentEnabled !== false ? (
-                <div className="border-t border-black/10 pt-4">
-                  <Field label="Down Payment Percentage">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={content.paymentSettings?.downPaymentPercentage ?? 40}
-                        onChange={(event) =>
-                          setContent({
-                            ...content,
-                            paymentSettings: {
-                              ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true, downPaymentEnabled: true, downPaymentPercentage: 40 }),
-                              downPaymentPercentage: Math.max(1, Math.min(100, Number(event.target.value) || 40)),
-                            },
-                          })
-                        }
-                        className={inputClassName()}
-                      />
-                      <span className="text-sm font-bold text-[var(--brand-deep)]">%</span>
-                    </div>
-                    <p className="text-xs text-[var(--ink-soft)] mt-1">Percentage of total order amount required as down payment (1-100%)</p>
-                  </Field>
-                </div>
-              ) : null}
             </div>
 
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">

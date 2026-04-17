@@ -24,6 +24,8 @@ export default async function Home() {
           eyebrow={content.flashSale.bannerEyebrow}
           title={content.flashSale.bannerTitle}
           description={content.flashSale.bannerDescription}
+          backgroundImage={content.flashSale.backgroundImage}
+          backgroundVideo={content.flashSale.backgroundVideo}
         />
       ) : null}
       <section className="panel overflow-hidden">

@@ -21,11 +21,11 @@ export async function GET(request: Request) {
   const isAdmin = await isCurrentUserAdmin();
 
   // Build query: user's own notifications + admin broadcasts (if admin)
+  // IMPORTANT: filters must come before .limit() for Supabase to generate valid SQL
   let query = supabaseAdmin
     .from('notifications')
     .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit);
+    .order('created_at', { ascending: false });
 
   if (isAdmin) {
     // Admin sees their own + all admin-targeted + broadcast notifications
@@ -38,6 +38,8 @@ export async function GET(request: Request) {
   if (unreadOnly) {
     query = query.eq('read', false);
   }
+
+  query = query.limit(limit);
 
   const { data, error } = await query;
 

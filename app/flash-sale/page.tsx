@@ -35,7 +35,23 @@ export default async function FlashSalePage() {
 
   return (
     <div className="space-y-6">
-      <section className="panel p-4 sm:p-6 md:p-8">
+      <section className="panel p-4 sm:p-6 md:p-8 relative overflow-hidden">
+        {content.flashSale.backgroundVideo ? (
+          <>
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video autoPlay loop muted playsInline className="absolute inset-0 h-full w-full object-cover">
+              <source src={content.flashSale.backgroundVideo} />
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/90 to-white/80 dark:from-gray-900/90 dark:to-gray-900/80" />
+          </>
+        ) : content.flashSale.backgroundImage ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={content.flashSale.backgroundImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/90 to-white/80 dark:from-gray-900/90 dark:to-gray-900/80" />
+          </>
+        ) : null}
+        <div className="relative z-10">
         <p className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-700">
           {content.flashSale.pageEyebrow}
         </p>
@@ -46,6 +62,7 @@ export default async function FlashSalePage() {
         <p className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">
           <CoinIcon size={16} /> Save up to <span className="ml-1 text-red-600">{content.flashSale.discountPercentage}%</span>
         </p>
+        </div>
       </section>
 
       <section className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">

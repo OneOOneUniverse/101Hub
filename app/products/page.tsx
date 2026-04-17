@@ -173,6 +173,8 @@ function ProductsPageContent() {
           eyebrow={content.flashSale.bannerEyebrow}
           title={content.flashSale.bannerTitle}
           description={content.flashSale.bannerDescription}
+          backgroundImage={content.flashSale.backgroundImage}
+          backgroundVideo={content.flashSale.backgroundVideo}
         />
       ) : null}
       <section className="panel p-4 sm:p-6 md:p-8">

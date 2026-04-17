@@ -128,7 +128,6 @@ export async function POST(request: Request) {
   })();
   const processingFee = subtotal > 0 ? (deliverySettings.processingFee ?? 4) : 0;
   const total = subtotal + delivery + processingFee;
-  const downpayment = total * 0.4;
   const orderRef = `GH-${Date.now()}`;
   const paymentStatus =
     paymentMethod === "paystack"
@@ -148,7 +147,6 @@ export async function POST(request: Request) {
     delivery,
     processingFee,
     total,
-    downpayment,
     paymentMethod,
     paymentStatus,
   });
@@ -168,7 +166,6 @@ export async function POST(request: Request) {
     delivery,
     processing_fee: processingFee,
     total,
-    downpayment,
     payment_method: paymentMethod,
     payment_proof: body.paymentProof ?? null,
     payment_status: paymentMethod === "paystack" ? "verified" : "pending",
@@ -214,7 +211,7 @@ export async function POST(request: Request) {
       paymentMethod: paymentMethod === "paystack" ? "Paystack (Online)" : "Manual Transfer",
       customer: { name: body.customerName, phone: body.phone, address: body.address, note: body.note ?? "", deliveryType: body.deliveryType },
       lines,
-      totals: { subtotal, delivery, processingFee, total, downpayment },
+      totals: { subtotal, delivery, processingFee, total },
       storePhone: process.env.STORE_PHONE ?? "+233 548656980",
       storeEmail: process.env.STORE_EMAIL ?? "josephsakyi247@gmail.com",
       message: paymentMethod === "manual"

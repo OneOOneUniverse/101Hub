@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BoxIcon, CoinIcon } from "@/components/Icons";
+import { BoxIcon } from "@/components/Icons";
 import CustomerOrderMessages from "@/components/CustomerOrderMessages";
 import { 
   getOrderFromLocal, 
@@ -11,7 +11,6 @@ import {
   getOrderStatusColor, 
   getOrderStatusDescription,
   getOrderTimeline, 
-  calculateRemainingBalance,
   getPaymentMethodDisplay,
   canCancelOrder,
   formatOrderDate,
@@ -134,7 +133,6 @@ export default function OrderTrackingPage() {
   }
 
   const timeline = getOrderTimeline(order.orderStatus);
-  const remainingBalance = calculateRemainingBalance(order);
 
   return (
     <div className="space-y-6">
@@ -232,10 +230,6 @@ export default function OrderTrackingPage() {
           </div>
           <div className="border-t border-black/10 pt-3"></div>
           <div className="flex justify-between">
-            <span className="text-[var(--ink-soft)]">Downpayment (40%)</span>
-            <span className="font-bold text-amber-900">GHS {order.downpayment.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
             <span className="text-[var(--ink-soft)]">Payment Status</span>
             <span
               className={`font-bold px-2 py-1 rounded text-xs ${
@@ -254,13 +248,6 @@ export default function OrderTrackingPage() {
             </span>
           </div>
           <div className="border-t border-black/10 pt-3"></div>
-          <div className="flex justify-between font-bold text-base">
-            <span>Remaining Balance (60%)</span>
-            <span className="text-amber-900">GHS {remainingBalance.toFixed(2)}</span>
-          </div>
-          <p className="text-xs text-amber-700 mt-2 flex items-center gap-1.5">
-            <CoinIcon size={14} className="shrink-0" /> This amount will be collected from you when the driver delivers your order.
-          </p>
         </div>
       </section>
 
@@ -385,7 +372,7 @@ export default function OrderTrackingPage() {
         <section className="panel p-6 bg-red-50 border border-red-200">
           <h2 className="text-xl font-bold text-red-900 mb-2">Order Cancelled</h2>
           <p className="text-sm text-red-700">
-            This order has been cancelled. If you paid a downpayment, please contact us for a refund.
+            This order has been cancelled. If you made a payment, please contact us for a refund.
           </p>
         </section>
       )}
