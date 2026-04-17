@@ -21,6 +21,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Cannot refer yourself" }, { status: 400 });
   }
 
-  await recordReferral(referrerId, user.id);
+  // Build a privacy-safe display name for the referrer's dashboard
+  const displayName = [
+    user.firstName,
+    user.lastName?.[0] ? `${user.lastName[0]}.` : "",
+  ]
+    .filter(Boolean)
+    .join(" ") || "A friend";
+
+  await recordReferral(referrerId, user.id, displayName);
   return NextResponse.json({ ok: true });
 }

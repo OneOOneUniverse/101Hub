@@ -11,6 +11,12 @@ type Tier = {
   badge_color: string;
 };
 
+type ReferredUser = {
+  referred_name: string;
+  status: string;
+  created_at: string;
+};
+
 type ReferralData = {
   code: string;
   totalPoints: number;
@@ -19,6 +25,7 @@ type ReferralData = {
   tiers: Tier[];
   referralCount: number;
   unlockedDiscounts: { tierName: string; discount: string }[];
+  referredUsers: ReferredUser[];
 };
 
 const TIER_THEMES = [
@@ -70,6 +77,7 @@ export default function ReferralDashboard() {
   }
 
   const { code, totalPoints, currentTier, nextTier, tiers, referralCount, unlockedDiscounts } = data;
+  const referredUsers = data.referredUsers ?? [];
 
   const progressPercent = nextTier
     ? Math.min(
@@ -472,6 +480,49 @@ export default function ReferralDashboard() {
                     {d.tierName} tier reward
                   </p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* ── Referred Friends List ── */}
+      {referredUsers.length > 0 && (
+        <div className="panel p-5 sm:p-6">
+          <h3 className="font-semibold text-[var(--ink)] mb-3">
+            👥 Friends You Referred
+          </h3>
+          <div className="space-y-2">
+            {referredUsers.map((u, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-orange-400 to-orange-600">
+                    {(u.referred_name?.[0] ?? "?").toUpperCase()}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--ink)]">
+                      {u.referred_name || "A friend"}
+                    </p>
+                    <p className="text-xs text-[var(--ink-soft)]">
+                      {new Date(u.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    u.status === "purchased"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-orange-100 text-orange-700"
+                  }`}
+                >
+                  {u.status === "purchased" ? "Purchased ✓" : "Signed Up"}
+                </span>
               </div>
             ))}
           </div>

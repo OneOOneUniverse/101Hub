@@ -12,6 +12,12 @@ export type ReferralTier = {
   badge_color: string;
 };
 
+export type ReferredUser = {
+  referred_name: string;
+  status: string;
+  created_at: string;
+};
+
 export type ReferralInfo = {
   code: string;
   totalPoints: number;
@@ -20,6 +26,7 @@ export type ReferralInfo = {
   tiers: ReferralTier[];
   referralCount: number;
   unlockedDiscounts: { tierName: string; discount: string }[];
+  referredUsers: ReferredUser[];
 };
 
 // --------------- Helpers ---------------
@@ -64,49 +71,38 @@ export async function resolveReferralCode(code: string): Promise<string | null> 
   return data?.user_id ?? null;
 }
 
-/** Record a referral relationship and award signup points. */
-export async function recordReferral(referrerId: string, referredId: string) {
+/** Record a referral relationship. Points are awarded by the DB trigger. */
+export async function recordReferral(
+  referrerId: string,
+  referredId: string,
+  referredName?: string
+) {
   // Prevent self-referral
   if (referrerId === referredId) return;
 
-  const { data: ref, error } = await supabaseAdmin
+  // Insert referral — the trg_award_referral_signup trigger
+  // automatically awards 100 points to the referrer
+  const { error } = await supabaseAdmin
     .from("referrals")
-    .insert({ referrer_id: referrerId, referred_id: referredId, status: "signup" })
-    .select("id")
-    .single();
+    .insert({
+      referrer_id: referrerId,
+      referred_id: referredId,
+      referred_name: referredName ?? "",
+      status: "signup",
+    });
 
-  if (error) return; // already referred (unique constraint)
-
-  // Award signup bonus to referrer
-  await supabaseAdmin.from("referral_points").insert({
-    user_id: referrerId,
-    points: 100,
-    reason: "referral_signup",
-    referral_id: ref.id,
-  });
+  if (error) return; // already referred (unique constraint on referred_id)
 }
 
-/** Award purchase-conversion points to the referrer. */
+/** Mark a referred user's first purchase. Points are awarded by the DB trigger. */
 export async function awardPurchasePoints(buyerUserId: string) {
-  const { data: referral } = await supabaseAdmin
-    .from("referrals")
-    .select("id, referrer_id, status")
-    .eq("referred_id", buyerUserId)
-    .single();
-
-  if (!referral || referral.status === "purchased") return;
-
+  // Update the status — the trg_award_referral_purchase trigger
+  // automatically awards 250 points to the referrer
   await supabaseAdmin
     .from("referrals")
     .update({ status: "purchased", converted_at: new Date().toISOString() })
-    .eq("id", referral.id);
-
-  await supabaseAdmin.from("referral_points").insert({
-    user_id: referral.referrer_id,
-    points: 250,
-    reason: "referral_purchase",
-    referral_id: referral.id,
-  });
+    .eq("referred_id", buyerUserId)
+    .neq("status", "purchased");
 }
 
 /** Fetch full referral dashboard data for a user. */
@@ -139,11 +135,14 @@ export async function getReferralInfo(userId: string): Promise<ReferralInfo> {
     }
   }
 
-  // Count referrals
-  const { count } = await supabaseAdmin
+  // Referral list (who this user referred)
+  const { data: referralList } = await supabaseAdmin
     .from("referrals")
-    .select("id", { count: "exact", head: true })
-    .eq("referrer_id", userId);
+    .select("referred_name, status, created_at")
+    .eq("referrer_id", userId)
+    .order("created_at", { ascending: false });
+
+  const referralCount = referralList?.length ?? 0;
 
   // Unlocked discounts
   const unlockedDiscounts = tiers
@@ -161,7 +160,8 @@ export async function getReferralInfo(userId: string): Promise<ReferralInfo> {
     currentTier,
     nextTier,
     tiers,
-    referralCount: count ?? 0,
+    referralCount,
     unlockedDiscounts,
+    referredUsers: (referralList ?? []) as ReferredUser[],
   };
 }
