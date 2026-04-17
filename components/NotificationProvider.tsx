@@ -37,6 +37,8 @@ function Toast({
       service: '🔧',
       payment: '💳',
       status_update: '✅',
+      promo: '🎉',
+      system: 'ℹ️',
     };
     return icons[notification.type] || 'ℹ️';
   };
@@ -48,6 +50,8 @@ function Toast({
       service: 'bg-amber-50 border-amber-200 text-amber-900',
       payment: 'bg-green-50 border-green-200 text-green-900',
       status_update: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+      promo: 'bg-pink-50 border-pink-200 text-pink-900',
+      system: 'bg-gray-50 border-gray-200 text-gray-900',
     };
     return colors[notification.type] || 'bg-gray-50 border-gray-200 text-gray-900';
   };
