@@ -33,7 +33,6 @@ export async function GET(
     subtotal: data.subtotal as number,
     delivery: data.delivery as number,
     total: data.total as number,
-    downpayment: data.downpayment as number,
     paymentMethod: data.payment_method as OrderData["paymentMethod"],
     paymentStatus: data.payment_status as OrderData["paymentStatus"],
     orderStatus: data.order_status as OrderData["orderStatus"],
