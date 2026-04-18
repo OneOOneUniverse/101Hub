@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { PromoSlide } from "@/lib/site-content-types";
@@ -15,6 +15,7 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
   const [activeIndex, setActiveIndex] = useState(0);
   const normalizedIndex = slides.length ? activeIndex % slides.length : 0;
   const activeSlideIsVideo = slides[normalizedIndex]?.mediaType === "video";
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
 
   const advanceSlide = useCallback(() => {
     setActiveIndex((current) => (current + 1) % slides.length);
@@ -32,6 +33,15 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
 
     return () => window.clearInterval(timer);
   }, [slides.length, activeSlideIsVideo, advanceSlide]);
+
+  // Restart video when its slide becomes active again
+  useEffect(() => {
+    const video = videoRefs.current.get(normalizedIndex);
+    if (video) {
+      video.currentTime = 0;
+      video.play().catch(() => {/* autoplay may be blocked */});
+    }
+  }, [normalizedIndex]);
 
   if (!slides.length) {
     return null;
@@ -54,8 +64,12 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
             >
               {slide.mediaType === "video" ? (
                 <video
+                  ref={(el) => {
+                    if (el) videoRefs.current.set(index, el);
+                    else videoRefs.current.delete(index);
+                  }}
                   src={slide.src}
-                  autoPlay
+                  autoPlay={isActive}
                   muted
                   playsInline
                   onEnded={slides.length > 1 ? advanceSlide : undefined}
