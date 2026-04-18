@@ -752,6 +752,81 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+
+        {/* Marquee / Alert Banner */}
+        <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-[var(--brand-deep)]">📢 Marquee Alert Banner</p>
+              <p className="mt-0.5 text-xs text-[var(--ink-soft)]">
+                Scrolling text banner shown across the top of the site for announcements, promos, etc.
+              </p>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={content.marquee?.enabled ?? false}
+                onChange={(e) =>
+                  setContent({
+                    ...content,
+                    marquee: { ...content.marquee, enabled: e.target.checked, text: content.marquee?.text ?? "" },
+                  })
+                }
+                className="h-4 w-4 rounded accent-[var(--brand)]"
+              />
+              <span className="text-xs font-bold">{content.marquee?.enabled ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+
+          <Field label="Marquee text">
+            <input
+              value={content.marquee?.text ?? ""}
+              onChange={(e) =>
+                setContent({
+                  ...content,
+                  marquee: { ...content.marquee, enabled: content.marquee?.enabled ?? false, text: e.target.value },
+                })
+              }
+              placeholder="e.g. 🔥 Free delivery on all orders above GHS 200! Shop now →"
+              className={inputClassName()}
+            />
+          </Field>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Background color">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={content.marquee?.bgColor ?? "#000000"}
+                  onChange={(e) =>
+                    setContent({
+                      ...content,
+                      marquee: { ...content.marquee, enabled: content.marquee?.enabled ?? false, text: content.marquee?.text ?? "", bgColor: e.target.value },
+                    })
+                  }
+                  className="h-9 w-12 cursor-pointer rounded border border-black/10"
+                />
+                <span className="text-xs text-[var(--ink-soft)]">{content.marquee?.bgColor ?? "#000000"}</span>
+              </div>
+            </Field>
+            <Field label="Text color">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={content.marquee?.textColor ?? "#ffffff"}
+                  onChange={(e) =>
+                    setContent({
+                      ...content,
+                      marquee: { ...content.marquee, enabled: content.marquee?.enabled ?? false, text: content.marquee?.text ?? "", textColor: e.target.value },
+                    })
+                  }
+                  className="h-9 w-12 cursor-pointer rounded border border-black/10"
+                />
+                <span className="text-xs text-[var(--ink-soft)]">{content.marquee?.textColor ?? "#ffffff"}</span>
+              </div>
+            </Field>
+          </div>
+        </div>
         </Section>
       ) : null}
 

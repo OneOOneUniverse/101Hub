@@ -229,6 +229,12 @@ export type SiteContent = {
   storeDescription: string;
   footerText: string;
   logoUrl?: string;
+  marquee?: {
+    enabled: boolean;
+    text: string;
+    bgColor?: string;
+    textColor?: string;
+  };
   footer?: FooterContent;
   features: SiteFeatures;
   home: HomeContent;

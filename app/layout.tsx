@@ -19,38 +19,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "101 Hub - Gadgets, Accessories & Tech Services Ghana | Shop Online",
+  title: "101 Hub - Shop Everything & Professional Services Ghana | Shop Online",
   description:
-    "Welcome to 101 Hub, Ghana's premier online tech store. Buy gadgets, phones, and accessories. Get professional tech services: game installation, device setup, repairs. Fast delivery, best prices guaranteed.",
+    "Welcome to 101 Hub, Ghana's premier online store. Shop everything from gadgets to fashion, home essentials, beauty products, and more. Get professional services: installation, setup, repairs. Fast delivery, best prices guaranteed.",
   keywords: [
     "101 hub",
     "101hub",
     "101 hub ghana",
     "101 hub shop",
     "101 hub asamankese",
-    "gadgets store",
-    "buy gadgets online",
+    "online store ghana",
+    "buy online ghana",
+    "shop online",
     "electronics shop",
-    "tech accessories",
-    "mobile phones",
-    "gaming equipment",
-    "tech services",
+    "fashion ghana",
+    "home essentials",
+    "beauty products",
+    "professional services",
     "device setup",
-    "game installation",
-    "tech repair",
-    "ghana tech store",
-    "online electronics",
-    "tech shop ghana",
-    "affordable gadgets",
-    "asamankese tech shop",
-    "asamankese gadgets"
+    "installation services",
+    "ghana online store",
+    "online shopping ghana",
+    "affordable products",
+    "asamankese shop",
+    "asamankese store",
+    "fast delivery ghana"
   ],
   icons: {
     icon: "/img/log.png",
   },
   openGraph: {
-    title: "101 Hub - Gadgets, Accessories & Tech Services Ghana",
-    description: "101 Hub: Your trusted tech store in Ghana. Shop gadgets, accessories & professional tech services. Fast delivery & competitive prices.",
+    title: "101 Hub - Shop Everything & Professional Services Ghana",
+    description: "101 Hub: Your trusted online store in Ghana. Shop everything you need & get professional services. Fast delivery & competitive prices.",
     type: "website",
     locale: "en_US",
     siteName: "101 Hub",
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
         url: "https://www.101hub.shop/img/log.png",
         width: 1200,
         height: 630,
-        alt: "101 Hub - Ghana Tech Store & Gadget Shop",
+        alt: "101 Hub - Ghana's One-Stop Online Store",
       },
     ],
   },
@@ -87,7 +87,7 @@ const jsonLd = {
   "url": "https://www.101hub.shop",
   "logo": "https://www.101hub.shop/img/log.png",
   "image": "https://www.101hub.shop/img/log.png",
-  "description": "101 Hub is Ghana's trusted online tech store. Buy gadgets, phones, accessories and get professional tech services including game installation, device setup and repairs.",
+  "description": "101 Hub is Ghana's trusted online store. Shop everything from electronics and fashion to home essentials. Get professional services including installation, setup, and repairs.",
   "telephone": "+233548656980",
   "address": {
     "@type": "PostalAddress",
@@ -113,12 +113,12 @@ const jsonLd = {
   ],
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
-    "name": "Gadgets, Accessories & Tech Services",
+    "name": "Products & Services",
     "itemListElement": [
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Gadgets & Electronics" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Mobile Phones & Accessories" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Game Installation" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Device Setup & Repair" } }
+      { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Electronics & Gadgets" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Fashion & Accessories" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Home & Living" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Professional Services" } }
     ]
   }
 };

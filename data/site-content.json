@@ -1,7 +1,7 @@
 {
   "storeName": "101Hub",
-  "storeDescription": "Your one-stop destination for the latest tech — shop premium gadgets and get expert tech services, all in one place.",
-  "footerText": "Level up your tech life. Shop, upgrade, and get expert support — only at 101Hub.",
+  "storeDescription": "Your one-stop shop for everything — from gadgets and fashion to home essentials and professional services, all in one place.",
+  "footerText": "Shop everything you need. Browse, order, and get expert support — only at 101Hub.",
   "logoUrl": "https://res.cloudinary.com/dz5jwwdhw/image/upload/v1775903108/gadget-hub/logo/file_prqvle.png",
   "footer": {
     "phone": "+233 548656980",
@@ -19,8 +19,8 @@
   },
   "home": {
     "badge": "Shop + Expert Services",
-    "title": "The Future of Tech is Here — Explore, Shop & Upgrade.",
-    "description": "Discover the hottest phones, powerhouse laptops, immersive gaming gear, and smart-home essentials — then let our experts handle setup, installation, and optimization.",
+    "title": "Everything You Need — Explore, Shop & Enjoy.",
+    "description": "From the latest electronics and trending fashion to home essentials and beauty products — plus expert services for installation, setup, and more.",
     "primaryCtaLabel": "Shop Now",
     "primaryCtaHref": "/products",
     "secondaryCtaLabel": "Book a Service",
@@ -28,8 +28,8 @@
     "highlights": [
       {
         "id": "home-highlight-1",
-        "title": "Top-Tier Tech, Always in Stock",
-        "description": "From flagship phones to pro gaming rigs — we carry what matters most."
+        "title": "Top Products, Always in Stock",
+        "description": "From trending items to everyday essentials — we carry what matters most."
       },
       {
         "id": "home-highlight-2",
@@ -38,8 +38,8 @@
       },
       {
         "id": "home-highlight-3",
-        "title": "Expert Tech Support, On Demand",
-        "description": "Game installs, PC tune-ups, software setup — handled by pros."
+        "title": "Expert Services, On Demand",
+        "description": "Installation, setup, repairs, and more — handled by professionals."
       }
     ]
   },

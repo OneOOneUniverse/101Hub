@@ -9,6 +9,7 @@ import NavSearch from "@/components/NavSearch";
 import SiteFooter from "@/components/SiteFooter";
 import LiveSupportChat from "@/components/LiveSupportChat";
 import VisitorTracker from "@/components/VisitorTracker";
+import MarqueeBar from "@/components/MarqueeBar";
 import { useCartCount } from "@/lib/use-cart-count";
 import { useSyncBrowsingDataToProfile, useLoadUserBrowsingData } from "@/lib/use-sync-browsing-data";
 import type { FooterContent } from "@/lib/site-content-types";
@@ -18,6 +19,7 @@ type StoreData = {
   storeName?: string;
   footerText?: string;
   footer?: FooterContent;
+  marquee?: { enabled: boolean; text: string; bgColor?: string; textColor?: string };
 };
 
 export default function LayoutWrapper({
@@ -73,6 +75,13 @@ export default function LayoutWrapper({
     <>
       <Sidebar open={sidebarOpen} onClose={closeSidebar} />
       <VisitorTracker userId={user?.id} />
+      {storeData?.marquee?.enabled && storeData.marquee.text ? (
+        <MarqueeBar
+          text={storeData.marquee.text}
+          bgColor={storeData.marquee.bgColor}
+          textColor={storeData.marquee.textColor}
+        />
+      ) : null}
       <header className="sticky top-0 z-20 bg-transparent">
         <GenNavbar onSidebarToggle={() => setSidebarOpen((v) => !v)} />
         <div className="mt-2 max-w-6xl mx-auto px-3 sm:px-4 md:px-5">

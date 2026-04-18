@@ -430,6 +430,14 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     storeDescription: toText(candidate.storeDescription, defaultContent.storeDescription),
     footerText: toText(candidate.footerText, defaultContent.footerText),
     logoUrl: toOptionalText(candidate.logoUrl) ?? defaultContent.logoUrl,
+    marquee: candidate.marquee && typeof candidate.marquee === "object"
+      ? {
+          enabled: !!(candidate.marquee as Record<string, unknown>).enabled,
+          text: String((candidate.marquee as Record<string, unknown>).text ?? ""),
+          bgColor: String((candidate.marquee as Record<string, unknown>).bgColor ?? "#000000"),
+          textColor: String((candidate.marquee as Record<string, unknown>).textColor ?? "#ffffff"),
+        }
+      : defaultContent.marquee,
     footer: sanitizeFooter(candidate.footer ?? (defaultContent as SiteContent).footer ?? {}),
     features: sanitizeFeatures(candidate.features, defaultContent.features),
     home: sanitizeHome(candidate.home, defaultContent.home),
