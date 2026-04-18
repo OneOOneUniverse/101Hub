@@ -11,7 +11,15 @@ import { saveOrderToLocal } from "@/lib/order-status";
 
 type CartLine = { productId: string; qty: number };
 
+type ActiveReward = {
+  id: number;
+  tierName: string;
+  discountPercent: number;
+  freeShipping: boolean;
+};
+
 const STORAGE_KEY = "101hub-cart";
+const REWARD_APPLIED_KEY = "101hub-reward-applied";
 const MANUAL_PAYMENT_NUMBER = "+233 548656980";
 
 const GHANA_REGIONS: Record<string, string[]> = {
@@ -86,6 +94,8 @@ export default function CheckoutForm() {
   const [showPaystack, setShowPaystack] = useState(false);
   const [paystackOrderRef, setPaystackOrderRef] = useState("");
   const [invalidProducts, setInvalidProducts] = useState<CartLine[]>([]);
+  const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
+  const [rewardApplied, setRewardApplied] = useState(false);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
   const paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "";
   const isPaystackConfigured = Boolean(paystackPublicKey) && !paystackPublicKey.startsWith("pk_test_xxx");
@@ -115,6 +125,23 @@ export default function CheckoutForm() {
       setItems(validItems);
     }
   }, [products, items]);
+
+  // Fetch active reward and check if applied from cart
+  useEffect(() => {
+    fetch("/api/referral/active-reward")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.hasReward) {
+          setActiveReward(d.reward);
+          // Check if reward was applied in cart
+          try {
+            const applied = localStorage.getItem(REWARD_APPLIED_KEY);
+            if (applied) setRewardApplied(true);
+          } catch {}
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const totals = useMemo(() => {
     const deliverySettings = content?.deliverySettings;
@@ -159,10 +186,12 @@ export default function CheckoutForm() {
     }
 
     const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
-    const total = subtotal + delivery + processingFee;
+    const rewardDiscount = rewardApplied && activeReward ? subtotal * activeReward.discountPercent / 100 : 0;
+    const effectiveDelivery = rewardApplied && activeReward?.freeShipping ? 0 : delivery;
+    const total = subtotal - rewardDiscount + effectiveDelivery + processingFee;
 
-    return { subtotal, delivery, processingFee, total };
-  }, [items, products, location, deliveryType, content?.deliverySettings]);
+    return { subtotal, delivery, processingFee, total, rewardDiscount, effectiveDelivery };
+  }, [items, products, location, deliveryType, content?.deliverySettings, rewardApplied, activeReward]);
 
   // Payment amount is the full total
   const paymentAmount = totals.total;
@@ -240,6 +269,7 @@ export default function CheckoutForm() {
           items,
           paymentMethod,
           paymentProof: paymentProofBase64,
+          applyReward: rewardApplied && activeReward ? true : false,
         }),
       });
 
@@ -270,6 +300,7 @@ export default function CheckoutForm() {
         setTimeout(() => {
           setShowPaymentAnimation(false);
           localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(REWARD_APPLIED_KEY);
           // Emit event so cart badge updates
           window.dispatchEvent(new Event("101hub:cart-updated"));
           saveOrderToLocal({
@@ -306,6 +337,7 @@ export default function CheckoutForm() {
   async function handlePaystackSuccess(reference: string) {
     setShowPaystack(false);
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(REWARD_APPLIED_KEY);
     window.dispatchEvent(new Event("101hub:cart-updated"));
 
     // Verify the payment server-side
@@ -1045,6 +1077,48 @@ export default function CheckoutForm() {
       {/* Order summary sidebar */}
       <aside className="panel p-6">
         <h2 className="text-xl font-black">Order Summary</h2>
+
+        {/* Reward toggle in checkout */}
+        {activeReward && (
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-lg">✨</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-emerald-900 truncate">
+                    {activeReward.tierName} Reward
+                  </p>
+                  <p className="text-xs text-emerald-700">
+                    {activeReward.discountPercent}% off
+                    {activeReward.freeShipping ? " + Free Shipping" : ""}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRewardApplied((prev) => {
+                    const next = !prev;
+                    if (next) {
+                      localStorage.setItem(REWARD_APPLIED_KEY, "true");
+                    } else {
+                      localStorage.removeItem(REWARD_APPLIED_KEY);
+                    }
+                    return next;
+                  });
+                }}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  rewardApplied
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : "bg-emerald-600 text-white hover:bg-emerald-700"
+                }`}
+              >
+                {rewardApplied ? "Remove" : "Apply"}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mt-4 space-y-2 text-sm">
           {items.map((line) => {
             const product = products.find((item) => item.id === line.productId);
@@ -1064,10 +1138,22 @@ export default function CheckoutForm() {
               <span className="text-[var(--ink-soft)]">Subtotal</span>
               <span className="font-semibold">GHS {totals.subtotal.toFixed(2)}</span>
             </div>
+            {rewardApplied && activeReward && totals.rewardDiscount > 0 && (
+              <div className="mt-1 flex items-center justify-between text-emerald-700">
+                <span className="flex items-center gap-1 text-xs">
+                  ✨ {activeReward.tierName} ({activeReward.discountPercent}% off)
+                </span>
+                <span className="font-semibold">−GHS {totals.rewardDiscount.toFixed(2)}</span>
+              </div>
+            )}
             <div className="mt-1 flex items-center justify-between">
               <span className="text-[var(--ink-soft)]">Delivery</span>
               <span className="font-semibold">
-                {totals.delivery === 0 ? "Free" : `GHS ${totals.delivery.toFixed(2)}`}
+                {rewardApplied && activeReward?.freeShipping
+                  ? "Free ✨"
+                  : totals.effectiveDelivery === 0
+                  ? "Free"
+                  : `GHS ${totals.effectiveDelivery.toFixed(2)}`}
               </span>
             </div>
             {totals.subtotal > 0 && totals.processingFee > 0 && (

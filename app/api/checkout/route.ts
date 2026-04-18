@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase";
 import { notifyAdmins, notifyUser } from "@/lib/db-notifications";
 import { sendOrderEmails } from "@/lib/email";
+import { redeemReward, getRewardStatus } from "@/lib/referral";
 
 async function brevoUpsertContact(email: string, name: string, phone: string) {
   const apiKey = process.env.BREVO_API_KEY;
@@ -38,6 +39,7 @@ type CheckoutPayload = {
   items?: Array<{ productId: string; qty: number }>;
   paymentMethod?: "paystack" | "manual";
   paymentProof?: string;
+  applyReward?: boolean;
 };
 
 type OrderLine = { name: string; qty: number; unitPrice: number; lineTotal: number };
@@ -128,8 +130,30 @@ export async function POST(request: Request) {
     return Math.max(...productFees, 0);
   })();
   const processingFee = subtotal > 0 ? (deliverySettings.processingFee ?? 4) : 0;
-  const total = subtotal + delivery + processingFee;
+  let total = subtotal + delivery + processingFee;
   const orderRef = `GH-${Date.now()}`;
+
+  // ── Apply referral reward if requested ──
+  let rewardDiscount = 0;
+  let rewardFreeShipping = false;
+  let rewardTierName = "";
+  let effectiveDelivery = delivery;
+
+  if (body.applyReward && clerkUser?.id) {
+    const rewardStatus = await getRewardStatus(clerkUser.id);
+    if (rewardStatus.activeReward) {
+      rewardDiscount = subtotal * rewardStatus.activeReward.discount_percent / 100;
+      rewardFreeShipping = rewardStatus.activeReward.free_shipping;
+      rewardTierName = rewardStatus.activeReward.tier_name;
+      if (rewardFreeShipping) {
+        effectiveDelivery = 0;
+      }
+      total = subtotal - rewardDiscount + effectiveDelivery + processingFee;
+      // Redeem the reward (marks as used, advances cycle if complete)
+      await redeemReward(clerkUser.id, orderRef);
+    }
+  }
+
   const paymentStatus =
     paymentMethod === "paystack"
       ? "Payment processing via Paystack..."
@@ -164,13 +188,15 @@ export async function POST(request: Request) {
     clerk_user_id: clerkUser?.id ?? null,
     items: lines,
     subtotal,
-    delivery,
+    delivery: effectiveDelivery,
     processing_fee: processingFee,
     total,
     payment_method: paymentMethod,
     payment_proof: body.paymentProof ?? null,
     payment_status: paymentMethod === "paystack" ? "verified" : "pending",
     order_status: paymentMethod === "paystack" ? "confirmed" : "payment_pending_admin_review",
+    reward_discount: rewardDiscount > 0 ? rewardDiscount : null,
+    reward_tier: rewardTierName || null,
   });
 
   if (dbError) {
@@ -222,7 +248,8 @@ export async function POST(request: Request) {
       paymentMethod: paymentMethod === "paystack" ? "Paystack (Online)" : "Manual Transfer",
       customer: { name: body.customerName, phone: body.phone, address: body.address, note: body.note ?? "", deliveryType: body.deliveryType },
       lines,
-      totals: { subtotal, delivery, processingFee, total },
+      totals: { subtotal, delivery: effectiveDelivery, processingFee, total, rewardDiscount },
+      reward: rewardDiscount > 0 ? { tierName: rewardTierName, discount: rewardDiscount, freeShipping: rewardFreeShipping } : null,
       storePhone: process.env.STORE_PHONE ?? "+233 548656980",
       storeEmail: process.env.STORE_EMAIL ?? "josephsakyi247@gmail.com",
       message: paymentMethod === "manual"

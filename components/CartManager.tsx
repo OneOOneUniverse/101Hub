@@ -10,7 +10,15 @@ import WishlistButton from "@/components/WishlistButton";
 
 type CartLine = { productId: string; qty: number };
 
+type ActiveReward = {
+  id: number;
+  tierName: string;
+  discountPercent: number;
+  freeShipping: boolean;
+};
+
 const STORAGE_KEY = "101hub-cart";
+const REWARD_APPLIED_KEY = "101hub-reward-applied";
 
 function readCart(): CartLine[] {
   if (typeof window === "undefined") {
@@ -39,6 +47,8 @@ export default function CartManager() {
   const { content, loading, error } = useStoreContent();
   const [lines, setLines] = useState<CartLine[]>(() => readCart());
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
+  const [rewardApplied, setRewardApplied] = useState(false);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
 
   useEffect(() => {
@@ -52,6 +62,35 @@ export default function CartManager() {
       window.removeEventListener("101hub:wishlist-updated", sync);
       window.removeEventListener("storage", sync);
     };
+  }, []);
+
+  // Fetch active reward
+  useEffect(() => {
+    fetch("/api/referral/active-reward")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.hasReward) setActiveReward(d.reward);
+      })
+      .catch(() => {});
+
+    // Check if reward was previously applied
+    try {
+      const applied = localStorage.getItem(REWARD_APPLIED_KEY);
+      if (applied) setRewardApplied(true);
+    } catch {}
+  }, []);
+
+  const toggleReward = useCallback(() => {
+    setRewardApplied((prev) => {
+      const next = !prev;
+      if (next) {
+        localStorage.setItem(REWARD_APPLIED_KEY, "true");
+      } else {
+        localStorage.removeItem(REWARD_APPLIED_KEY);
+      }
+      window.dispatchEvent(new Event("101hub:reward-updated"));
+      return next;
+    });
   }, []);
 
   const updateQty = useCallback((productId: string, qty: number) => {
@@ -215,21 +254,73 @@ export default function CartManager() {
 
       <aside className="panel p-4 sm:p-6">
         <h2 className="text-lg font-black sm:text-xl">Summary</h2>
+
+        {/* Reward application toggle */}
+        {activeReward && (
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-lg">✨</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-emerald-900 truncate">
+                    {activeReward.tierName} Reward
+                  </p>
+                  <p className="text-xs text-emerald-700">
+                    {activeReward.discountPercent}% off
+                    {activeReward.freeShipping ? " + Free Shipping" : ""}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={toggleReward}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  rewardApplied
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : "bg-emerald-600 text-white hover:bg-emerald-700"
+                }`}
+              >
+                {rewardApplied ? "Remove" : "Apply"}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mt-3 sm:mt-4 space-y-2 text-xs sm:text-sm">
           <div className="flex items-center justify-between">
             <span className="text-[var(--ink-soft)]">Subtotal</span>
             <span className="font-semibold">GHS {details.subtotal.toFixed(2)}</span>
           </div>
+          {rewardApplied && activeReward && (
+            <div className="flex items-center justify-between text-emerald-700">
+              <span className="flex items-center gap-1">
+                <span>✨</span> {activeReward.tierName} ({activeReward.discountPercent}% off)
+              </span>
+              <span className="font-semibold">
+                −GHS {(details.subtotal * activeReward.discountPercent / 100).toFixed(2)}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-[var(--ink-soft)]">Delivery</span>
             <span className="font-semibold">
-              {details.delivery === 0 ? "Free" : `GHS ${details.delivery.toFixed(2)}`}
+              {rewardApplied && activeReward?.freeShipping
+                ? "Free ✨"
+                : details.delivery === 0
+                ? "Free"
+                : `GHS ${details.delivery.toFixed(2)}`}
             </span>
           </div>
           <div className="mt-3 border-t border-black/10 pt-3">
             <div className="flex items-center justify-between text-sm sm:text-base">
               <span className="font-bold">Total</span>
-              <span className="font-black">GHS {details.total.toFixed(2)}</span>
+              <span className="font-black">
+                GHS {(
+                  rewardApplied && activeReward
+                    ? details.subtotal * (1 - activeReward.discountPercent / 100) +
+                      (activeReward.freeShipping ? 0 : details.delivery)
+                    : details.total
+                ).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>

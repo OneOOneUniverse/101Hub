@@ -38,6 +38,26 @@ type ReferralData = {
   recentClicks: ReferralClick[];
 };
 
+type RewardClaim = {
+  id: number;
+  tier_id: number;
+  tier_name: string;
+  cycle: number;
+  discount_percent: number;
+  free_shipping: boolean;
+  redeemed: boolean;
+  order_ref: string | null;
+  claimed_at: string;
+};
+
+type RewardStatus = {
+  currentCycle: number;
+  claims: RewardClaim[];
+  availableClaims: { tier: Tier; claimable: boolean; alreadyClaimed: boolean }[];
+  activeReward: RewardClaim | null;
+  roadmapComplete: boolean;
+};
+
 const TIER_THEMES = [
   { emoji: "🥉", from: "#cd7f32", to: "#8B4513", grid: "rgba(205,127,50,0.08)", dark: "#3d2510", mid: "#5c3a1a" },
   { emoji: "🥈", from: "#d1d5db", to: "#6b7280", grid: "rgba(192,192,192,0.08)", dark: "#2a2d33", mid: "#3f4349" },
@@ -50,13 +70,48 @@ export default function ReferralDashboard() {
   const [data, setData] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [rewardStatus, setRewardStatus] = useState<RewardStatus | null>(null);
+  const [claimingTier, setClaimingTier] = useState<number | null>(null);
+  const [claimError, setClaimError] = useState("");
+  const [claimSuccess, setClaimSuccess] = useState("");
 
   useEffect(() => {
-    fetch("/api/referral")
-      .then((r) => r.json())
-      .then((d) => { if (d.code) setData(d); })
+    Promise.all([
+      fetch("/api/referral").then((r) => r.json()),
+      fetch("/api/referral/rewards").then((r) => r.json()).catch(() => null),
+    ])
+      .then(([d, rewards]) => {
+        if (d.code) setData(d);
+        if (rewards && !rewards.error) setRewardStatus(rewards);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  const claimReward = useCallback(async (tierId: number, startNew = false) => {
+    setClaimingTier(tierId);
+    setClaimError("");
+    setClaimSuccess("");
+    try {
+      const res = await fetch("/api/referral/rewards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tierId, startNewCycle: startNew }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setClaimError(result.error || "Failed to claim reward");
+      } else {
+        setClaimSuccess(`Claimed! ${result.claim.discount_percent}% discount${result.claim.free_shipping ? " + Free Shipping" : ""} — apply it at checkout.`);
+        // Refresh reward status
+        const updated = await fetch("/api/referral/rewards").then((r) => r.json());
+        if (!updated.error) setRewardStatus(updated);
+      }
+    } catch {
+      setClaimError("Network error. Please try again.");
+    } finally {
+      setClaimingTier(null);
+    }
   }, []);
 
   const copyLink = useCallback(() => {
@@ -620,6 +675,161 @@ export default function ReferralDashboard() {
           })}
         </div>
       </div>
+
+      {/* ── Claim Rewards Section ── */}
+      {rewardStatus && (
+        <div className="panel p-5 sm:p-6">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+            <h3 className="font-semibold text-[var(--ink)]">
+              🎁 Claim Your Rewards
+            </h3>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-purple-100 text-purple-700">
+              Cycle {rewardStatus.currentCycle}
+            </span>
+          </div>
+
+          {/* Active reward banner */}
+          {rewardStatus.activeReward && (
+            <div className="mb-4 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 p-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">✨</span>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-emerald-900">
+                    Active Reward: {rewardStatus.activeReward.tier_name} — {rewardStatus.activeReward.discount_percent}% off
+                    {rewardStatus.activeReward.free_shipping ? " + Free Shipping" : ""}
+                  </p>
+                  <p className="text-xs text-emerald-700 mt-0.5">
+                    Apply this reward at checkout or in your cart before placing your order.
+                  </p>
+                </div>
+                <a
+                  href="/cart"
+                  className="shrink-0 px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                >
+                  Use Now →
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Claim error/success messages */}
+          {claimError && (
+            <div className="mb-3 rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-700">
+              {claimError}
+            </div>
+          )}
+          {claimSuccess && (
+            <div className="mb-3 rounded-lg bg-green-50 border border-green-200 px-4 py-2.5 text-sm text-green-700">
+              {claimSuccess}
+            </div>
+          )}
+
+          {/* Roadmap complete banner */}
+          {rewardStatus.roadmapComplete && (
+            <div className="mb-4 rounded-lg bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 p-4 text-center">
+              <p className="text-lg font-black text-violet-900 mb-1">🎉 Roadmap Complete!</p>
+              <p className="text-sm text-violet-700 mb-3">
+                You&apos;ve claimed and used all tier rewards in Cycle {rewardStatus.currentCycle}. Start a new cycle to earn them again!
+              </p>
+              <button
+                onClick={() => {
+                  // Find the first claimable tier for the new cycle
+                  const firstTier = rewardStatus.availableClaims.find((a) => totalPoints >= a.tier.min_points && (a.tier.discount_percent > 0 || a.tier.free_shipping));
+                  if (firstTier) {
+                    claimReward(firstTier.tier.id, true);
+                  }
+                }}
+                className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+              >
+                🔄 Start Cycle {rewardStatus.currentCycle + 1}
+              </button>
+            </div>
+          )}
+
+          {/* Tier reward cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {rewardStatus.availableClaims.map((item) => {
+              const claimed = item.alreadyClaimed;
+              const claim = rewardStatus.claims.find((c) => c.tier_id === item.tier.id);
+              const redeemed = claim?.redeemed === true;
+              const isActive = rewardStatus.activeReward?.tier_id === item.tier.id;
+
+              return (
+                <div
+                  key={item.tier.id}
+                  className={`rounded-xl border p-4 transition-all ${
+                    isActive
+                      ? "border-emerald-300 bg-emerald-50 ring-2 ring-emerald-200"
+                      : redeemed
+                      ? "border-gray-200 bg-gray-50 opacity-60"
+                      : claimed
+                      ? "border-blue-200 bg-blue-50"
+                      : item.claimable
+                      ? "border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 hover:shadow-md"
+                      : "border-gray-200 bg-gray-50 opacity-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                      style={{ backgroundColor: item.tier.badge_color }}
+                    >
+                      {redeemed ? "✓" : claimed ? "📦" : "🎁"}
+                    </span>
+                    <div>
+                      <p className="text-sm font-bold text-[var(--ink)]">{item.tier.name}</p>
+                      <p className="text-xs text-[var(--ink-soft)]">{item.tier.min_points} pts required</p>
+                    </div>
+                  </div>
+
+                  <p className="text-sm font-semibold mb-3" style={{ color: item.tier.badge_color }}>
+                    {item.tier.discount_percent}% discount
+                    {item.tier.free_shipping ? " + Free Shipping" : ""}
+                  </p>
+
+                  {redeemed ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 px-3 py-1.5 rounded-full bg-gray-200">
+                      ✓ Redeemed {claim?.order_ref ? `(${claim.order_ref})` : ""}
+                    </span>
+                  ) : isActive ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 px-3 py-1.5 rounded-full bg-emerald-200">
+                      ✨ Active — Use at checkout
+                    </span>
+                  ) : claimed ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 px-3 py-1.5 rounded-full bg-blue-200">
+                      Claimed — waiting to use
+                    </span>
+                  ) : item.claimable ? (
+                    <button
+                      onClick={() => claimReward(item.tier.id)}
+                      disabled={claimingTier === item.tier.id}
+                      className="w-full text-xs font-bold text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                      style={{ backgroundColor: item.tier.badge_color }}
+                    >
+                      {claimingTier === item.tier.id ? "Claiming..." : "Claim Reward"}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 px-3 py-1.5 rounded-full bg-gray-100">
+                      🔒 Need {item.tier.min_points} pts
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* How it works */}
+          <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
+            <p className="text-xs font-semibold text-blue-900 mb-2">💡 How Rewards Work</p>
+            <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
+              <li>Claim one reward at a time from your unlocked tiers</li>
+              <li>Apply it to your cart or checkout for a discount on your order</li>
+              <li>After using a reward, claim the next tier&apos;s reward</li>
+              <li>Complete all tiers to finish the roadmap and start a new cycle!</li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* ── Unlocked Discounts ── */}
       {unlockedDiscounts.length > 0 && (
