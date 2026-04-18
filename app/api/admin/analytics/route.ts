@@ -143,15 +143,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const days = Math.min(Math.max(Number(searchParams.get("days")) || 30, 1), 365);
 
-  const [pageViews, uniqueVisitors, signups, orders, topPages] = await Promise.all([
-    getDailyCounts("page_view", days),
+  const [uniqueVisitors, signups, orders, topPages] = await Promise.all([
     getUniqueVisitorsDailyCounts(days),
     getDailyCounts("signup", days),
     getOrderStats(days),
     getTopPages(days),
   ]);
 
-  const totalViews = pageViews.reduce((s, d) => s + d.count, 0);
   const totalUnique = uniqueVisitors.reduce((s, d) => s + d.count, 0);
   const totalSignups = signups.reduce((s, d) => s + d.count, 0);
   const totalOrders = orders.daily.reduce((s, d) => s + d.count, 0);
@@ -159,13 +157,11 @@ export async function GET(request: Request) {
   return NextResponse.json({
     days,
     summary: {
-      totalViews,
       totalUniqueVisitors: totalUnique,
       totalSignups,
       totalOrders,
       totalRevenue: orders.totalRevenue,
     },
-    pageViews,
     uniqueVisitors,
     signups,
     orders: orders.daily,

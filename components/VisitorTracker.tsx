@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 function getVisitorId(): string {
@@ -13,10 +13,34 @@ function getVisitorId(): string {
   return id;
 }
 
+/** Returns true if this page was already tracked this browser session. */
+function alreadyTracked(page: string): boolean {
+  const key = "101hub_tracked";
+  const raw = sessionStorage.getItem(key);
+  const set: string[] = raw ? (JSON.parse(raw) as string[]) : [];
+  if (set.includes(page)) return true;
+  set.push(page);
+  sessionStorage.setItem(key, JSON.stringify(set));
+  return false;
+}
+
 export default function VisitorTracker({ userId }: { userId?: string | null }) {
   const pathname = usePathname();
+  const sent = useRef(false);
 
   useEffect(() => {
+    // Reset ref when pathname changes so new pages still get tracked
+    sent.current = false;
+  }, [pathname]);
+
+  useEffect(() => {
+    // Guard: StrictMode double-mount protection
+    if (sent.current) return;
+    sent.current = true;
+
+    // Guard: don't re-track if same page was already tracked this session
+    if (alreadyTracked(pathname)) return;
+
     const track = async () => {
       try {
         const visitorId = getVisitorId();

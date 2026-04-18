@@ -22,13 +22,11 @@ type DailyCount = { date: string; count: number };
 type AnalyticsData = {
   days: number;
   summary: {
-    totalViews: number;
     totalUniqueVisitors: number;
     totalSignups: number;
     totalOrders: number;
     totalRevenue: number;
   };
-  pageViews: DailyCount[];
   uniqueVisitors: DailyCount[];
   signups: DailyCount[];
   orders: DailyCount[];
@@ -109,10 +107,9 @@ export default function AnalyticsDashboard() {
   }, [days, fetchData]);
 
   const chartData =
-    data?.pageViews.map((pv, i) => ({
-      date: formatDate(pv.date),
-      "Page Views": pv.count,
-      "Unique Visitors": data.uniqueVisitors[i]?.count ?? 0,
+    data?.uniqueVisitors.map((uv, i) => ({
+      date: formatDate(uv.date),
+      Visitors: uv.count,
       Signups: data.signups[i]?.count ?? 0,
       Orders: data.orders[i]?.count ?? 0,
     })) ?? [];
@@ -173,9 +170,8 @@ export default function AnalyticsDashboard() {
       </section>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <SummaryCard label="Page Views" value={data.summary.totalViews.toLocaleString()} icon="👁️" color="#3b82f6" />
-        <SummaryCard label="Unique Visitors" value={data.summary.totalUniqueVisitors.toLocaleString()} icon="👤" color="#8b5cf6" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard label="Visitors" value={data.summary.totalUniqueVisitors.toLocaleString()} icon="👤" color="#3b82f6" />
         <SummaryCard label="Signups" value={data.summary.totalSignups.toLocaleString()} icon="✍️" color="#22c55e" />
         <SummaryCard label="Orders" value={data.summary.totalOrders.toLocaleString()} icon="📦" color="#f59e0b" />
         <SummaryCard
@@ -186,20 +182,16 @@ export default function AnalyticsDashboard() {
         />
       </div>
 
-      {/* Visitors & views chart */}
+      {/* Daily visitors chart */}
       <section className="panel p-5">
-        <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">Daily Visitors & Page Views</h3>
+        <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">Daily Visitors</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <defs>
-                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorUnique" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -207,8 +199,7 @@ export default function AnalyticsDashboard() {
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend />
-              <Area type="monotone" dataKey="Page Views" stroke="#3b82f6" fillOpacity={1} fill="url(#colorViews)" />
-              <Area type="monotone" dataKey="Unique Visitors" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorUnique)" />
+              <Area type="monotone" dataKey="Visitors" stroke="#3b82f6" fillOpacity={1} fill="url(#colorVisitors)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
