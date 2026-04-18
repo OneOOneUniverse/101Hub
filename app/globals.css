@@ -51,6 +51,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background:
     radial-gradient(circle at 8% 10%, #fff3ec 0%, transparent 30%),

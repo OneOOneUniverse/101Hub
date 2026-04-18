@@ -38,6 +38,8 @@ function addToCart(productId: string) {
 
 type SortOption = "newest" | "oldest" | "price-asc" | "price-desc" | "name-asc" | "brand-asc";
 
+const PRODUCTS_PER_PAGE = 25;
+
 function ProductsPageContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
@@ -47,6 +49,7 @@ function ProductsPageContent() {
   const [category, setCategory] = useState("All");
   const [addedId, setAddedId] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [currentPage, setCurrentPage] = useState(1);
   const [reviewSummaryByProduct, setReviewSummaryByProduct] = useState<
     Record<string, { average: number; count: number }>
   >({});
@@ -140,6 +143,38 @@ function ProductsPageContent() {
 
     return result;
   }, [category, products, query, sortBy]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, category, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PRODUCTS_PER_PAGE));
+  const paginatedProducts = filtered.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
+
+  function goToPage(page: number) {
+    setCurrentPage(page);
+    document.getElementById("products-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function getPageNumbers(): (number | "...")[] {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  }
 
   if (loading) {
     return (
@@ -262,8 +297,8 @@ function ProductsPageContent() {
         </div>
       </section>
 
-      <section className="grid grid-cols-2 items-start gap-2 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
-        {filtered.map((item) => {
+      <section id="products-grid" className="grid grid-cols-2 items-start gap-2 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        {paginatedProducts.map((item) => {
           // Product-specific discount takes priority
           const hasProductDiscount = item.discount && item.discount > 0;
           const discountPercent = hasProductDiscount ? item.discount : 0;
@@ -420,6 +455,52 @@ function ProductsPageContent() {
           );
         })}
       </section>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-1.5 py-4 sm:gap-2" aria-label="Products pagination">
+          <button
+            type="button"
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-bold text-[var(--ink)] shadow-sm hover:bg-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Previous page"
+          >
+            ‹
+          </button>
+
+          {getPageNumbers().map((page, idx) =>
+            page === "..." ? (
+              <span key={`dots-${idx}`} className="px-1.5 text-sm text-[var(--ink-soft)]">…</span>
+            ) : (
+              <button
+                key={page}
+                type="button"
+                onClick={() => goToPage(page)}
+                className={`min-w-[2.25rem] rounded-lg px-2.5 py-2 text-sm font-bold shadow-sm ${
+                  page === currentPage
+                    ? "bg-[var(--brand)] text-white"
+                    : "border border-black/10 bg-white text-[var(--ink)] hover:bg-[var(--surface)]"
+                }`}
+                aria-label={`Page ${page}`}
+                aria-current={page === currentPage ? "page" : undefined}
+              >
+                {page}
+              </button>
+            )
+          )}
+
+          <button
+            type="button"
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-bold text-[var(--ink)] shadow-sm hover:bg-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Next page"
+          >
+            ›
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
