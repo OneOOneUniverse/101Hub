@@ -159,6 +159,7 @@ function sanitizePromoSlide(slide: unknown, index: number, fallback?: PromoSlide
     alt: toText(candidate.alt, fallback?.alt ?? "Promotional banner"),
     title: toText(candidate.title, fallback?.title ?? "Untitled promo"),
     subtitle: toText(candidate.subtitle, fallback?.subtitle ?? ""),
+    mediaType: candidate.mediaType === "video" ? "video" : fallback?.mediaType,
     eventName: toOptionalText(candidate.eventName) ?? fallback?.eventName,
     actionUrl: toOptionalText(candidate.actionUrl) ?? fallback?.actionUrl,
     startDate: toOptionalText(candidate.startDate) ?? fallback?.startDate,
