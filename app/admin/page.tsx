@@ -1042,18 +1042,11 @@ export default function AdminPage() {
                   />
                 </Field>
                 <Field label="Media Type">
-                  <select
-                    value={slide.mediaType ?? "image"}
-                    onChange={(event) => {
-                      const promoSlides = [...content.promoSlides];
-                      promoSlides[index] = { ...slide, mediaType: event.target.value as "image" | "video" };
-                      setContent({ ...content, promoSlides });
-                    }}
-                    className={inputClassName()}
-                  >
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${slide.mediaType === "video" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>
+                      {slide.mediaType === "video" ? "Video" : "Image"}
+                    </span>
+                  </div>
                 </Field>
                 <Field label={slide.mediaType === "video" ? "Video path" : "Image path"}>
                   <input
@@ -1065,15 +1058,28 @@ export default function AdminPage() {
                     }}
                     className={inputClassName()}
                   />
-                  <ImageUploadButton
-                    folder="promo-slides"
-                    onUpload={(url) => {
-                      const promoSlides = [...content.promoSlides];
-                      promoSlides[index] = { ...slide, src: url };
-                      setContent({ ...content, promoSlides });
-                    }}
-                    label={slide.mediaType === "video" ? "Upload Video" : "Upload Image"}
-                  />
+                  <div className="flex gap-2">
+                    <ImageUploadButton
+                      folder="promo-slides"
+                      resourceType="image"
+                      onUpload={(url) => {
+                        const promoSlides = [...content.promoSlides];
+                        promoSlides[index] = { ...slide, src: url, mediaType: "image" };
+                        setContent({ ...content, promoSlides });
+                      }}
+                      label="Upload Image"
+                    />
+                    <ImageUploadButton
+                      folder="promo-slides"
+                      resourceType="video"
+                      onUpload={(url) => {
+                        const promoSlides = [...content.promoSlides];
+                        promoSlides[index] = { ...slide, src: url, mediaType: "video" };
+                        setContent({ ...content, promoSlides });
+                      }}
+                      label="Upload Video"
+                    />
+                  </div>
                 </Field>
                 <Field label="Alt text">
                   <input

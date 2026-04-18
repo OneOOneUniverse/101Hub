@@ -8,6 +8,8 @@ interface ImageUploadButtonProps {
   folder?: string;
   multiple?: boolean;
   label?: string;
+  /** Cloudinary resource type – "image" (default) or "video" */
+  resourceType?: "image" | "video";
 }
 
 type SignatureResponse = {
@@ -25,6 +27,7 @@ export default function ImageUploadButton({
   folder = "products",
   multiple = false,
   label = "Upload",
+  resourceType = "image",
 }: ImageUploadButtonProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +42,7 @@ export default function ImageUploadButton({
       const sigResponse = await fetch("/api/admin/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folder, resourceType: "image" }),
+        body: JSON.stringify({ folder, resourceType }),
       });
 
       if (!sigResponse.ok) {
@@ -63,7 +66,7 @@ export default function ImageUploadButton({
         body.append("folder", sig.folder);
 
         const cloudResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+          `https://api.cloudinary.com/v1_1/${sig.cloudName}/${resourceType}/upload`,
           { method: "POST", body }
         );
 
@@ -100,7 +103,7 @@ export default function ImageUploadButton({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+        accept={resourceType === "video" ? "video/mp4,video/webm,video/ogg,video/quicktime" : "image/jpeg,image/png,image/webp,image/gif,image/avif"}
         multiple={multiple}
         className="hidden"
         onChange={(event) => {
