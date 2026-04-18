@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import GenNavbar from "@/components/GenNavbar";
 import Sidebar from "@/components/Sidebar";
 import FloatingCart from "@/components/FloatingCart";
 import NavSearch from "@/components/NavSearch";
 import SiteFooter from "@/components/SiteFooter";
 import LiveSupportChat from "@/components/LiveSupportChat";
+import VisitorTracker from "@/components/VisitorTracker";
 import { useCartCount } from "@/lib/use-cart-count";
 import { useSyncBrowsingDataToProfile, useLoadUserBrowsingData } from "@/lib/use-sync-browsing-data";
 import type { FooterContent } from "@/lib/site-content-types";
@@ -28,6 +30,7 @@ export default function LayoutWrapper({
   const cartCount = useCartCount();
   const [cartEnabled, setCartEnabled] = useState(true);
   const [storeData, setStoreData] = useState<StoreData | null>(null);
+  const { user } = useUser();
   
   // Load user's saved browsing data on mount if signed in
   useLoadUserBrowsingData();
@@ -69,6 +72,7 @@ export default function LayoutWrapper({
   return (
     <>
       <Sidebar open={sidebarOpen} onClose={closeSidebar} />
+      <VisitorTracker userId={user?.id} />
       <header className="sticky top-0 z-20 bg-transparent">
         <GenNavbar onSidebarToggle={() => setSidebarOpen((v) => !v)} />
         <div className="mt-2 max-w-6xl mx-auto px-3 sm:px-4 md:px-5">

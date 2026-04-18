@@ -31,6 +31,7 @@ import ImageUploadButton from "@/components/ImageUploadButton";
 import VideoUploadButton from "@/components/VideoUploadButton";
 import GalleryImageManager from "@/components/GalleryImageManager";
 import AdminSupportChats from "@/components/AdminSupportChats";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -215,6 +216,7 @@ function Section({
 
 type AdminSectionId =
   | "dashboard"
+  | "analytics"
   | "features"
   | "store"
   | "homepage"
@@ -237,6 +239,7 @@ type AdminSectionId =
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
+  { id: "analytics", label: "📊 Analytics" },
   { id: "features", label: "Features" },
   { id: "store", label: "Store Basics" },
   { id: "homepage", label: "Homepage" },
@@ -640,6 +643,10 @@ export default function AdminPage() {
 
           <ServiceRequestsDashboard />
         </>
+      ) : null}
+
+      {activeSection === "analytics" ? (
+        <AnalyticsDashboard />
       ) : null}
 
       {activeSection === "features" ? (

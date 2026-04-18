@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getSiteContent } from "@/lib/site-content";
 import { supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { notifyAdmins, notifyUser } from "@/lib/db-notifications";
 import { sendOrderEmails } from "@/lib/email";
 
@@ -175,6 +176,16 @@ export async function POST(request: Request) {
   if (dbError) {
     console.error("[checkout] Supabase insert failed:", dbError.message);
   }
+
+  // Track order in analytics
+  void supabase.from("analytics_events").insert({
+    event_type: "order",
+    user_id: clerkUser?.id ?? null,
+    page: "/checkout",
+    metadata: { order_ref: orderRef, total, payment_method: paymentMethod },
+  }).then(({ error }) => {
+    if (error) console.error("[checkout] analytics insert failed:", error.message);
+  });
 
   // Persistent notifications (awaited so serverless doesn't kill them)
   try {

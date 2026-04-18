@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { headers } from "next/headers";
+import { supabase } from "@/lib/supabase";
 
 type ClerkUserCreatedEvent = {
   type: string;
@@ -94,6 +95,15 @@ export async function POST(request: Request) {
   const lastName = event.data.last_name ?? "";
 
   await addContactToBrevo(primaryEmail, firstName, lastName);
+
+  // Track signup in analytics
+  await supabase.from("analytics_events").insert({
+    event_type: "signup",
+    user_id: event.data.id,
+    metadata: { email: primaryEmail },
+  }).then(({ error }) => {
+    if (error) console.error("[clerk-webhook] analytics insert failed:", error.message);
+  });
 
   return NextResponse.json({ success: true });
 }
