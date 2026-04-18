@@ -55,6 +55,11 @@ html {
   scroll-behavior: smooth;
 }
 
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 body {
   background:
     radial-gradient(circle at 8% 10%, #fff3ec 0%, transparent 30%),
