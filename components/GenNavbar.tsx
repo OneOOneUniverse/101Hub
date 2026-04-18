@@ -3,17 +3,15 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import CartBadge from "./CartBadge";
 import NotificationBell from "./NotificationBell";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { getAvatarById } from "@/lib/avatar-options";
 
 export default function GenNavbar({
-  onCartClick,
+  onSidebarToggle,
 }: {
-  onCartClick?: () => void;
+  onSidebarToggle?: () => void;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -26,13 +24,6 @@ export default function GenNavbar({
   const [isAdmin, setIsAdmin] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
   const [storeName, setStoreName] = useState("101Hub");
-  const [features, setFeatures] = useState({
-    flashSale: true,
-    wishlist: true,
-    services: true,
-    cart: true,
-    checkout: true,
-  });
 
   useEffect(() => {
     let isActive = true;
@@ -43,26 +34,10 @@ export default function GenNavbar({
         const data = (await response.json()) as {
           logoUrl?: string;
           storeName?: string;
-          features?: {
-            flashSale?: boolean;
-            wishlist?: boolean;
-            services?: boolean;
-            cart?: boolean;
-            checkout?: boolean;
-          };
         };
         if (isActive) {
           if (data.logoUrl) setLogoUrl(data.logoUrl);
           if (data.storeName) setStoreName(data.storeName);
-          if (data.features) {
-            setFeatures({
-              flashSale: data.features.flashSale ?? true,
-              wishlist: data.features.wishlist ?? true,
-              services: data.features.services ?? true,
-              cart: data.features.cart ?? true,
-              checkout: data.features.checkout ?? true,
-            });
-          }
         }
       } catch {
         // keep defaults
@@ -124,7 +99,16 @@ export default function GenNavbar({
   }
 
   return (
-    <nav className={`gen-nav${menuOpen ? " mobile-open" : ""}`} id="gen-nav">
+    <nav className="gen-nav" id="gen-nav">
+      {/* Hamburger — opens sidebar */}
+      <button
+        className="gen-hamburger"
+        aria-label="Open menu"
+        onClick={onSidebarToggle}
+      >
+        <span></span><span></span><span></span>
+      </button>
+
       <Link href="/" className="gen-logo">
         {logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -144,46 +128,11 @@ export default function GenNavbar({
         )}
         <span className="gen-logo-text">{storeName}</span>
       </Link>
-      <button
-        className="gen-hamburger"
-        id="gen-ham"
-        aria-label="Toggle menu"
-        onClick={() => setMenuOpen((v) => !v)}
-      >
-        <span></span><span></span><span></span>
-      </button>
-      <ul id="gen-menu" className={menuOpen ? "open" : ""}>
-        <li><Link href="/">Home</Link></li>
-        <li>
-          <a href="#">Products <span className="gen-arrow">▾</span></a>
-          <ul>
-            <li><Link href="/products">All Products</Link></li>
-            {features.flashSale ? <li><Link href="/flash-sale">Flash Sale</Link></li> : null}
-            {features.wishlist ? <li><Link href="/wishlist">Wishlist</Link></li> : null}
-          </ul>
-        </li>
-        {(features.services || features.checkout) ? (
-          <li>
-            <a href="#">Services <span className="gen-arrow">▾</span></a>
-            <ul>
-              {features.services ? <li><Link href="/services">All Services</Link></li> : null}
-              {features.checkout ? <li><Link href="/checkout">Checkout</Link></li> : null}
-            </ul>
-          </li>
-        ) : null}
-        <li><Link href="/faqs">FAQs</Link></li>
-        <li><Link href="/orders">Track Order</Link></li>
-        <li><Link href="/referral">🎯 Referrals</Link></li>
-        <li><Link href="/app">📱 Get App</Link></li>
-      </ul>
+
       <div className="gen-nav-actions">
-        {/* Cart badge — desktop only; mobile uses FAB */}
-        <div className="gen-cart-desktop">
-          {features.cart && onCartClick && <CartBadge onClick={onCartClick} />}
-        </div>
         {/* Notification bell */}
         <NotificationBell />
-        {/* Profile avatar — always visible on all screen sizes */}
+        {/* Profile avatar */}
         <div className="gen-profile-wrap" ref={profileRef}>
           <button
             className="gen-profile-btn"
@@ -238,32 +187,31 @@ export default function GenNavbar({
           border: 2px solid #ff6b35;
           box-shadow: 0 4px 12px rgba(0,0,0,.18);
           padding: 0 16px;
-          position: relative;
-          flex-wrap: wrap;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           box-sizing: border-box;
+          gap: 8px;
         }
         .gen-nav *, .gen-nav *::before, .gen-nav *::after { box-sizing: border-box; }
-        .gen-nav ul { list-style: none; margin: 0; padding: 0; }
         .gen-logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-right: auto; text-decoration: none; }
         .gen-logo-img { height: 40px; width: auto; max-width: 160px; object-fit: contain; display: block; }
         .gen-logo-text { color: #fff; font-size: 18px; font-weight: 600; white-space: nowrap; }
-        .gen-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; align-items: center; justify-content: center; flex-direction:column; gap:0; }
-        .gen-hamburger span { display: block; background: #fff; transition: all .3s; width:22px; height:2px; border-radius:2px; margin:3px 0; }
-        .gen-nav > ul { display: flex; justify-content:center; flex-wrap: wrap; }
-        .gen-nav > ul > li { position: relative; }
-        .gen-nav > ul > li > a { display: flex; align-items: center; gap: 4px; padding: 0 16px; height: 52px; color: #fff; font-size: 14px; font-weight: 500; text-transform: none; text-decoration: none; transition: background .2s, color .2s; white-space: nowrap; }
-        .gen-nav > ul > li > a:hover, .gen-nav > ul > li:hover > a { background: #ff6b35; color: #000; }
-        .gen-arrow { font-size: .7em; opacity: .8; }
-        .gen-nav > ul > li > ul { display: none; position: absolute; top: 100%; left: 0; background: #1a1a1a; min-width: 170px; border-radius: 0 0 6px 6px; box-shadow: 0 8px 24px rgba(255,107,53,.18); z-index: 1000; overflow: hidden; }
-        .gen-nav > ul > li:hover > ul { display: block; }
-        .gen-nav > ul > li > ul > li > a { display: block; padding: 10px 18px; color: #fff; font-size: 13px; text-decoration: none; transition: background .15s, color .15s; }
-        .gen-nav > ul > li > ul > li > a:hover { background: #ff6b35; color: #000; }
-        .gen-nav > ul > li > ul > li:last-child { border-radius: 0 0 6px 6px; overflow: hidden; }
-        .gen-nav > ul > li > ul > li:last-child > a { border-radius: 0 0 6px 6px; }
+        .gen-hamburger {
+          display: flex;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          flex-shrink: 0;
+          border-radius: 50%;
+          transition: background 0.2s;
+        }
+        .gen-hamburger:hover { background: rgba(255,255,255,0.1); }
+        .gen-hamburger span { display: block; background: #fff; width: 20px; height: 2px; border-radius: 2px; margin: 3px 0; }
         /* Nav actions — always visible, pushed to far right */
         .gen-nav-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-        .gen-cart-desktop { display: flex; align-items: center; }
         /* Profile button */
         .gen-profile-wrap { position: relative; }
         .gen-profile-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ff6b35; background: #1a1a1a; color: #fff; cursor: pointer; padding: 0; transition: border-color .2s, box-shadow .2s; overflow: hidden; }
@@ -273,25 +221,6 @@ export default function GenNavbar({
         .gen-profile-item { display: block; width: 100%; padding: 10px 16px; color: #fff; font-size: 13px; font-weight: 500; text-decoration: none; background: none; border: none; text-align: left; cursor: pointer; transition: background .15s, color .15s; }
         .gen-profile-item:hover { background: #ff6b35; color: #000; }
         .gen-logout-btn:disabled { opacity: .5; cursor: not-allowed; }
-        @media (max-width: 768px) {
-          .gen-hamburger { display: flex; }
-          .gen-nav { display: flex; flex-wrap: wrap; }
-          .gen-logo { margin-right: auto; justify-self: unset; }
-          .gen-cart-desktop { display: none; }
-          .gen-nav > ul { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; background: #000000; border-radius: 0 0 8px 8px; box-shadow: 0 12px 32px rgba(0,0,0,.2); z-index: 9999; padding: 8px 0; overflow: hidden; }
-          .gen-nav > ul.open { display: flex; }
-          .gen-nav.mobile-open { border-radius: 8px 8px 0 0; }
-          .gen-nav > ul > li > a { height: auto; padding: 14px 20px; }
-          .gen-nav > ul > li:last-child { border-radius: 0; overflow: visible; }
-          .gen-nav > ul > li:last-child > a { border-radius: 0; }
-          .gen-nav > ul > li > ul { display: block; position: static; box-shadow: none; border-radius: 0; overflow: visible; background: rgba(255,107,53,.1); min-width: 0; }
-          .gen-nav > ul > li > ul > li:last-child { border-radius: 0; overflow: visible; }
-          .gen-nav > ul > li > ul > li:last-child > a { border-radius: 0; }
-          .gen-nav > ul > li > ul > li > a { padding: 10px 32px; }
-          .gen-nav.mobile-open .gen-hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-          .gen-nav.mobile-open .gen-hamburger span:nth-child(2) { opacity: 0; }
-          .gen-nav.mobile-open .gen-hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-        }
       `}</style>
     </nav>
   );

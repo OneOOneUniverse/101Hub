@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import SiteLoader from "@/components/SiteLoader";
@@ -151,7 +150,6 @@ export default async function RootLayout({
           <ReferralTracker />
           <NotificationProvider>
             <div className="relative flex min-h-screen flex-col overflow-x-hidden">
-              <Sidebar />
               <LayoutWrapper>
                 <main className="flex-1 flex flex-col max-w-6xl w-full mx-auto px-3 sm:px-4 md:px-5 space-y-4 sm:space-y-6 md:space-y-8">{children}</main>
               </LayoutWrapper>

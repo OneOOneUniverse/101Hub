@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import GenNavbar from "@/components/GenNavbar";
+import Sidebar from "@/components/Sidebar";
 import FloatingCart from "@/components/FloatingCart";
 import NavSearch from "@/components/NavSearch";
 import SiteFooter from "@/components/SiteFooter";
@@ -23,6 +24,7 @@ export default function LayoutWrapper({
   children: React.ReactNode;
 }) {
   const [cartOpen, setCartOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const cartCount = useCartCount();
   const [cartEnabled, setCartEnabled] = useState(true);
   const [storeData, setStoreData] = useState<StoreData | null>(null);
@@ -32,6 +34,8 @@ export default function LayoutWrapper({
   
   // Sync browsing data to user profile periodically if signed in
   useSyncBrowsingDataToProfile();
+
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   useEffect(() => {
     let isActive = true;
@@ -64,8 +68,9 @@ export default function LayoutWrapper({
 
   return (
     <>
+      <Sidebar open={sidebarOpen} onClose={closeSidebar} />
       <header className="sticky top-0 z-20 bg-transparent">
-        <GenNavbar onCartClick={cartEnabled ? () => setCartOpen(true) : undefined} />
+        <GenNavbar onSidebarToggle={() => setSidebarOpen((v) => !v)} />
         <div className="mt-2 max-w-6xl mx-auto px-3 sm:px-4 md:px-5">
           <NavSearch />
         </div>
