@@ -9,25 +9,68 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-async function requireAdmin() {
+/**
+ * POST /api/admin/upload
+ *
+ * TWO modes:
+ *
+ * 1. **Signature mode** (JSON body with `{ folder, resourceType }`)
+ *    Returns a Cloudinary signature + params so the client can upload
+ *    directly to Cloudinary — no file size limit from Vercel.
+ *
+ * 2. **Legacy proxy mode** (multipart FormData with a `file` field)
+ *    Streams the file through this server to Cloudinary.
+ *    Still subject to the ~4.5 MB Vercel body limit.
+ */
+export async function POST(request: Request) {
+  // ── Auth ──
   const { userId } = await auth();
-
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-
   const isAdmin = await isCurrentUserAdmin();
   if (!isAdmin) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
-  return null;
-}
+  const contentType = request.headers.get("content-type") ?? "";
 
-export async function POST(request: Request) {
-  const denied = await requireAdmin();
-  if (denied) return denied;
+  // ── Mode 1: Signature (JSON body) ──
+  if (contentType.includes("application/json")) {
+    const body = (await request.json()) as {
+      folder?: string;
+      resourceType?: string;
+    };
 
+    const folder =
+      typeof body.folder === "string" && body.folder.trim()
+        ? `gadget-hub/${body.folder.trim().replace(/[^a-z0-9-_/]/gi, "-")}`
+        : "gadget-hub/products";
+
+    const resourceType = body.resourceType === "video" ? "video" : "image";
+    const timestamp = Math.round(Date.now() / 1000);
+
+    const paramsToSign: Record<string, string | number> = {
+      timestamp,
+      folder,
+    };
+
+    const signature = cloudinary.utils.api_sign_request(
+      paramsToSign,
+      process.env.CLOUDINARY_API_SECRET!
+    );
+
+    return NextResponse.json({
+      signature,
+      timestamp,
+      folder,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      resourceType,
+    });
+  }
+
+  // ── Mode 2: Legacy proxy (FormData) ──
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -37,7 +80,7 @@ export async function POST(request: Request) {
 
   const file = formData.get("file");
   const folder = formData.get("folder");
-  const mediaType = formData.get("type"); // "image" or "video"
+  const mediaType = formData.get("type");
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file provided." }, { status: 400 });
@@ -56,14 +99,6 @@ export async function POST(request: Request) {
     if (!allowedImageTypes.includes(file.type)) {
       return NextResponse.json({ error: "Only image files are allowed (JPEG, PNG, WebP, GIF, AVIF)." }, { status: 400 });
     }
-  }
-
-  const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100 MB video, 10 MB image
-  if (file.size > maxSize) {
-    return NextResponse.json(
-      { error: `File too large. Maximum size is ${isVideo ? "100" : "10"} MB.` },
-      { status: 400 }
-    );
   }
 
   const arrayBuffer = await file.arrayBuffer();
