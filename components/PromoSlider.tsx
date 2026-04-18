@@ -89,9 +89,6 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
                 />
               )}
               <figcaption className="promo-slide__caption">
-                <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/85">
-                  {slide.eventName || "Ongoing Offer"}
-                </p>
                 <h2 className="mt-1 text-lg font-black leading-tight text-white sm:mt-2 sm:text-2xl md:text-3xl">
                   {slide.title}
                 </h2>
