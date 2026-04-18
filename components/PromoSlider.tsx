@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { PromoSlide } from "@/lib/site-content-types";
@@ -14,18 +14,24 @@ type PromoSliderProps = {
 export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
   const [activeIndex, setActiveIndex] = useState(0);
   const normalizedIndex = slides.length ? activeIndex % slides.length : 0;
+  const activeSlideIsVideo = slides[normalizedIndex]?.mediaType === "video";
 
+  const advanceSlide = useCallback(() => {
+    setActiveIndex((current) => (current + 1) % slides.length);
+  }, [slides.length]);
+
+  // Auto-advance timer only for image slides
   useEffect(() => {
-    if (slides.length < 2) {
+    if (slides.length < 2 || activeSlideIsVideo) {
       return;
     }
 
     const timer = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % slides.length);
+      advanceSlide();
     }, AUTO_SLIDE_MS);
 
     return () => window.clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, activeSlideIsVideo, advanceSlide]);
 
   if (!slides.length) {
     return null;
@@ -46,16 +52,28 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
               className={`promo-slide ${isActive ? "promo-slide--active" : ""}`}
               aria-hidden={!isActive}
             >
-              <Image
-                src={slide.src}
-                alt={slide.alt}
-                width={1920}
-                height={640}
-                priority={isActive}
-                sizes="100vw"
-                quality={75}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+              {slide.mediaType === "video" ? (
+                <video
+                  src={slide.src}
+                  autoPlay
+                  muted
+                  playsInline
+                  onEnded={slides.length > 1 ? advanceSlide : undefined}
+                  loop={slides.length <= 1}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={slide.src}
+                  alt={slide.alt}
+                  width={1920}
+                  height={640}
+                  priority={isActive}
+                  sizes="100vw"
+                  quality={75}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              )}
               <figcaption className="promo-slide__caption">
                 <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/85">
                   {slide.eventName || "Ongoing Offer"}

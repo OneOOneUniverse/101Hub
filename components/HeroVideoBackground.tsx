@@ -44,6 +44,7 @@ export default function HeroVideoBackground({
         ref={dRef}
         key={`desktop-${dIdx}`}
         autoPlay
+        loop={dVids.length === 1}
         muted
         playsInline
         preload="metadata"
@@ -56,6 +57,7 @@ export default function HeroVideoBackground({
         ref={mRef}
         key={`mobile-${mIdx}`}
         autoPlay
+        loop={mVids.length === 1}
         muted
         playsInline
         preload="metadata"

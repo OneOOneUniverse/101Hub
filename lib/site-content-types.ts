@@ -66,6 +66,8 @@ export type PromoSlide = {
   alt: string;
   title: string;
   subtitle: string;
+  /** Media type – defaults to "image" when omitted */
+  mediaType?: "image" | "video";
   /** Optional offer/event name for organization */
   eventName?: string;
   /** Optional URL or path to navigate when slide is clicked */

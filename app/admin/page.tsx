@@ -1041,7 +1041,21 @@ export default function AdminPage() {
                     className={inputClassName()}
                   />
                 </Field>
-                <Field label="Image path">
+                <Field label="Media Type">
+                  <select
+                    value={slide.mediaType ?? "image"}
+                    onChange={(event) => {
+                      const promoSlides = [...content.promoSlides];
+                      promoSlides[index] = { ...slide, mediaType: event.target.value as "image" | "video" };
+                      setContent({ ...content, promoSlides });
+                    }}
+                    className={inputClassName()}
+                  >
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                  </select>
+                </Field>
+                <Field label={slide.mediaType === "video" ? "Video path" : "Image path"}>
                   <input
                     value={slide.src}
                     onChange={(event) => {
@@ -1058,7 +1072,7 @@ export default function AdminPage() {
                       promoSlides[index] = { ...slide, src: url };
                       setContent({ ...content, promoSlides });
                     }}
-                    label="Upload Image"
+                    label={slide.mediaType === "video" ? "Upload Video" : "Upload Image"}
                   />
                 </Field>
                 <Field label="Alt text">
