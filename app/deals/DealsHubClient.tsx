@@ -16,8 +16,9 @@ type Props = {
 export default function DealsHubClient({ dealsHub, products }: Props) {
   const { isSignedIn } = useUser();
   const [points, setPoints] = useState(0);
-  const [activeTab, setActiveTab] = useState<"stores" | "games">("stores");
   const [prizeMessage, setPrizeMessage] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+  const [redeemMsg, setRedeemMsg] = useState("");
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -46,8 +47,32 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
     setTimeout(() => setPrizeMessage(""), 5000);
   }, [refreshPoints]);
 
+  const handleRedeem = useCallback(async () => {
+    if (redeeming) return;
+    setRedeeming(true);
+    setRedeemMsg("");
+    try {
+      const res = await fetch("/api/deals/redeem", { method: "POST" });
+      const data = (await res.json()) as { discountCedis?: number; pointsUsed?: number; remainingBalance?: number; error?: string };
+      if (!res.ok) {
+        setRedeemMsg(data.error ?? "Failed to redeem");
+      } else {
+        setRedeemMsg(`✅ Redeemed GHS ${data.discountCedis} discount! Use it at checkout.`);
+        refreshPoints();
+      }
+    } catch {
+      setRedeemMsg("Network error — try again");
+    } finally {
+      setRedeeming(false);
+      setTimeout(() => setRedeemMsg(""), 6000);
+    }
+  }, [redeeming, refreshPoints]);
+
   const enabledStores = dealsHub.specialStores.filter((s) => s.enabled);
   const hasGames = dealsHub.spinWheel.enabled || dealsHub.scratchCard.enabled || dealsHub.trivia.enabled;
+  const minRedeem = dealsHub.minRedeemPoints || 0;
+  const canRedeem = minRedeem > 0 ? points >= minRedeem : points >= dealsHub.pointsPerCedi;
+  const progressPct = minRedeem > 0 ? Math.min(100, Math.round((points / minRedeem) * 100)) : 100;
 
   return (
     <div className="deals-hub">
@@ -86,6 +111,35 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         </div>
       </section>
 
+      {/* Reward Claim Section */}
+      {isSignedIn && minRedeem > 0 && (
+        <section className="deals-redeem">
+          <div className="deals-redeem-inner">
+            <h2 className="deals-redeem-title">🎁 Claim Your Rewards</h2>
+            <p className="deals-redeem-desc">
+              Earn <strong>{minRedeem.toLocaleString()}</strong> points to unlock a discount you can use at checkout.
+            </p>
+            <div className="deals-progress-bar">
+              <div className="deals-progress-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            <div className="deals-progress-labels">
+              <span>{points.toLocaleString()} pts</span>
+              <span>{minRedeem.toLocaleString()} pts</span>
+            </div>
+            {canRedeem ? (
+              <button onClick={handleRedeem} disabled={redeeming} className="deals-redeem-btn">
+                {redeeming ? "Redeeming..." : `Redeem GHS ${Math.floor(points / dealsHub.pointsPerCedi)} Discount`}
+              </button>
+            ) : (
+              <p className="deals-redeem-hint">
+                {minRedeem - points} more points to go!
+              </p>
+            )}
+            {redeemMsg && <p className="deals-redeem-msg">{redeemMsg}</p>}
+          </div>
+        </section>
+      )}
+
       {/* Prize notification */}
       {prizeMessage && (
         <div className="deals-prize-toast">
@@ -93,141 +147,101 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         </div>
       )}
 
-      {/* Tab bar */}
-      <div className="deals-tabs">
-        <button
-          onClick={() => setActiveTab("stores")}
-          className={`deals-tab ${activeTab === "stores" ? "deals-tab--active" : ""}`}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
-          Stores
-        </button>
-        {hasGames && (
-          <button
-            onClick={() => setActiveTab("games")}
-            className={`deals-tab ${activeTab === "games" ? "deals-tab--active" : ""}`}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            Games
-          </button>
-        )}
-      </div>
-
-      {/* ─── STORES TAB ─── */}
-      {activeTab === "stores" && (
+      {/* ─── STORES SECTION ─── */}
+      {enabledStores.length > 0 && (
         <section className="deals-section">
-          {enabledStores.length === 0 ? (
-            <div className="deals-empty">
-              <span className="deals-empty-icon">🏪</span>
-              <p>No stores available yet. Check back soon!</p>
-            </div>
-          ) : (
-            <div className="deals-stores-grid">
-              {enabledStores.map((store) => {
-                const productCount = products.filter((p) =>
-                  Array.isArray(store.featuredProductIds) && store.featuredProductIds.includes(p.id)
-                ).length;
-                const hasImg = !!store.backgroundImage;
-                return (
-                  <Link key={store.id} href={`/deals/store/${store.slug}`} className="deals-card group/card">
-                    {/* Card background: image or gradient fallback */}
-                    {hasImg ? (
-                      <img src={store.backgroundImage} alt="" className="deals-card-img" />
-                    ) : null}
-                    <div
-                      className="deals-card-gradient"
-                      style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }}
-                    />
-                    {/* Hover overlay from dealcc */}
-                    <div className="deals-card-hover-overlay" />
-                    {/* Radial pulse glow */}
-                    <div className="deals-card-pulse" />
-                    {/* Decorative dots from dealcc */}
-                    <div className="deals-card-dots">
-                      <span /><span /><span />
-                    </div>
-                    {/* Content */}
-                    <div className="deals-card-body" style={{ color: store.textColor }}>
-                      <span className="deals-card-emoji">{store.emoji}</span>
-                      <h3 className="deals-card-name">{store.name}</h3>
-                      <p className="deals-card-desc">{store.description}</p>
-                      {/* "Explore Now" button from dealcc */}
-                      <span className="deals-card-btn">
-                        <span className="deals-card-btn-sweep" />
-                        <span className="deals-card-btn-text">Explore Now</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="deals-card-btn-arrow"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                      </span>
-                    </div>
-                    {/* Holographic shine */}
-                    <div className="deals-card-shine" />
-                    {/* Bottom-left glow orb from dealcc */}
-                    <div className="deals-card-orb" />
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <h2 className="deals-section-heading">
+            <span className="deals-section-icon">🏪</span> Special Stores
+          </h2>
+          <div className="deals-stores-grid">
+            {enabledStores.map((store) => {
+              const hasImg = !!store.backgroundImage;
+              return (
+                <Link key={store.id} href={`/deals/store/${store.slug}`} className="deals-card group/card">
+                  {hasImg ? (
+                    <img src={store.backgroundImage} alt="" className="deals-card-img" />
+                  ) : null}
+                  <div
+                    className="deals-card-gradient"
+                    style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }}
+                  />
+                  <div className="deals-card-hover-overlay" />
+                  <div className="deals-card-pulse" />
+                  <div className="deals-card-dots">
+                    <span /><span /><span />
+                  </div>
+                  <div className="deals-card-body" style={{ color: store.textColor }}>
+                    <span className="deals-card-emoji">{store.emoji}</span>
+                    <h3 className="deals-card-name">{store.name}</h3>
+                    <p className="deals-card-desc">{store.description}</p>
+                    <span className="deals-card-btn">
+                      <span className="deals-card-btn-sweep" />
+                      <span className="deals-card-btn-text">Explore Now</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="deals-card-btn-arrow"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                    </span>
+                  </div>
+                  <div className="deals-card-shine" />
+                  <div className="deals-card-orb" />
+                </Link>
+              );
+            })}
+          </div>
         </section>
       )}
 
-      {/* ─── GAMES TAB ─── */}
-      {activeTab === "games" && (
-        <section className="deals-section deals-games">
-          {!isSignedIn && (
-            <div className="deals-login-prompt">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              <p><Link href="/login" className="deals-login-link">Sign in</Link> to play games and earn points!</p>
-            </div>
-          )}
+      {/* ─── GAMES SECTIONS (each game in its own section) ─── */}
+      {hasGames && !isSignedIn && (
+        <section className="deals-section">
+          <div className="deals-login-prompt">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            <p><Link href="/login" className="deals-login-link">Sign in</Link> to play games and earn points!</p>
+          </div>
+        </section>
+      )}
 
-          {dealsHub.spinWheel.enabled && (
-            <div className="deals-game-card">
-              <div className="deals-game-header">
-                <div className="deals-game-icon">🎡</div>
-                <div>
-                  <h2 className="deals-game-title">{dealsHub.spinWheel.title}</h2>
-                  <p className="deals-game-desc">{dealsHub.spinWheel.description}</p>
-                </div>
-              </div>
-              <div className="deals-game-body">
-                <SpinWheel slices={dealsHub.spinWheel.slices} onResult={handlePrize} disabled={!isSignedIn} />
-              </div>
+      {dealsHub.spinWheel.enabled && (
+        <section className="deals-section">
+          <h2 className="deals-section-heading">
+            <span className="deals-section-icon">🎡</span> {dealsHub.spinWheel.title}
+          </h2>
+          <p className="deals-section-desc">{dealsHub.spinWheel.description}</p>
+          <div className="deals-game-card">
+            <div className="deals-game-body">
+              <SpinWheel slices={dealsHub.spinWheel.slices} onResult={handlePrize} disabled={!isSignedIn} />
             </div>
-          )}
+          </div>
+        </section>
+      )}
 
-          {dealsHub.scratchCard.enabled && (
-            <div className="deals-game-card deals-game-card--scratch">
-              <div className="deals-game-header">
-                <div className="deals-game-icon">🎟️</div>
-                <div>
-                  <h2 className="deals-game-title">{dealsHub.scratchCard.title}</h2>
-                  <p className="deals-game-desc">{dealsHub.scratchCard.description}</p>
-                </div>
-              </div>
-              <div className="deals-game-body">
-                <ScratchCard onResult={handlePrize} disabled={!isSignedIn} />
-              </div>
+      {dealsHub.scratchCard.enabled && (
+        <section className="deals-section">
+          <h2 className="deals-section-heading">
+            <span className="deals-section-icon">🎟️</span> {dealsHub.scratchCard.title}
+          </h2>
+          <p className="deals-section-desc">{dealsHub.scratchCard.description}</p>
+          <div className="deals-game-card deals-game-card--scratch">
+            <div className="deals-game-body">
+              <ScratchCard onResult={handlePrize} disabled={!isSignedIn} />
             </div>
-          )}
+          </div>
+        </section>
+      )}
 
-          {dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && (
-            <div className="deals-game-card">
-              <div className="deals-game-header">
-                <div className="deals-game-icon">🧠</div>
-                <div>
-                  <h2 className="deals-game-title">{dealsHub.trivia.title}</h2>
-                  <p className="deals-game-desc">{dealsHub.trivia.description}</p>
-                </div>
-              </div>
-              <div className="deals-game-body">
-                {isSignedIn ? (
-                  <DailyTrivia questions={dealsHub.trivia.questions} />
-                ) : (
-                  <p className="text-center text-sm opacity-60">Sign in to play trivia</p>
-                )}
-              </div>
+      {dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && (
+        <section className="deals-section">
+          <h2 className="deals-section-heading">
+            <span className="deals-section-icon">🧠</span> {dealsHub.trivia.title}
+          </h2>
+          <p className="deals-section-desc">{dealsHub.trivia.description}</p>
+          <div className="deals-game-card">
+            <div className="deals-game-body">
+              {isSignedIn ? (
+                <DailyTrivia questions={dealsHub.trivia.questions} />
+              ) : (
+                <p className="text-center text-sm opacity-60">Sign in to play trivia</p>
+              )}
             </div>
-          )}
+          </div>
         </section>
       )}
 
@@ -414,69 +428,129 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
         }
 
-        /* Tabs */
-        .deals-tabs {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          justify-content: center;
-          gap: 0.5rem;
-          padding: 0 1rem;
-          margin-bottom: 2rem;
-        }
-
-        .deals-tab {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          padding: 0.6rem 1.4rem;
-          font-size: 0.85rem;
-          font-weight: 700;
-          border-radius: 99px;
-          border: 1.5px solid rgba(124, 58, 237, 0.2);
-          background: transparent;
-          color: var(--ink-soft, #64748b);
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .deals-tab:hover {
-          border-color: #7c3aed;
-          color: #7c3aed;
-          background: rgba(124, 58, 237, 0.05);
-        }
-
-        .deals-tab--active {
-          background: linear-gradient(135deg, #7c3aed, #6366f1);
-          color: #fff;
-          border-color: transparent;
-          box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
-        }
-
-        .deals-tab--active:hover {
-          color: #fff;
-          background: linear-gradient(135deg, #6d28d9, #4f46e5);
-        }
-
         /* Sections */
         .deals-section {
           position: relative;
           z-index: 1;
           max-width: 72rem;
           margin: 0 auto;
-          padding: 0 1rem 3rem;
+          padding: 0 1rem 2.5rem;
         }
 
-        .deals-empty {
-          text-align: center;
-          padding: 4rem 2rem;
+        .deals-section-heading {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.3rem;
+          font-weight: 900;
+          color: var(--brand-deep, #1e1b4b);
+          margin-bottom: 1rem;
+          padding: 0 0.25rem;
+        }
+
+        .deals-section-icon {
+          font-size: 1.5rem;
+        }
+
+        .deals-section-desc {
           color: var(--ink-soft, #64748b);
+          font-size: 0.85rem;
+          margin-bottom: 1.25rem;
+          padding: 0 0.25rem;
         }
 
-        .deals-empty-icon {
-          font-size: 3rem;
-          display: block;
-          margin-bottom: 0.8rem;
+        /* Redeem / Claim section */
+        .deals-redeem {
+          position: relative;
+          z-index: 2;
+          max-width: 36rem;
+          margin: 0 auto 2rem;
+          padding: 0 1rem;
+        }
+
+        .deals-redeem-inner {
+          background: linear-gradient(145deg, rgba(124,58,237,0.06), rgba(99,102,241,0.04));
+          border: 1.5px solid rgba(124,58,237,0.2);
+          border-radius: 1rem;
+          padding: 1.5rem;
+          text-align: center;
+        }
+
+        .deals-redeem-title {
+          font-size: 1.1rem;
+          font-weight: 800;
+          margin: 0 0 0.3rem;
+          color: var(--brand-deep, #1e1b4b);
+        }
+
+        .deals-redeem-desc {
+          font-size: 0.8rem;
+          color: var(--ink-soft, #64748b);
+          margin: 0 0 1rem;
+        }
+
+        .deals-progress-bar {
+          height: 10px;
+          border-radius: 99px;
+          background: rgba(124,58,237,0.1);
+          overflow: hidden;
+          margin-bottom: 0.3rem;
+        }
+
+        .deals-progress-fill {
+          height: 100%;
+          border-radius: 99px;
+          background: linear-gradient(90deg, #7c3aed, #a78bfa);
+          transition: width 0.6s ease;
+          min-width: 4px;
+        }
+
+        .deals-progress-labels {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.7rem;
+          color: var(--ink-soft, #94a3b8);
+          font-weight: 600;
+          margin-bottom: 1rem;
+        }
+
+        .deals-redeem-btn {
+          display: inline-block;
+          padding: 0.6rem 1.8rem;
+          border: none;
+          border-radius: 99px;
+          background: linear-gradient(135deg, #7c3aed, #6366f1);
+          color: #fff;
+          font-weight: 800;
+          font-size: 0.85rem;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(124,58,237,0.3);
+          transition: all 0.3s ease;
+        }
+
+        .deals-redeem-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(124,58,237,0.4);
+        }
+
+        .deals-redeem-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .deals-redeem-hint {
+          font-size: 0.8rem;
+          color: #a78bfa;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        .deals-redeem-msg {
+          margin-top: 0.8rem;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #059669;
+          animation: deals-toast-in 0.3s ease;
         }
 
         /* ── Store cards (dealcc.jsx inspired) ── */
@@ -490,7 +564,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           position: relative;
           height: 18em;
           border: 2px solid rgba(75, 30, 133, 0.5);
-          border-radius: 1.5em;
+          border-radius: 0.35em;
           text-decoration: none;
           display: flex;
           flex-direction: column;
@@ -531,7 +605,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           inset: 0;
           z-index: 2;
           background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(217,70,239,0.2), transparent);
-          border-radius: 1.5em;
+          border-radius: 0.35em;
           opacity: 0;
           transition: opacity 0.5s ease;
           pointer-events: none;
@@ -675,7 +749,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           inset: 0;
           z-index: 6;
           pointer-events: none;
-          border-radius: 1.5em;
+          border-radius: 0.35em;
           background: linear-gradient(115deg, transparent 0%, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.1) 55%, transparent 60%, transparent 100%);
           background-size: 250% 250%;
           background-position: 100% 100%;
@@ -733,7 +807,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         .deals-game-card {
           position: relative;
           border: 2px solid rgba(75,30,133,0.3);
-          border-radius: 1.5rem;
+          border-radius: 1rem;
           overflow: hidden;
           background: linear-gradient(145deg, rgba(75,30,133,0.04), rgba(124,58,237,0.02));
           backdrop-filter: blur(12px);
@@ -746,32 +820,6 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           border-color: rgba(124,58,237,0.4);
         }
 
-        .deals-game-header {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 1.25rem 1.5rem;
-          border-bottom: 1px solid rgba(0,0,0,0.04);
-        }
-
-        .deals-game-icon {
-          font-size: 2rem;
-          flex-shrink: 0;
-        }
-
-        .deals-game-title {
-          font-size: 1.1rem;
-          font-weight: 800;
-          color: var(--brand-deep, #1e1b4b);
-          margin: 0;
-        }
-
-        .deals-game-desc {
-          font-size: 0.78rem;
-          color: var(--ink-soft, #64748b);
-          margin: 0.15rem 0 0;
-        }
-
         .deals-game-body {
           display: flex;
           justify-content: center;
@@ -782,18 +830,6 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         .deals-game-card--scratch {
           background: linear-gradient(145deg, #1e1e2e, #2a2a3d);
           border-color: rgba(124, 58, 237, 0.25);
-        }
-
-        .deals-game-card--scratch .deals-game-header {
-          border-bottom-color: rgba(255,255,255,0.06);
-        }
-
-        .deals-game-card--scratch .deals-game-title {
-          color: #f1f5f9;
-        }
-
-        .deals-game-card--scratch .deals-game-desc {
-          color: #94a3b8;
         }
 
         @media (max-width: 640px) {

@@ -418,6 +418,7 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
   title: "Deals Hub",
   description: "Play games, earn points, and unlock exclusive deals!",
   pointsPerCedi: 100,
+  minRedeemPoints: 500,
   specialStores: [
     { id: "store-50", name: "50 Cedis Store", slug: "50-cedis-store", description: "Everything at GHS 50 or less", emoji: "🏷️", bgColor: "#2563eb", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
     { id: "store-10", name: "10 Cedis Store", slug: "10-cedis-store", description: "Unbeatable deals at GHS 10 or less", emoji: "🔥", bgColor: "#dc2626", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
@@ -528,6 +529,7 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
     title: toText(c.title, fb.title),
     description: toText(c.description, fb.description),
     pointsPerCedi: Math.max(1, Math.trunc(toNumber(c.pointsPerCedi, fb.pointsPerCedi))),
+    minRedeemPoints: Math.max(0, Math.trunc(toNumber(c.minRedeemPoints, fb.minRedeemPoints))),
     specialStores: rawStores.map((item, i) => sanitizeSpecialStore(item, i)),
     spinWheel: {
       enabled: toBoolean(spinObj.enabled as boolean | undefined, fb.spinWheel.enabled),

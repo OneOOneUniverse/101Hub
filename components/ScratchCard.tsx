@@ -15,6 +15,7 @@ export default function ScratchCard({ onResult, disabled }: Props) {
   const [loading, setLoading] = useState(false);
   const scratching = useRef(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const scratchCount = useRef(0);
 
   const WIDTH = 320;
   const HEIGHT = 200;
@@ -120,15 +121,18 @@ export default function ScratchCard({ onResult, disabled }: Props) {
     ctx.fill();
     lastPoint.current = pos;
 
-    // Check how much is scratched
-    const imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
-    let transparent = 0;
-    for (let i = 3; i < imageData.data.length; i += 4) {
-      if (imageData.data[i] === 0) transparent++;
-    }
-    const total = imageData.data.length / 4;
-    if (transparent / total > 0.5 && !revealed) {
-      setRevealed(true);
+    // Check how much is scratched — only every 10th stroke for performance
+    scratchCount.current += 1;
+    if (scratchCount.current % 10 === 0) {
+      const imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
+      let transparent = 0;
+      for (let i = 3; i < imageData.data.length; i += 4) {
+        if (imageData.data[i] === 0) transparent++;
+      }
+      const total = imageData.data.length / 4;
+      if (transparent / total > 0.5 && !revealed) {
+        setRevealed(true);
+      }
     }
   };
 

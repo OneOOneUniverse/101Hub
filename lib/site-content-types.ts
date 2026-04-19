@@ -255,6 +255,7 @@ export type DealsHubContent = {
   title: string;
   description: string;
   pointsPerCedi: number; // how many points = 1 GHS discount
+  minRedeemPoints: number; // minimum points needed before claiming
   specialStores: SpecialStore[];
   spinWheel: {
     enabled: boolean;

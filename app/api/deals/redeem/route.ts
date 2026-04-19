@@ -13,6 +13,7 @@ export async function POST() {
 
   const content = await getSiteContent();
   const pointsPerCedi = content.dealsHub.pointsPerCedi;
+  const minRedeem = content.dealsHub.minRedeemPoints || 0;
 
   // Get current balance
   const { data: pointsData } = await supabaseAdmin
@@ -22,6 +23,12 @@ export async function POST() {
     .single();
 
   const balance = pointsData?.balance ?? 0;
+
+  if (minRedeem > 0 && balance < minRedeem) {
+    return NextResponse.json({
+      error: `Need at least ${minRedeem} points to redeem (you have ${balance})`,
+    }, { status: 400 });
+  }
 
   if (balance < pointsPerCedi) {
     return NextResponse.json({

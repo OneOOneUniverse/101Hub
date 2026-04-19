@@ -3820,6 +3820,16 @@ export default function AdminPage() {
                 className={inputClassName()}
               />
             </Field>
+            <Field label="Min points to redeem">
+              <input
+                type="number"
+                min={0}
+                value={content.dealsHub.minRedeemPoints ?? 500}
+                onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, minRedeemPoints: Math.max(0, Number(e.target.value || 0)) } })}
+                className={inputClassName()}
+              />
+              <span className="text-xs text-gray-500 mt-1 block">Users must reach this many points before they can claim a reward. 0 = no minimum.</span>
+            </Field>
           </div>
 
           {/* ── Special Stores ── */}
@@ -4144,6 +4154,7 @@ export default function AdminPage() {
                       className={inputClassName()}
                       style={{ width: 60 }}
                     />
+                    <span className="text-xs font-bold text-purple-600">{(() => { const total = content.dealsHub.spinWheel.slices.reduce((s, sl) => s + (sl.weight || 1), 0); return `${((slice.weight / total) * 100).toFixed(1)}%`; })()}</span>
                   </Field>
                   <Field label="Color">
                     <input
@@ -4249,6 +4260,7 @@ export default function AdminPage() {
                   </Field>
                   <Field label="Weight">
                     <input type="number" min={1} value={prize.weight} onChange={(e) => { const prizes = [...content.dealsHub.scratchCard.prizes]; prizes[idx] = { ...prizes[idx], weight: Math.max(1, Number(e.target.value || 1)) }; setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes } } }); }} className={inputClassName()} style={{ width: 60 }} />
+                    <span className="text-xs font-bold text-purple-600">{(() => { const total = content.dealsHub.scratchCard.prizes.reduce((s, p) => s + (p.weight || 1), 0); return `${((prize.weight / total) * 100).toFixed(1)}%`; })()}</span>
                   </Field>
                   <button type="button" onClick={() => { const prizes = content.dealsHub.scratchCard.prizes.filter((_, i) => i !== idx); setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes } } }); }} className="mb-1 text-xs font-bold text-red-600 hover:underline">✕</button>
                 </div>
