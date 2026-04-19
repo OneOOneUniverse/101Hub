@@ -19,7 +19,7 @@ type StoreData = {
   storeName?: string;
   footerText?: string;
   footer?: FooterContent;
-  marquee?: { enabled: boolean; text: string; bgColor?: string; textColor?: string };
+  marquee?: { enabled: boolean; text: string; bgColor?: string; textColor?: string; speed?: number };
 };
 
 export default function LayoutWrapper({
