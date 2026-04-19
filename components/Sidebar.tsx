@@ -36,7 +36,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     let active = true;
     async function load() {
       try {
-        const res = await fetch("/api/store", { cache: "default" });
+        const res = await fetch("/api/store", { cache: "no-store" });
         const data = (await res.json()) as { features?: Record<string, boolean> };
         if (active && data.features) {
           setFeatures({
