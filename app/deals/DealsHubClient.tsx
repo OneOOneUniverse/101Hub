@@ -643,25 +643,3 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
     </div>
   );
 }
-          )}
-
-          {/* Daily Trivia */}
-          {dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <p className="text-3xl">🧠</p>
-                <h2 className="text-xl font-black text-[var(--brand-deep)]">{dealsHub.trivia.title}</h2>
-                <p className="text-sm text-[var(--ink-soft)]">{dealsHub.trivia.description}</p>
-              </div>
-              {isSignedIn ? (
-                <DailyTrivia questions={dealsHub.trivia.questions} />
-              ) : (
-                <p className="text-center text-sm text-[var(--ink-soft)]">Sign in to play trivia</p>
-              )}
-            </div>
-          )}
-        </section>
-      )}
-    </div>
-  );
-}
