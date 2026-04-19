@@ -25,12 +25,16 @@ import {
   type SiteContent,
   type SiteFeatures,
   type SmsTemplate,
+  type DealsHubContent,
+  type SpecialStore,
+  type SpinWheelSlice,
+  type TriviaQuestion,
 } from "@/lib/site-content-types";
 import { getSiteContentFromDb, saveSiteContentToDb } from "@/lib/site-content-db";
 
 const DATA_FILE_PATH = path.join(process.cwd(), "data", "site-content.json");
 const PRODUCT_IMAGE_ROOT = path.join(process.cwd(), "public", "img", "products");
-const defaultContent = seedContent as SiteContent;
+const defaultContent = seedContent as unknown as SiteContent;
 
 function toProductFolderName(product: Product): string {
   const source = product.slug.trim() || product.id.trim();
@@ -189,6 +193,7 @@ function sanitizeFeatures(value: unknown, fallback: SiteFeatures): SiteFeatures 
     reviews: toBoolean(candidate.reviews, fallback.reviews),
     cart: toBoolean(candidate.cart, fallback.cart),
     checkout: toBoolean(candidate.checkout, fallback.checkout),
+    dealsHub: toBoolean(candidate.dealsHub, fallback.dealsHub),
   };
 }
 
@@ -408,6 +413,145 @@ function resolveUpdatedAt(candidate: Partial<SiteContent>, fallback: SiteContent
   return new Date().toISOString();
 }
 
+const DEFAULT_DEALS_HUB: DealsHubContent = {
+  enabled: false,
+  title: "Deals Hub",
+  description: "Play games, earn points, and unlock exclusive deals!",
+  pointsPerCedi: 100,
+  specialStores: [
+    { id: "store-50", name: "50 Cedis Store", slug: "50-cedis-store", description: "Everything at GHS 50 or less", emoji: "🏷️", bgColor: "#2563eb", textColor: "#ffffff", featuredProductIds: [], enabled: false },
+    { id: "store-10", name: "10 Cedis Store", slug: "10-cedis-store", description: "Unbeatable deals at GHS 10 or less", emoji: "🔥", bgColor: "#dc2626", textColor: "#ffffff", featuredProductIds: [], enabled: false },
+    { id: "store-thrift", name: "Thrift Store", slug: "thrift-store", description: "Pre-loved and budget-friendly finds", emoji: "♻️", bgColor: "#059669", textColor: "#ffffff", featuredProductIds: [], enabled: false },
+    { id: "store-event", name: "Christmas Store", slug: "christmas-store", description: "Festive specials and holiday deals", emoji: "🎄", bgColor: "#b91c1c", textColor: "#ffffff", featuredProductIds: [], enabled: false },
+  ],
+  spinWheel: {
+    enabled: false,
+    title: "Spin & Win",
+    description: "Spin the wheel for a chance to win discounts and points!",
+    slices: [
+      { id: "sw-1", label: "50 Points", type: "points", value: 50, color: "#2563eb", weight: 30 },
+      { id: "sw-2", label: "5% Off", type: "discount_percent", value: 5, color: "#059669", weight: 25 },
+      { id: "sw-3", label: "100 Points", type: "points", value: 100, color: "#7c3aed", weight: 20 },
+      { id: "sw-4", label: "Free Shipping", type: "free_shipping", value: 0, color: "#ca8a04", weight: 10 },
+      { id: "sw-5", label: "Try Again", type: "no_prize", value: 0, color: "#6b7280", weight: 15 },
+    ],
+    cooldownHours: 24,
+  },
+  scratchCard: {
+    enabled: false,
+    title: "Scratch & Win",
+    description: "Scratch the card to reveal your prize!",
+    prizes: [
+      { id: "sc-1", label: "25 Points", type: "points", value: 25, color: "#2563eb", weight: 35 },
+      { id: "sc-2", label: "GHS 5 Off", type: "discount_fixed", value: 5, color: "#059669", weight: 20 },
+      { id: "sc-3", label: "10% Off", type: "discount_percent", value: 10, color: "#7c3aed", weight: 15 },
+      { id: "sc-4", label: "Try Again", type: "no_prize", value: 0, color: "#6b7280", weight: 30 },
+    ],
+    cooldownHours: 12,
+  },
+  trivia: {
+    enabled: false,
+    title: "Daily Trivia",
+    description: "Answer questions correctly to earn points!",
+    questions: [
+      { id: "q-1", question: "What year was Ghana founded?", options: ["1955", "1957", "1960", "1963"], correctIndex: 1, pointsReward: 50 },
+    ],
+    dailyLimit: 5,
+  },
+};
+
+function sanitizeSpecialStore(value: unknown, index: number): SpecialStore {
+  const c = typeof value === "object" && value !== null ? value as Partial<SpecialStore> : {};
+  const defaults = DEFAULT_DEALS_HUB.specialStores[index] ?? DEFAULT_DEALS_HUB.specialStores[0];
+  return {
+    id: toText(c.id, defaults.id),
+    name: toText(c.name, defaults.name),
+    slug: toText(c.slug, defaults.slug),
+    description: toText(c.description, defaults.description),
+    emoji: toText(c.emoji, defaults.emoji),
+    bgColor: toText(c.bgColor, defaults.bgColor),
+    textColor: toText(c.textColor, defaults.textColor),
+    featuredProductIds: Array.isArray(c.featuredProductIds)
+      ? c.featuredProductIds.filter((i): i is string => typeof i === "string")
+      : defaults.featuredProductIds,
+    enabled: toBoolean(c.enabled, defaults.enabled),
+  };
+}
+
+function sanitizeSlice(value: unknown, index: number, fallbackSlices: SpinWheelSlice[]): SpinWheelSlice {
+  const c = typeof value === "object" && value !== null ? value as Partial<SpinWheelSlice> : {};
+  const fb = fallbackSlices[index] ?? fallbackSlices[0];
+  const validTypes = ["points", "discount_percent", "discount_fixed", "free_shipping", "no_prize"];
+  const rawType = typeof c.type === "string" ? c.type : fb.type;
+  return {
+    id: toText(c.id, fb.id),
+    label: toText(c.label, fb.label),
+    type: validTypes.includes(rawType) ? rawType as SpinWheelSlice["type"] : fb.type,
+    value: Math.max(0, toNumber(c.value, fb.value)),
+    color: toText(c.color, fb.color),
+    weight: Math.max(1, Math.trunc(toNumber(c.weight, fb.weight))),
+  };
+}
+
+function sanitizeTriviaQuestion(value: unknown, index: number): TriviaQuestion {
+  const c = typeof value === "object" && value !== null ? value as Partial<TriviaQuestion> : {};
+  const fb = DEFAULT_DEALS_HUB.trivia.questions[0];
+  const options = Array.isArray(c.options) ? c.options.map((o) => String(o ?? "")) : fb.options;
+  return {
+    id: toText(c.id, `q-${index + 1}`),
+    question: toText(c.question, fb.question),
+    options,
+    correctIndex: Math.max(0, Math.min(options.length - 1, Math.trunc(toNumber(c.correctIndex, fb.correctIndex)))),
+    pointsReward: Math.max(1, Math.trunc(toNumber(c.pointsReward, fb.pointsReward))),
+  };
+}
+
+function sanitizeDealsHub(value: unknown): DealsHubContent {
+  const c = typeof value === "object" && value !== null ? value as Partial<DealsHubContent> : {};
+  const fb = DEFAULT_DEALS_HUB;
+
+  const rawStores = Array.isArray(c.specialStores) ? c.specialStores : fb.specialStores;
+  const rawSpinSlices = c.spinWheel && typeof c.spinWheel === "object" && Array.isArray((c.spinWheel as Record<string, unknown>).slices)
+    ? (c.spinWheel as { slices: unknown[] }).slices : fb.spinWheel.slices;
+  const rawScratchPrizes = c.scratchCard && typeof c.scratchCard === "object" && Array.isArray((c.scratchCard as Record<string, unknown>).prizes)
+    ? (c.scratchCard as { prizes: unknown[] }).prizes : fb.scratchCard.prizes;
+  const rawQuestions = c.trivia && typeof c.trivia === "object" && Array.isArray((c.trivia as Record<string, unknown>).questions)
+    ? (c.trivia as { questions: unknown[] }).questions : fb.trivia.questions;
+
+  const spinObj = typeof c.spinWheel === "object" && c.spinWheel !== null ? c.spinWheel as Record<string, unknown> : {};
+  const scratchObj = typeof c.scratchCard === "object" && c.scratchCard !== null ? c.scratchCard as Record<string, unknown> : {};
+  const triviaObj = typeof c.trivia === "object" && c.trivia !== null ? c.trivia as Record<string, unknown> : {};
+
+  return {
+    enabled: toBoolean(c.enabled, fb.enabled),
+    title: toText(c.title, fb.title),
+    description: toText(c.description, fb.description),
+    pointsPerCedi: Math.max(1, Math.trunc(toNumber(c.pointsPerCedi, fb.pointsPerCedi))),
+    specialStores: rawStores.map((item, i) => sanitizeSpecialStore(item, i)),
+    spinWheel: {
+      enabled: toBoolean(spinObj.enabled as boolean | undefined, fb.spinWheel.enabled),
+      title: toText(spinObj.title as string | undefined, fb.spinWheel.title),
+      description: toText(spinObj.description as string | undefined, fb.spinWheel.description),
+      slices: rawSpinSlices.map((item, i) => sanitizeSlice(item, i, fb.spinWheel.slices)),
+      cooldownHours: Math.max(0, toNumber(spinObj.cooldownHours as number | undefined, fb.spinWheel.cooldownHours)),
+    },
+    scratchCard: {
+      enabled: toBoolean(scratchObj.enabled as boolean | undefined, fb.scratchCard.enabled),
+      title: toText(scratchObj.title as string | undefined, fb.scratchCard.title),
+      description: toText(scratchObj.description as string | undefined, fb.scratchCard.description),
+      prizes: rawScratchPrizes.map((item, i) => sanitizeSlice(item, i, fb.scratchCard.prizes)),
+      cooldownHours: Math.max(0, toNumber(scratchObj.cooldownHours as number | undefined, fb.scratchCard.cooldownHours)),
+    },
+    trivia: {
+      enabled: toBoolean(triviaObj.enabled as boolean | undefined, fb.trivia.enabled),
+      title: toText(triviaObj.title as string | undefined, fb.trivia.title),
+      description: toText(triviaObj.description as string | undefined, fb.trivia.description),
+      questions: rawQuestions.map((item, i) => sanitizeTriviaQuestion(item, i)),
+      dailyLimit: Math.max(1, Math.trunc(toNumber(triviaObj.dailyLimit as number | undefined, fb.trivia.dailyLimit))),
+    },
+  };
+}
+
 export function sanitizeSiteContent(value: unknown): SiteContent {
   const candidate = typeof value === "object" && value !== null ? value as Partial<SiteContent> : {};
   const rawProducts = Array.isArray(candidate.products) ? candidate.products : defaultContent.products;
@@ -454,6 +598,7 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     smsTemplates: rawSmsTemplates.map((item, index) => sanitizeSmsTemplate(item, index)),
     ...(rawFaqs.length > 0 && { faqs: rawFaqs.map((item, index) => sanitizeFAQ(item, index)) }),
     ...(rawPaymentWalkthrough.length > 0 && { paymentWalkthrough: rawPaymentWalkthrough.map((item, index) => sanitizePaymentWalkthroughStep(item, index)) }),
+    dealsHub: sanitizeDealsHub(candidate.dealsHub ?? (defaultContent as Partial<SiteContent>).dealsHub),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };
 }

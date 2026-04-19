@@ -22,6 +22,9 @@ import {
   type HighlightCard,
   type PaymentWalkthroughStep,
   type SmsTemplate,
+  type SpinWheelSlice,
+  type TriviaQuestion,
+  type SpecialStore,
 } from "@/lib/site-content-types";
 import PendingPaymentsDashboard from "@/components/PendingPaymentsDashboard";
 import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
@@ -237,7 +240,8 @@ type AdminSectionId =
   | "sms-templates"
   | "sms"
   | "broadcast-email"
-  | "faqs";
+  | "faqs"
+  | "deals-hub";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
@@ -261,6 +265,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "sms", label: "Broadcast SMS" },
   { id: "broadcast-email", label: "📧 Broadcast Email" },
   { id: "faqs", label: "FAQs" },
+  { id: "deals-hub", label: "🎮 Deals Hub" },
 ];
 
 /** Sections a supervisor can see (subset of full admin). */
@@ -3764,6 +3769,591 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </Section>
+      ) : null}
+
+      {activeSection === "deals-hub" ? (
+        <Section title="🎮 Deals Hub" description="Manage special stores, games, points, and rewards.">
+          {/* Master toggle & basic settings */}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <label className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm">
+              <input
+                type="checkbox"
+                checked={content.dealsHub.enabled}
+                onChange={(e) =>
+                  setContent({ ...content, dealsHub: { ...content.dealsHub, enabled: e.target.checked } })
+                }
+                className="h-5 w-5 accent-[var(--brand)]"
+              />
+              <div>
+                <p className="text-sm font-bold text-[var(--brand-deep)]">Enable Deals Hub</p>
+                <p className="text-xs text-[var(--ink-soft)]">{content.dealsHub.enabled ? "Active" : "Disabled"}</p>
+              </div>
+            </label>
+            <Field label="Page title">
+              <input
+                value={content.dealsHub.title}
+                onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, title: e.target.value } })}
+                className={inputClassName()}
+              />
+            </Field>
+            <Field label="Page description">
+              <input
+                value={content.dealsHub.description}
+                onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, description: e.target.value } })}
+                className={inputClassName()}
+              />
+            </Field>
+            <Field label="Points per 1 GHS discount">
+              <input
+                type="number"
+                min={1}
+                value={content.dealsHub.pointsPerCedi}
+                onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, pointsPerCedi: Math.max(1, Number(e.target.value || 100)) } })}
+                className={inputClassName()}
+              />
+            </Field>
+          </div>
+
+          {/* ── Special Stores ── */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">🏪 Special Stores</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  const id = createId("store");
+                  const newStore: SpecialStore = {
+                    id,
+                    name: "New Store",
+                    slug: id,
+                    description: "",
+                    emoji: "🛍️",
+                    bgColor: "#6366f1",
+                    textColor: "#ffffff",
+                    featuredProductIds: [],
+                    enabled: false,
+                  };
+                  setContent({
+                    ...content,
+                    dealsHub: {
+                      ...content.dealsHub,
+                      specialStores: [...content.dealsHub.specialStores, newStore],
+                    },
+                  });
+                }}
+                className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)]"
+              >
+                + Add Store
+              </button>
+            </div>
+
+            {content.dealsHub.specialStores.map((store, si) => (
+              <div key={store.id} className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{store.emoji}</span>
+                    <span className="font-bold text-[var(--brand-deep)]">{store.name || "Untitled"}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={store.enabled}
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], enabled: e.target.checked };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className="h-4 w-4 accent-[var(--brand)]"
+                      />
+                      Enabled
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const stores = content.dealsHub.specialStores.filter((_, i) => i !== si);
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className="text-xs font-bold text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Field label="Name">
+                    <input
+                      value={store.name}
+                      onChange={(e) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], name: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Slug (URL)">
+                    <input
+                      value={store.slug}
+                      onChange={(e) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Emoji">
+                    <input
+                      value={store.emoji}
+                      onChange={(e) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], emoji: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                </div>
+
+                <Field label="Description">
+                  <input
+                    value={store.description}
+                    onChange={(e) => {
+                      const stores = [...content.dealsHub.specialStores];
+                      stores[si] = { ...stores[si], description: e.target.value };
+                      setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                    }}
+                    className={inputClassName()}
+                  />
+                </Field>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Field label="Background color">
+                    <input
+                      type="color"
+                      value={store.bgColor}
+                      onChange={(e) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], bgColor: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className="h-10 w-full cursor-pointer rounded-xl border border-black/10"
+                    />
+                  </Field>
+                  <Field label="Text color">
+                    <input
+                      type="color"
+                      value={store.textColor}
+                      onChange={(e) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], textColor: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className="h-10 w-full cursor-pointer rounded-xl border border-black/10"
+                    />
+                  </Field>
+                </div>
+
+                {/* Featured products for this store */}
+                <div className="space-y-2">
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">Featured Products ({store.featuredProductIds.length} selected)</p>
+                  <div className="max-h-48 overflow-y-auto rounded-xl border border-black/10 p-2">
+                    <div className="grid gap-1 sm:grid-cols-2">
+                      {content.products.map((product) => {
+                        const checked = store.featuredProductIds.includes(product.id);
+                        return (
+                          <label key={product.id} className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-black/5 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                const stores = [...content.dealsHub.specialStores];
+                                const ids = e.target.checked
+                                  ? [...store.featuredProductIds, product.id]
+                                  : store.featuredProductIds.filter((id) => id !== product.id);
+                                stores[si] = { ...stores[si], featuredProductIds: ids };
+                                setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                              }}
+                              className="h-3.5 w-3.5 accent-[var(--brand)]"
+                            />
+                            <span className="truncate">{product.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Spin the Wheel ── */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">🎡 Spin the Wheel</h3>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={content.dealsHub.spinWheel.enabled}
+                  onChange={(e) =>
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, enabled: e.target.checked } } })
+                  }
+                  className="h-4 w-4 accent-[var(--brand)]"
+                />
+                Enabled
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label="Title">
+                <input
+                  value={content.dealsHub.spinWheel.title}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, title: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Description">
+                <input
+                  value={content.dealsHub.spinWheel.description}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, description: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Cooldown (hours, 0 = unlimited)">
+                <input
+                  type="number"
+                  min={0}
+                  value={content.dealsHub.spinWheel.cooldownHours}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+
+            {/* Slices */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-[var(--brand-deep)]">Wheel Slices</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const slice: SpinWheelSlice = { id: createId("slice"), label: "New Prize", type: "points", value: 10, color: "#4f46e5", weight: 1 };
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, slices: [...content.dealsHub.spinWheel.slices, slice] } } });
+                  }}
+                  className="rounded-full border border-[var(--brand)] px-3 py-1 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                >
+                  + Add Slice
+                </button>
+              </div>
+              {content.dealsHub.spinWheel.slices.map((slice, idx) => (
+                <div key={slice.id} className="flex flex-wrap items-end gap-2 rounded-xl border border-black/5 bg-white p-3">
+                  <Field label="Label">
+                    <input
+                      value={slice.label}
+                      onChange={(e) => {
+                        const slices = [...content.dealsHub.spinWheel.slices];
+                        slices[idx] = { ...slices[idx], label: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, slices } } });
+                      }}
+                      className={inputClassName()}
+                      style={{ width: 120 }}
+                    />
+                  </Field>
+                  <Field label="Type">
+                    <select
+                      value={slice.type}
+                      onChange={(e) => {
+                        const slices = [...content.dealsHub.spinWheel.slices];
+                        slices[idx] = { ...slices[idx], type: e.target.value as SpinWheelSlice["type"] };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, slices } } });
+                      }}
+                      className={inputClassName()}
+                      style={{ width: 140 }}
+                    >
+                      <option value="points">Points</option>
+                      <option value="discount_percent">Discount %</option>
+                      <option value="discount_fixed">Discount Fixed</option>
+                      <option value="free_shipping">Free Shipping</option>
+                      <option value="no_prize">No Prize</option>
+                    </select>
+                  </Field>
+                  <Field label="Value">
+                    <input
+                      type="number"
+                      min={0}
+                      value={slice.value}
+                      onChange={(e) => {
+                        const slices = [...content.dealsHub.spinWheel.slices];
+                        slices[idx] = { ...slices[idx], value: Number(e.target.value || 0) };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, slices } } });
+                      }}
+                      className={inputClassName()}
+                      style={{ width: 80 }}
+                    />
+                  </Field>
+                  <Field label="Weight">
+                    <input
+                      type="number"
+                      min={1}
+                      value={slice.weight}
+                      onChange={(e) => {
+                        const slices = [...content.dealsHub.spinWheel.slices];
+                        slices[idx] = { ...slices[idx], weight: Math.max(1, Number(e.target.value || 1)) };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, slices } } });
+                      }}
+                      className={inputClassName()}
+                      style={{ width: 60 }}
+                    />
+                  </Field>
+                  <Field label="Color">
+                    <input
+                      type="color"
+                      value={slice.color}
+                      onChange={(e) => {
+                        const slices = [...content.dealsHub.spinWheel.slices];
+                        slices[idx] = { ...slices[idx], color: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, slices } } });
+                      }}
+                      className="h-9 w-9 cursor-pointer rounded-lg border border-black/10"
+                    />
+                  </Field>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const slices = content.dealsHub.spinWheel.slices.filter((_, i) => i !== idx);
+                      setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, slices } } });
+                    }}
+                    className="mb-1 text-xs font-bold text-red-600 hover:underline"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Scratch Card ── */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">🎟️ Scratch Card</h3>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={content.dealsHub.scratchCard.enabled}
+                  onChange={(e) =>
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, enabled: e.target.checked } } })
+                  }
+                  className="h-4 w-4 accent-[var(--brand)]"
+                />
+                Enabled
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label="Title">
+                <input
+                  value={content.dealsHub.scratchCard.title}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, title: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Description">
+                <input
+                  value={content.dealsHub.scratchCard.description}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, description: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Cooldown (hours)">
+                <input
+                  type="number"
+                  min={0}
+                  value={content.dealsHub.scratchCard.cooldownHours}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+
+            {/* Scratch prizes (reuses SpinWheelSlice shape) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-[var(--brand-deep)]">Prizes</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const prize: SpinWheelSlice = { id: createId("scratch"), label: "New Prize", type: "points", value: 10, color: "#10b981", weight: 1 };
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes: [...content.dealsHub.scratchCard.prizes, prize] } } });
+                  }}
+                  className="rounded-full border border-[var(--brand)] px-3 py-1 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                >
+                  + Add Prize
+                </button>
+              </div>
+              {content.dealsHub.scratchCard.prizes.map((prize, idx) => (
+                <div key={prize.id} className="flex flex-wrap items-end gap-2 rounded-xl border border-black/5 bg-white p-3">
+                  <Field label="Label">
+                    <input value={prize.label} onChange={(e) => { const prizes = [...content.dealsHub.scratchCard.prizes]; prizes[idx] = { ...prizes[idx], label: e.target.value }; setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes } } }); }} className={inputClassName()} style={{ width: 120 }} />
+                  </Field>
+                  <Field label="Type">
+                    <select value={prize.type} onChange={(e) => { const prizes = [...content.dealsHub.scratchCard.prizes]; prizes[idx] = { ...prizes[idx], type: e.target.value as SpinWheelSlice["type"] }; setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes } } }); }} className={inputClassName()} style={{ width: 140 }}>
+                      <option value="points">Points</option>
+                      <option value="discount_percent">Discount %</option>
+                      <option value="discount_fixed">Discount Fixed</option>
+                      <option value="free_shipping">Free Shipping</option>
+                      <option value="no_prize">No Prize</option>
+                    </select>
+                  </Field>
+                  <Field label="Value">
+                    <input type="number" min={0} value={prize.value} onChange={(e) => { const prizes = [...content.dealsHub.scratchCard.prizes]; prizes[idx] = { ...prizes[idx], value: Number(e.target.value || 0) }; setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes } } }); }} className={inputClassName()} style={{ width: 80 }} />
+                  </Field>
+                  <Field label="Weight">
+                    <input type="number" min={1} value={prize.weight} onChange={(e) => { const prizes = [...content.dealsHub.scratchCard.prizes]; prizes[idx] = { ...prizes[idx], weight: Math.max(1, Number(e.target.value || 1)) }; setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes } } }); }} className={inputClassName()} style={{ width: 60 }} />
+                  </Field>
+                  <button type="button" onClick={() => { const prizes = content.dealsHub.scratchCard.prizes.filter((_, i) => i !== idx); setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, prizes } } }); }} className="mb-1 text-xs font-bold text-red-600 hover:underline">✕</button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Daily Trivia ── */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">🧠 Daily Trivia</h3>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={content.dealsHub.trivia.enabled}
+                  onChange={(e) =>
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, enabled: e.target.checked } } })
+                  }
+                  className="h-4 w-4 accent-[var(--brand)]"
+                />
+                Enabled
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label="Title">
+                <input
+                  value={content.dealsHub.trivia.title}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, title: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Description">
+                <input
+                  value={content.dealsHub.trivia.description}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, description: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Daily question limit">
+                <input
+                  type="number"
+                  min={1}
+                  value={content.dealsHub.trivia.dailyLimit}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, dailyLimit: Math.max(1, Number(e.target.value || 5)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+
+            {/* Questions */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-[var(--brand-deep)]">Questions ({content.dealsHub.trivia.questions.length})</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const q: TriviaQuestion = { id: createId("trivia"), question: "", options: ["", "", "", ""], correctIndex: 0, pointsReward: 10 };
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, questions: [...content.dealsHub.trivia.questions, q] } } });
+                  }}
+                  className="rounded-full border border-[var(--brand)] px-3 py-1 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                >
+                  + Add Question
+                </button>
+              </div>
+              {content.dealsHub.trivia.questions.map((q, qi) => (
+                <div key={q.id} className="rounded-xl border border-black/10 bg-white p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[var(--ink-soft)]">Q{qi + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const questions = content.dealsHub.trivia.questions.filter((_, i) => i !== qi);
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, questions } } });
+                      }}
+                      className="text-xs font-bold text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <Field label="Question">
+                    <input
+                      value={q.question}
+                      onChange={(e) => {
+                        const questions = [...content.dealsHub.trivia.questions];
+                        questions[qi] = { ...questions[qi], question: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, questions } } });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {q.options.map((opt, oi) => (
+                      <Field key={oi} label={`Option ${String.fromCharCode(65 + oi)}${oi === q.correctIndex ? " ✓ correct" : ""}`}>
+                        <input
+                          value={opt}
+                          onChange={(e) => {
+                            const questions = [...content.dealsHub.trivia.questions];
+                            const options = [...questions[qi].options];
+                            options[oi] = e.target.value;
+                            questions[qi] = { ...questions[qi], options };
+                            setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, questions } } });
+                          }}
+                          className={inputClassName()}
+                        />
+                      </Field>
+                    ))}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field label="Correct answer">
+                      <select
+                        value={q.correctIndex}
+                        onChange={(e) => {
+                          const questions = [...content.dealsHub.trivia.questions];
+                          questions[qi] = { ...questions[qi], correctIndex: Number(e.target.value) };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, questions } } });
+                        }}
+                        className={inputClassName()}
+                      >
+                        {q.options.map((opt, oi) => (
+                          <option key={oi} value={oi}>{String.fromCharCode(65 + oi)}: {opt || "(empty)"}</option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Points reward">
+                      <input
+                        type="number"
+                        min={1}
+                        value={q.pointsReward}
+                        onChange={(e) => {
+                          const questions = [...content.dealsHub.trivia.questions];
+                          questions[qi] = { ...questions[qi], pointsReward: Math.max(1, Number(e.target.value || 10)) };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, questions } } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </Section>

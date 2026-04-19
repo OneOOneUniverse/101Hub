@@ -138,6 +138,7 @@ export type SiteFeatures = {
   reviews: boolean;
   cart: boolean;
   checkout: boolean;
+  dealsHub: boolean;
 };
 
 export type LocationDeliveryFee = {
@@ -218,6 +219,65 @@ export type SmsTemplate = {
   createdAt?: string;
 };
 
+// ─── Deals Hub Types ──────────────────────────────────────────
+export type SpecialStore = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  emoji: string;
+  bgColor: string;
+  textColor: string;
+  featuredProductIds: string[];
+  enabled: boolean;
+};
+
+export type SpinWheelSlice = {
+  id: string;
+  label: string;
+  type: "points" | "discount_percent" | "discount_fixed" | "free_shipping" | "no_prize";
+  value: number; // points amount, discount %, fixed amount, or 0 for no_prize
+  color: string;
+  weight: number; // probability weight (higher = more likely)
+};
+
+export type TriviaQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  pointsReward: number;
+};
+
+export type DealsHubContent = {
+  enabled: boolean;
+  title: string;
+  description: string;
+  pointsPerCedi: number; // how many points = 1 GHS discount
+  specialStores: SpecialStore[];
+  spinWheel: {
+    enabled: boolean;
+    title: string;
+    description: string;
+    slices: SpinWheelSlice[];
+    cooldownHours: number; // hours between spins (0 = unlimited)
+  };
+  scratchCard: {
+    enabled: boolean;
+    title: string;
+    description: string;
+    prizes: SpinWheelSlice[]; // reuse same shape
+    cooldownHours: number;
+  };
+  trivia: {
+    enabled: boolean;
+    title: string;
+    description: string;
+    questions: TriviaQuestion[];
+    dailyLimit: number; // max questions per day
+  };
+};
+
 export type ManualPaymentField = {
   label: string;
   value: string;
@@ -252,5 +312,6 @@ export type SiteContent = {
   manualPaymentDetails?: ManualPaymentField[];
   smsTemplates?: SmsTemplate[];
   faqs?: FAQ[];
+  dealsHub: DealsHubContent;
   updatedAt: string;
 };
