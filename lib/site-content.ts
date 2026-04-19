@@ -436,6 +436,7 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
           text: String((candidate.marquee as Record<string, unknown>).text ?? ""),
           bgColor: String((candidate.marquee as Record<string, unknown>).bgColor ?? "#000000"),
           textColor: String((candidate.marquee as Record<string, unknown>).textColor ?? "#ffffff"),
+          speed: Math.max(5, Math.min(120, Number((candidate.marquee as Record<string, unknown>).speed) || 30)),
         }
       : defaultContent.marquee,
     footer: sanitizeFooter(candidate.footer ?? (defaultContent as SiteContent).footer ?? {}),

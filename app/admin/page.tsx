@@ -33,6 +33,8 @@ import GalleryImageManager from "@/components/GalleryImageManager";
 import AdminSupportChats from "@/components/AdminSupportChats";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 
+import type { AdminRole } from "@/lib/auth";
+
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -261,6 +263,17 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "faqs", label: "FAQs" },
 ];
 
+/** Sections a supervisor can see (subset of full admin). */
+const SUPERVISOR_SECTIONS: Set<AdminSectionId> = new Set([
+  "dashboard",
+  "analytics",
+  "support-chat",
+  "products",
+  "delivery",
+  "broadcast-email",
+  "faqs",
+]);
+
 export default function AdminPage() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -269,6 +282,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [activeSection, setActiveSection] = useState<AdminSectionId>("dashboard");
+  const [adminRole, setAdminRole] = useState<AdminRole>("admin");
   const [smsMessage, setSmsMessage] = useState("");
   const [smsSending, setSmsSending] = useState(false);
   const [smsResult, setSmsResult] = useState<{ success?: string; error?: string } | null>(null);
@@ -316,7 +330,23 @@ export default function AdminPage() {
 
   useEffect(() => {
     void loadContent();
+    void loadRole();
   }, []);
+
+  async function loadRole() {
+    try {
+      const res = await fetch("/api/admin/role", { cache: "no-store" });
+      const data = (await res.json()) as { role?: string };
+      if (data.role === "supervisor") setAdminRole("supervisor");
+    } catch {
+      // default to admin on error — API routes still enforce server-side
+    }
+  }
+
+  const visibleSections = useMemo(() => {
+    if (adminRole === "admin") return adminSections;
+    return adminSections.filter((s) => SUPERVISOR_SECTIONS.has(s.id));
+  }, [adminRole]);
 
   async function loadContent() {
     setLoading(true);
@@ -590,6 +620,11 @@ export default function AdminPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            {adminRole === "supervisor" ? (
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-800">
+                Supervisor Access
+              </span>
+            ) : null}
             <button
               type="button"
               onClick={() => void loadContent()}
@@ -597,14 +632,16 @@ export default function AdminPage() {
             >
               Refresh
             </button>
-            <button
-              type="button"
-              onClick={() => void saveContent()}
-              disabled={saving}
-              className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {saving ? "Saving..." : "Save Changes"}
-            </button>
+            {adminRole === "admin" ? (
+              <button
+                type="button"
+                onClick={() => void saveContent()}
+                disabled={saving}
+                className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -614,7 +651,7 @@ export default function AdminPage() {
 
       <section className="panel p-4">
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {adminSections.map((item) => {
+          {visibleSections.map((item) => {
             const isActive = item.id === activeSection;
 
             return (
@@ -826,6 +863,28 @@ export default function AdminPage() {
               </div>
             </Field>
           </div>
+
+          <Field label={`Scroll speed — ${content.marquee?.speed ?? 30}s (lower = faster)`}>
+            <input
+              type="range"
+              min={5}
+              max={120}
+              step={1}
+              value={content.marquee?.speed ?? 30}
+              onChange={(e) =>
+                setContent({
+                  ...content,
+                  marquee: { ...content.marquee, enabled: content.marquee?.enabled ?? false, text: content.marquee?.text ?? "", speed: Number(e.target.value) },
+                })
+              }
+              className="w-full accent-[var(--brand)]"
+            />
+            <div className="flex justify-between text-[10px] text-[var(--ink-soft)] mt-1">
+              <span>Fast (5s)</span>
+              <span>Default (30s)</span>
+              <span>Slow (120s)</span>
+            </div>
+          </Field>
         </div>
         </Section>
       ) : null}

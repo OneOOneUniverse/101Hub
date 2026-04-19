@@ -234,6 +234,7 @@ export type SiteContent = {
     text: string;
     bgColor?: string;
     textColor?: string;
+    speed?: number;
   };
   footer?: FooterContent;
   features: SiteFeatures;

@@ -4,12 +4,14 @@ type MarqueeBarProps = {
   text: string;
   bgColor?: string;
   textColor?: string;
+  speed?: number;
 };
 
 export default function MarqueeBar({
   text,
   bgColor = "#000",
   textColor = "#fff",
+  speed = 30,
 }: MarqueeBarProps) {
   if (!text) return null;
 
@@ -32,7 +34,7 @@ export default function MarqueeBar({
       <div
         style={{
           display: "inline-flex",
-          animation: "marquee-scroll 30s linear infinite",
+          animation: `marquee-scroll ${speed}s linear infinite`,
         }}
       >
         <span style={{ display: "inline-block", padding: "0 3rem" }}>{text}</span>

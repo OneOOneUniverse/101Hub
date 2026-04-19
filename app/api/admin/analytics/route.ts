@@ -139,13 +139,51 @@ async function getOrderStats(days: number) {
   };
 }
 
+/** Like getDailyCounts but deduplicates by user_id so the same signup isn't counted twice
+ *  (webhook + client-side fallback can both fire). */
+async function getUniqueSignupsDailyCounts(days: number): Promise<DailyCount[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const { data, error } = await supabaseAdmin
+    .from("analytics_events")
+    .select("created_at, user_id")
+    .eq("event_type", "signup")
+    .gte("created_at", since.toISOString())
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[admin/analytics] signup query failed:", error.message);
+    return [];
+  }
+
+  const buckets: Record<string, Set<string>> = {};
+  for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - (days - 1 - i));
+    buckets[d.toISOString().slice(0, 10)] = new Set();
+  }
+
+  // Track globally seen user_ids to deduplicate across days too
+  const seen = new Set<string>();
+  for (const row of data ?? []) {
+    const uid = (row.user_id as string) || "";
+    if (!uid || seen.has(uid)) continue;
+    seen.add(uid);
+    const day = (row.created_at as string).slice(0, 10);
+    if (buckets[day]) buckets[day].add(uid);
+  }
+
+  return Object.entries(buckets).map(([date, set]) => ({ date, count: set.size }));
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const days = Math.min(Math.max(Number(searchParams.get("days")) || 30, 1), 365);
 
   const [uniqueVisitors, signups, orders, topPages] = await Promise.all([
     getUniqueVisitorsDailyCounts(days),
-    getDailyCounts("signup", days),
+    getUniqueSignupsDailyCounts(days),
     getOrderStats(days),
     getTopPages(days),
   ]);

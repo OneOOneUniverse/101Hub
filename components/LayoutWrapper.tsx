@@ -80,6 +80,7 @@ export default function LayoutWrapper({
           text={storeData.marquee.text}
           bgColor={storeData.marquee.bgColor}
           textColor={storeData.marquee.textColor}
+          speed={storeData.marquee.speed}
         />
       ) : null}
       <header className="sticky top-0 z-20 bg-transparent">
