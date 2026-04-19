@@ -19,6 +19,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
   const [prizeMessage, setPrizeMessage] = useState("");
   const [redeeming, setRedeeming] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState("");
+  const [openGame, setOpenGame] = useState<"spin" | "scratch" | "trivia" | null>(null);
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -189,7 +190,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         </section>
       )}
 
-      {/* ─── GAMES SECTIONS (each game in its own section) ─── */}
+      {/* ─── GAMES SECTIONS ─── */}
       {hasGames && !isSignedIn && (
         <section className="deals-section">
           <div className="deals-login-prompt">
@@ -199,50 +200,89 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         </section>
       )}
 
-      {dealsHub.spinWheel.enabled && (
+      {hasGames && (
         <section className="deals-section">
           <h2 className="deals-section-heading">
-            <span className="deals-section-icon">🎡</span> {dealsHub.spinWheel.title}
+            <span className="deals-section-icon">🎮</span> Games &amp; Rewards
           </h2>
-          <p className="deals-section-desc">{dealsHub.spinWheel.description}</p>
-          <div className="deals-game-card">
-            <div className="deals-game-body">
-              <SpinWheel slices={dealsHub.spinWheel.slices} onResult={handlePrize} disabled={!isSignedIn} />
-            </div>
+          <div className="deals-games-grid">
+            {dealsHub.spinWheel.enabled && (
+              <button className="gcard" onClick={() => setOpenGame("spin")}>
+                <div className="gcard-glow" />
+                <div className="gcard-icon">🎡</div>
+                <h3 className="gcard-name">{dealsHub.spinWheel.title}</h3>
+                <p className="gcard-desc">{dealsHub.spinWheel.description}</p>
+                <span className="gcard-cta">
+                  <span className="gcard-cta-sweep" />
+                  <span className="gcard-cta-text">Play Now</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                </span>
+              </button>
+            )}
+            {dealsHub.scratchCard.enabled && (
+              <button className="gcard gcard--dark" onClick={() => setOpenGame("scratch")}>
+                <div className="gcard-glow gcard-glow--purple" />
+                <div className="gcard-icon">🎟️</div>
+                <h3 className="gcard-name">{dealsHub.scratchCard.title}</h3>
+                <p className="gcard-desc">{dealsHub.scratchCard.description}</p>
+                <span className="gcard-cta">
+                  <span className="gcard-cta-sweep" />
+                  <span className="gcard-cta-text">Play Now</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                </span>
+              </button>
+            )}
+            {dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && (
+              <button className="gcard" onClick={() => setOpenGame("trivia")}>
+                <div className="gcard-glow" />
+                <div className="gcard-icon">🧠</div>
+                <h3 className="gcard-name">{dealsHub.trivia.title}</h3>
+                <p className="gcard-desc">{dealsHub.trivia.description}</p>
+                <span className="gcard-cta">
+                  <span className="gcard-cta-sweep" />
+                  <span className="gcard-cta-text">Play Now</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                </span>
+              </button>
+            )}
           </div>
         </section>
       )}
 
-      {dealsHub.scratchCard.enabled && (
-        <section className="deals-section">
-          <h2 className="deals-section-heading">
-            <span className="deals-section-icon">🎟️</span> {dealsHub.scratchCard.title}
-          </h2>
-          <p className="deals-section-desc">{dealsHub.scratchCard.description}</p>
-          <div className="deals-game-card deals-game-card--scratch">
-            <div className="deals-game-body">
-              <ScratchCard onResult={handlePrize} disabled={!isSignedIn} />
-            </div>
-          </div>
-        </section>
-      )}
+      {/* ─── GAME MODAL ─── */}
+      {openGame && (
+        <div className="gmodal-overlay" onClick={() => setOpenGame(null)}>
+          <div className="gmodal" onClick={(e) => e.stopPropagation()}>
+            <button className="gmodal-close" onClick={() => setOpenGame(null)} aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+            </button>
 
-      {dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && (
-        <section className="deals-section">
-          <h2 className="deals-section-heading">
-            <span className="deals-section-icon">🧠</span> {dealsHub.trivia.title}
-          </h2>
-          <p className="deals-section-desc">{dealsHub.trivia.description}</p>
-          <div className="deals-game-card">
-            <div className="deals-game-body">
-              {isSignedIn ? (
-                <DailyTrivia questions={dealsHub.trivia.questions} />
-              ) : (
-                <p className="text-center text-sm opacity-60">Sign in to play trivia</p>
-              )}
-            </div>
+            {openGame === "spin" && (
+              <div className="gmodal-content">
+                <h2 className="gmodal-title">🎡 {dealsHub.spinWheel.title}</h2>
+                <SpinWheel slices={dealsHub.spinWheel.slices} onResult={handlePrize} disabled={!isSignedIn} />
+              </div>
+            )}
+
+            {openGame === "scratch" && (
+              <div className="gmodal-content gmodal-content--dark">
+                <h2 className="gmodal-title gmodal-title--light">🎟️ {dealsHub.scratchCard.title}</h2>
+                <ScratchCard onResult={handlePrize} disabled={!isSignedIn} />
+              </div>
+            )}
+
+            {openGame === "trivia" && (
+              <div className="gmodal-content">
+                <h2 className="gmodal-title">🧠 {dealsHub.trivia.title}</h2>
+                {isSignedIn ? (
+                  <DailyTrivia questions={dealsHub.trivia.questions} />
+                ) : (
+                  <p className="text-center text-sm opacity-60">Sign in to play trivia</p>
+                )}
+              </div>
+            )}
           </div>
-        </section>
+        </div>
       )}
 
       {/* ─── STYLES ─── */}
@@ -778,11 +818,228 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           animation: deals-pulse 2s ease-in-out infinite;
         }
 
-        /* ── Game cards ── */
-        .deals-games {
+        /* ── Game preview cards ── */
+        .deals-games-grid {
+          display: grid;
+          gap: 1.25rem;
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        }
+
+        .gcard {
+          position: relative;
           display: flex;
           flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 2rem 1.5rem 1.5rem;
+          border: 2px solid rgba(75,30,133,0.3);
+          border-radius: 0.35em;
+          overflow: hidden;
+          background: linear-gradient(145deg, rgba(75,30,133,0.04), rgba(124,58,237,0.02));
+          backdrop-filter: blur(12px);
+          cursor: pointer;
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+          color: var(--ink, #1e293b);
+        }
+
+        .gcard--dark {
+          background: linear-gradient(145deg, #1e1e2e, #2a2a3d);
+          border-color: rgba(124,58,237,0.25);
+          color: #f1f5f9;
+        }
+
+        .gcard:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 40px rgba(124,58,237,0.25);
+          border-color: rgba(124,58,237,0.5);
+        }
+
+        .gcard-glow {
+          position: absolute;
+          top: -40%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(99,102,241,0.12), transparent 70%);
+          pointer-events: none;
+          transition: opacity 0.4s ease;
+          opacity: 0;
+        }
+        .gcard-glow--purple {
+          background: radial-gradient(circle, rgba(124,58,237,0.15), transparent 70%);
+        }
+        .gcard:hover .gcard-glow {
+          opacity: 1;
+        }
+
+        .gcard-icon {
+          font-size: 3rem;
+          margin-bottom: 0.6rem;
+          filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));
+          transition: transform 0.4s ease;
+        }
+        .gcard:hover .gcard-icon {
+          transform: scale(1.15) rotate(-5deg);
+        }
+
+        .gcard-name {
+          font-size: 1.15rem;
+          font-weight: 800;
+          margin: 0 0 0.3rem;
+          line-height: 1.2;
+        }
+        .gcard--dark .gcard-name {
+          color: #f1f5f9;
+        }
+
+        .gcard-desc {
+          font-size: 0.78rem;
+          color: var(--ink-soft, #64748b);
+          margin: 0 0 1rem;
+          line-height: 1.5;
+        }
+        .gcard--dark .gcard-desc {
+          color: #94a3b8;
+        }
+
+        .gcard-cta {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5em;
+          padding: 0.5em 1.2em;
+          border: 1px solid rgba(124,58,237,0.3);
+          border-radius: 99px;
+          font-size: 0.78rem;
+          font-weight: 700;
+          overflow: hidden;
+          background: rgba(124,58,237,0.08);
+          color: #7c3aed;
+          transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .gcard--dark .gcard-cta {
+          color: #a78bfa;
+          border-color: rgba(167,139,250,0.3);
+          background: rgba(124,58,237,0.15);
+        }
+        .gcard:hover .gcard-cta {
+          border-color: rgba(124,58,237,0.5);
+          box-shadow: 0 4px 15px rgba(124,58,237,0.2);
+        }
+        .gcard-cta-sweep {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to right, rgba(124,58,237,0.3), rgba(217,70,239,0.3), rgba(124,58,237,0.3));
+          transform: translateX(-100%);
+          transition: transform 0.6s ease;
+        }
+        .gcard:hover .gcard-cta-sweep {
+          transform: translateX(100%);
+        }
+        .gcard-cta-text {
+          position: relative;
+          z-index: 1;
+        }
+        .gcard-cta svg {
+          position: relative;
+          z-index: 1;
+          transition: transform 0.3s ease;
+        }
+        .gcard:hover .gcard-cta svg {
+          transform: translateX(3px);
+        }
+
+        /* ── Game modal ── */
+        .gmodal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 200;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(6px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+          animation: gmodal-fade 0.25s ease;
+        }
+
+        @keyframes gmodal-fade {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+
+        .gmodal {
+          position: relative;
+          max-width: 520px;
+          width: 100%;
+          max-height: 90vh;
+          overflow-y: auto;
+          border-radius: 1rem;
+          animation: gmodal-slide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes gmodal-slide {
+          0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .gmodal-close {
+          position: absolute;
+          top: 0.8rem;
+          right: 0.8rem;
+          z-index: 10;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          border: none;
+          background: rgba(0,0,0,0.15);
+          color: var(--ink-soft, #64748b);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .gmodal-close:hover {
+          background: rgba(0,0,0,0.25);
+          color: #ef4444;
+        }
+
+        .gmodal-content {
+          background: var(--surface, #fff);
+          border-radius: 1rem;
+          padding: 2rem 1.5rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           gap: 1.5rem;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+
+        .gmodal-content--dark {
+          background: linear-gradient(145deg, #1e1e2e, #2a2a3d);
+        }
+
+        .gmodal-title {
+          font-size: 1.2rem;
+          font-weight: 800;
+          color: var(--brand-deep, #1e1b4b);
+          margin: 0;
+          text-align: center;
+        }
+        .gmodal-title--light {
+          color: #f1f5f9;
+        }
+
+        .gmodal-content--dark .gmodal-close {
+          color: #94a3b8;
+          background: rgba(255,255,255,0.1);
+        }
+        .gmodal-content--dark .gmodal-close:hover {
+          background: rgba(255,255,255,0.2);
+          color: #ef4444;
         }
 
         .deals-login-prompt {
@@ -804,34 +1061,6 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           font-weight: 700;
         }
 
-        .deals-game-card {
-          position: relative;
-          border: 2px solid rgba(75,30,133,0.3);
-          border-radius: 1rem;
-          overflow: hidden;
-          background: linear-gradient(145deg, rgba(75,30,133,0.04), rgba(124,58,237,0.02));
-          backdrop-filter: blur(12px);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-          transition: all 0.5s ease;
-        }
-
-        .deals-game-card:hover {
-          box-shadow: 0 12px 30px rgba(124,58,237,0.15);
-          border-color: rgba(124,58,237,0.4);
-        }
-
-        .deals-game-body {
-          display: flex;
-          justify-content: center;
-          padding: 2rem 1.5rem;
-        }
-
-        /* Scratch card dark variant */
-        .deals-game-card--scratch {
-          background: linear-gradient(145deg, #1e1e2e, #2a2a3d);
-          border-color: rgba(124, 58, 237, 0.25);
-        }
-
         @media (max-width: 640px) {
           .deals-hero {
             padding: 2rem 1rem 1.5rem;
@@ -844,7 +1073,14 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           }
           .deals-card-emoji { font-size: 2rem; }
           .deals-card-name { font-size: 1.15em; }
-          .deals-game-body {
+          .deals-games-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+          .gcard {
+            padding: 1.5rem 1rem 1.2rem;
+          }
+          .gcard-icon { font-size: 2.4rem; }
+          .gmodal-content {
             padding: 1.5rem 1rem;
           }
         }
