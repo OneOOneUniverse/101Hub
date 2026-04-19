@@ -64,7 +64,7 @@ export default async function SpecialStorePage({ params }: Props) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {storeProducts.map((product) => {
             const hasDiscount = product.discount && product.discount > 0;
-            const discountPercent = hasDiscount ? product.discount : 0;
+            const discountPercent = hasDiscount ? product.discount! : 0;
             const salePrice = discountPercent
               ? Number(
                   (
@@ -94,7 +94,7 @@ export default async function SpecialStorePage({ params }: Props) {
                   {content.features.wishlist && (
                     <WishlistButton productId={product.id} />
                   )}
-                  <ProductCardShare product={product} />
+                  <ProductCardShare productName={product.name} slug={product.slug} />
                 </div>
 
                 {/* Image */}

@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   }
 
   // Pick prize
-  const slices = gameType === "spin" ? config.slices : config.prizes;
+  const slices = "slices" in config ? config.slices : config.prizes;
   const prize = weightedRandom(slices);
 
   // Record the play
