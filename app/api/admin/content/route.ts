@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { saveSiteContent, sanitizeSiteContent, getSiteContent } from "@/lib/site-content";
 import type { SiteContent } from "@/lib/site-content-types";
-import { isCurrentUserAdmin, getCurrentUserRole } from "@/lib/auth";
+import { isCurrentUserAdmin } from "@/lib/auth";
 import { notifyAllUsers } from "@/lib/db-notifications";
 
 function getDuplicates(values: string[]): string[] {
@@ -97,12 +97,6 @@ export async function PUT(request: Request) {
   const authError = await requireAdmin();
   if (authError) {
     return authError;
-  }
-
-  // Supervisors can view but not edit site content
-  const role = await getCurrentUserRole();
-  if (role !== "admin") {
-    return NextResponse.json({ error: "Only admins can edit site content." }, { status: 403 });
   }
 
   let body: unknown;

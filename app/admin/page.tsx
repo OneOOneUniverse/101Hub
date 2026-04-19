@@ -632,16 +632,14 @@ export default function AdminPage() {
             >
               Refresh
             </button>
-            {adminRole === "admin" ? (
-              <button
-                type="button"
-                onClick={() => void saveContent()}
-                disabled={saving}
-                className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {saving ? "Saving..." : "Save Changes"}
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => void saveContent()}
+              disabled={saving}
+              className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
           </div>
         </div>
 
