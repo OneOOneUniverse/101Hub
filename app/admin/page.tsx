@@ -3782,9 +3782,14 @@ export default function AdminPage() {
               <input
                 type="checkbox"
                 checked={content.dealsHub.enabled}
-                onChange={(e) =>
-                  setContent({ ...content, dealsHub: { ...content.dealsHub, enabled: e.target.checked } })
-                }
+                onChange={(e) => {
+                  const enabled = e.target.checked;
+                  setContent({
+                    ...content,
+                    dealsHub: { ...content.dealsHub, enabled },
+                    features: { ...content.features, dealsHub: enabled },
+                  });
+                }}
                 className="h-5 w-5 accent-[var(--brand)]"
               />
               <div>
