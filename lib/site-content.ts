@@ -419,10 +419,10 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
   description: "Play games, earn points, and unlock exclusive deals!",
   pointsPerCedi: 100,
   specialStores: [
-    { id: "store-50", name: "50 Cedis Store", slug: "50-cedis-store", description: "Everything at GHS 50 or less", emoji: "🏷️", bgColor: "#2563eb", textColor: "#ffffff", featuredProductIds: [], enabled: false },
-    { id: "store-10", name: "10 Cedis Store", slug: "10-cedis-store", description: "Unbeatable deals at GHS 10 or less", emoji: "🔥", bgColor: "#dc2626", textColor: "#ffffff", featuredProductIds: [], enabled: false },
-    { id: "store-thrift", name: "Thrift Store", slug: "thrift-store", description: "Pre-loved and budget-friendly finds", emoji: "♻️", bgColor: "#059669", textColor: "#ffffff", featuredProductIds: [], enabled: false },
-    { id: "store-event", name: "Christmas Store", slug: "christmas-store", description: "Festive specials and holiday deals", emoji: "🎄", bgColor: "#b91c1c", textColor: "#ffffff", featuredProductIds: [], enabled: false },
+    { id: "store-50", name: "50 Cedis Store", slug: "50-cedis-store", description: "Everything at GHS 50 or less", emoji: "🏷️", bgColor: "#2563eb", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
+    { id: "store-10", name: "10 Cedis Store", slug: "10-cedis-store", description: "Unbeatable deals at GHS 10 or less", emoji: "🔥", bgColor: "#dc2626", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
+    { id: "store-thrift", name: "Thrift Store", slug: "thrift-store", description: "Pre-loved and budget-friendly finds", emoji: "♻️", bgColor: "#059669", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
+    { id: "store-event", name: "Christmas Store", slug: "christmas-store", description: "Festive specials and holiday deals", emoji: "🎄", bgColor: "#b91c1c", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
   ],
   spinWheel: {
     enabled: false,
@@ -471,6 +471,7 @@ function sanitizeSpecialStore(value: unknown, index: number): SpecialStore {
     emoji: toText(c.emoji, defaults.emoji),
     bgColor: toText(c.bgColor, defaults.bgColor),
     textColor: toText(c.textColor, defaults.textColor),
+    backgroundImage: toText((c as Record<string, unknown>).backgroundImage as string | undefined, defaults.backgroundImage),
     featuredProductIds: Array.isArray(c.featuredProductIds)
       ? c.featuredProductIds.filter((i): i is string => typeof i === "string")
       : defaults.featuredProductIds,

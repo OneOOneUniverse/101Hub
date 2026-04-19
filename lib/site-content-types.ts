@@ -228,6 +228,7 @@ export type SpecialStore = {
   emoji: string;
   bgColor: string;
   textColor: string;
+  backgroundImage: string;
   featuredProductIds: string[];
   enabled: boolean;
 };

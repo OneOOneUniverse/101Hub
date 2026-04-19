@@ -51,8 +51,10 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
 
   return (
     <div className="deals-hub">
-      {/* Animated grid background */}
-      <div className="deals-bg" />
+      {/* Starry background — inspired by part.jsx */}
+      <div className="deals-stars" />
+      <div className="deals-stars deals-stars--med" />
+      <div className="deals-stars deals-stars--lg" />
 
       {/* Hero */}
       <section className="deals-hero">
@@ -125,22 +127,41 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
                 const productCount = products.filter((p) =>
                   Array.isArray(store.featuredProductIds) && store.featuredProductIds.includes(p.id)
                 ).length;
+                const hasImg = !!store.backgroundImage;
                 return (
-                  <Link key={store.id} href={`/deals/store/${store.slug}`} className="deals-store-card group">
+                  <Link key={store.id} href={`/deals/store/${store.slug}`} className="deals-card group/card">
+                    {/* Card background: image or gradient fallback */}
+                    {hasImg ? (
+                      <img src={store.backgroundImage} alt="" className="deals-card-img" />
+                    ) : null}
                     <div
-                      className="deals-store-card-bg"
-                      style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}dd)` }}
+                      className="deals-card-gradient"
+                      style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }}
                     />
-                    <div className="deals-store-card-content" style={{ color: store.textColor }}>
-                      <span className="deals-store-emoji">{store.emoji}</span>
-                      <h3 className="deals-store-name">{store.name}</h3>
-                      <p className="deals-store-desc">{store.description}</p>
-                      <span className="deals-store-count">
-                        {productCount} item{productCount !== 1 ? "s" : ""}
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    {/* Hover overlay from dealcc */}
+                    <div className="deals-card-hover-overlay" />
+                    {/* Radial pulse glow */}
+                    <div className="deals-card-pulse" />
+                    {/* Decorative dots from dealcc */}
+                    <div className="deals-card-dots">
+                      <span /><span /><span />
+                    </div>
+                    {/* Content */}
+                    <div className="deals-card-body" style={{ color: store.textColor }}>
+                      <span className="deals-card-emoji">{store.emoji}</span>
+                      <h3 className="deals-card-name">{store.name}</h3>
+                      <p className="deals-card-desc">{store.description}</p>
+                      {/* "Explore Now" button from dealcc */}
+                      <span className="deals-card-btn">
+                        <span className="deals-card-btn-sweep" />
+                        <span className="deals-card-btn-text">Explore Now</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="deals-card-btn-arrow"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                       </span>
                     </div>
-                    <div className="deals-store-shine" />
+                    {/* Holographic shine */}
+                    <div className="deals-card-shine" />
+                    {/* Bottom-left glow orb from dealcc */}
+                    <div className="deals-card-orb" />
                   </Link>
                 );
               })}
@@ -215,29 +236,55 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         .deals-hub {
           position: relative;
           min-height: 100vh;
-          overflow: hidden;
         }
 
-        /* Animated grid background */
-        .deals-bg {
+        /* ── Starry background (part.jsx inspired) ── */
+        .deals-stars {
           position: fixed;
           inset: 0;
-          z-index: -1;
-          background-image:
-            linear-gradient(rgba(124, 58, 237, 0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(124, 58, 237, 0.04) 1px, transparent 1px);
-          background-size: 40px 40px;
-          animation: deals-grid-scroll 25s linear infinite;
+          pointer-events: none;
+          z-index: 0;
+          background: radial-gradient(ellipse at bottom, rgba(75,30,133,0.06) 0%, transparent 70%);
         }
-
-        @keyframes deals-grid-scroll {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 40px; }
+        .deals-stars::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image:
+            radial-gradient(1px 1px at 50px 120px, rgba(124,58,237,0.35), transparent),
+            radial-gradient(1px 1px at 200px 80px, rgba(124,58,237,0.25), transparent),
+            radial-gradient(1px 1px at 400px 200px, rgba(167,139,250,0.3), transparent),
+            radial-gradient(1px 1px at 600px 50px, rgba(124,58,237,0.2), transparent),
+            radial-gradient(1px 1px at 150px 300px, rgba(167,139,250,0.35), transparent),
+            radial-gradient(1px 1px at 350px 350px, rgba(124,58,237,0.2), transparent),
+            radial-gradient(1px 1px at 500px 150px, rgba(167,139,250,0.25), transparent),
+            radial-gradient(1px 1px at 700px 300px, rgba(124,58,237,0.3), transparent),
+            radial-gradient(1px 1px at 100px 500px, rgba(167,139,250,0.2), transparent),
+            radial-gradient(1px 1px at 300px 450px, rgba(124,58,237,0.25), transparent),
+            radial-gradient(1px 1px at 550px 400px, rgba(167,139,250,0.3), transparent),
+            radial-gradient(1px 1px at 750px 100px, rgba(124,58,237,0.2), transparent);
+          background-size: 800px 600px;
+          animation: deals-twinkle 80s linear infinite;
+        }
+        .deals-stars--med::after {
+          background-size: 900px 700px;
+          animation-duration: 120s;
+          opacity: 0.6;
+        }
+        .deals-stars--lg::after {
+          background-size: 1100px 800px;
+          animation-duration: 160s;
+          opacity: 0.4;
+        }
+        @keyframes deals-twinkle {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-600px); }
         }
 
         /* Hero */
         .deals-hero {
           position: relative;
+          z-index: 1;
           padding: 3rem 1.5rem 2.5rem;
           text-align: center;
           overflow: hidden;
@@ -369,6 +416,8 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
 
         /* Tabs */
         .deals-tabs {
+          position: relative;
+          z-index: 2;
           display: flex;
           justify-content: center;
           gap: 0.5rem;
@@ -411,6 +460,8 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
 
         /* Sections */
         .deals-section {
+          position: relative;
+          z-index: 1;
           max-width: 72rem;
           margin: 0 auto;
           padding: 0 1rem 3rem;
@@ -428,107 +479,232 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           margin-bottom: 0.8rem;
         }
 
-        /* Store cards */
+        /* ── Store cards (dealcc.jsx inspired) ── */
         .deals-stores-grid {
           display: grid;
-          gap: 1rem;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          gap: 1.25rem;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
         }
 
-        .deals-store-card {
+        .deals-card {
           position: relative;
-          border-radius: 1.25rem;
-          overflow: hidden;
+          height: 18em;
+          border: 2px solid rgba(75, 30, 133, 0.5);
+          border-radius: 1.5em;
           text-decoration: none;
-          height: 220px;
-          display: flex;
-          perspective: 800px;
-          transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s ease;
-        }
-
-        .deals-store-card:hover {
-          transform: translateY(-6px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .deals-store-card-bg {
-          position: absolute;
-          inset: 0;
-          z-index: 0;
-        }
-
-        .deals-store-card-content {
-          position: relative;
-          z-index: 2;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
-          padding: 1.5rem;
-          width: 100%;
+          overflow: hidden;
+          backdrop-filter: blur(12px);
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        .deals-store-emoji {
-          font-size: 2.5rem;
-          margin-bottom: 0.5rem;
-          filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+        .deals-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px rgba(124, 58, 237, 0.3);
+        }
+
+        /* Background image */
+        .deals-card-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: 0;
+        }
+
+        /* Gradient overlay (over image or as sole bg) */
+        .deals-card-gradient {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+        }
+        .deals-card:has(.deals-card-img) .deals-card-gradient {
+          opacity: 0.75;
+        }
+
+        /* Hover overlay (dealcc: purple → fuchsia glow) */
+        .deals-card-hover-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(217,70,239,0.2), transparent);
+          border-radius: 1.5em;
+          opacity: 0;
+          transition: opacity 0.5s ease;
+          pointer-events: none;
+        }
+        .deals-card:hover .deals-card-hover-overlay {
+          opacity: 1;
+        }
+
+        /* Radial pulse glow (dealcc) */
+        .deals-card-pulse {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          background: radial-gradient(circle at 50% 50%, rgba(120,50,190,0.1), transparent 60%);
+          pointer-events: none;
+          opacity: 0;
+        }
+        .deals-card:hover .deals-card-pulse {
+          animation: deals-pulse 2s ease-in-out infinite;
+        }
+        @keyframes deals-pulse {
+          0%, 100% { opacity: 0; }
+          50% { opacity: 1; }
+        }
+
+        /* Decorative dots (dealcc: top-right) */
+        .deals-card-dots {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          z-index: 5;
+          display: flex;
+          gap: 0.4rem;
+          pointer-events: none;
+        }
+        .deals-card-dots span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: rgba(216, 180, 254, 0.5);
+        }
+        .deals-card-dots span:nth-child(2) { opacity: 0.6; }
+        .deals-card-dots span:nth-child(3) { opacity: 0.3; }
+
+        /* Card body */
+        .deals-card-body {
+          position: relative;
+          z-index: 4;
+          padding: 1.5em;
+          display: flex;
+          flex-direction: column;
+          gap: 0.3em;
+          transition: transform 0.3s ease;
+        }
+        .deals-card:hover .deals-card-body {
+          transform: translateY(-2px);
+        }
+
+        .deals-card-emoji {
+          font-size: 2.4rem;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
           transition: transform 0.4s ease;
         }
-
-        .deals-store-card:hover .deals-store-emoji {
+        .deals-card:hover .deals-card-emoji {
           transform: scale(1.2) rotate(-5deg);
         }
 
-        .deals-store-name {
-          font-size: 1.2rem;
-          font-weight: 900;
+        .deals-card-name {
+          font-size: 1.5em;
+          font-weight: 800;
+          line-height: 1.15;
           margin: 0;
-          line-height: 1.2;
+          background: linear-gradient(to right, currentColor, rgba(255,255,255,0.8));
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
         }
 
-        .deals-store-desc {
-          font-size: 0.75rem;
-          opacity: 0.8;
-          margin: 0.3rem 0 0.6rem;
+        .deals-card-desc {
+          font-size: 0.82em;
+          opacity: 0.85;
+          line-height: 1.5;
+          font-weight: 300;
+          margin: 0;
         }
 
-        .deals-store-count {
+        /* Explore Now button (from dealcc) */
+        .deals-card-btn {
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
-          font-size: 0.65rem;
-          font-weight: 700;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          opacity: 0.7;
+          gap: 0.6em;
+          margin-top: 0.6em;
+          padding: 0.55em 1.2em;
+          border: 1px solid rgba(216,180,254,0.3);
+          border-radius: 99px;
+          font-size: 0.78rem;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+          overflow: hidden;
+          position: relative;
+          background: rgba(124,58,237,0.1);
+          backdrop-filter: blur(12px);
+          transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .deals-card:hover .deals-card-btn {
+          border-color: rgba(216,180,254,0.5);
+          box-shadow: 0 4px 15px rgba(124,58,237,0.2);
+        }
+        .deals-card:active .deals-card-btn {
+          transform: scale(0.95);
         }
 
-        /* Holographic shine effect */
-        .deals-store-shine {
+        /* Sweep effect on button (dealcc) */
+        .deals-card-btn-sweep {
           position: absolute;
           inset: 0;
-          z-index: 3;
+          background: linear-gradient(to right, rgba(124,58,237,0.4), rgba(217,70,239,0.4), rgba(124,58,237,0.4));
+          transform: translateX(-100%);
+          transition: transform 0.7s ease;
+        }
+        .deals-card:hover .deals-card-btn-sweep {
+          transform: translateX(100%);
+        }
+
+        .deals-card-btn-text {
+          position: relative;
+          z-index: 1;
+        }
+        .deals-card-btn-arrow {
+          position: relative;
+          z-index: 1;
+          transition: transform 0.3s ease;
+        }
+        .deals-card:hover .deals-card-btn-arrow {
+          transform: translateX(3px);
+        }
+
+        /* Holographic shine sweep */
+        .deals-card-shine {
+          position: absolute;
+          inset: 0;
+          z-index: 6;
           pointer-events: none;
-          background: linear-gradient(
-            115deg,
-            transparent 0%,
-            transparent 40%,
-            rgba(255,255,255,0.12) 45%,
-            rgba(255,255,255,0.25) 50%,
-            rgba(255,255,255,0.12) 55%,
-            transparent 60%,
-            transparent 100%
-          );
+          border-radius: 1.5em;
+          background: linear-gradient(115deg, transparent 0%, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.1) 55%, transparent 60%, transparent 100%);
           background-size: 250% 250%;
           background-position: 100% 100%;
           transition: background-position 0.6s cubic-bezier(0.23, 1, 0.32, 1);
           mix-blend-mode: overlay;
         }
-
-        .deals-store-card:hover .deals-store-shine {
+        .deals-card:hover .deals-card-shine {
           background-position: 0% 0%;
         }
 
-        /* Game cards */
+        /* Bottom-left glow orb (dealcc) */
+        .deals-card-orb {
+          position: absolute;
+          bottom: 1rem;
+          left: 1rem;
+          width: 2rem;
+          height: 2rem;
+          border-radius: 50%;
+          background: linear-gradient(135deg, rgba(167,139,250,0.2), transparent);
+          filter: blur(6px);
+          z-index: 3;
+          pointer-events: none;
+          opacity: 0;
+        }
+        .deals-card:hover .deals-card-orb {
+          animation: deals-pulse 2s ease-in-out infinite;
+        }
+
+        /* ── Game cards ── */
         .deals-games {
           display: flex;
           flex-direction: column;
@@ -555,16 +731,19 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         }
 
         .deals-game-card {
-          background: linear-gradient(145deg, #fafafa, #ffffff);
-          border: 1px solid rgba(0,0,0,0.06);
+          position: relative;
+          border: 2px solid rgba(75,30,133,0.3);
           border-radius: 1.5rem;
           overflow: hidden;
+          background: linear-gradient(145deg, rgba(75,30,133,0.04), rgba(124,58,237,0.02));
+          backdrop-filter: blur(12px);
           box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-          transition: box-shadow 0.3s ease;
+          transition: all 0.5s ease;
         }
 
         .deals-game-card:hover {
-          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+          box-shadow: 0 12px 30px rgba(124,58,237,0.15);
+          border-color: rgba(124,58,237,0.4);
         }
 
         .deals-game-header {
@@ -599,10 +778,10 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           padding: 2rem 1.5rem;
         }
 
-        /* Scratch card special treatment: dark ticket background */
+        /* Scratch card dark variant */
         .deals-game-card--scratch {
           background: linear-gradient(145deg, #1e1e2e, #2a2a3d);
-          border-color: rgba(124, 58, 237, 0.15);
+          border-color: rgba(124, 58, 237, 0.25);
         }
 
         .deals-game-card--scratch .deals-game-header {
@@ -624,11 +803,11 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           .deals-stores-grid {
             grid-template-columns: 1fr 1fr;
           }
-          .deals-store-card {
-            height: 180px;
+          .deals-card {
+            height: 15em;
           }
-          .deals-store-emoji { font-size: 2rem; }
-          .deals-store-name { font-size: 1rem; }
+          .deals-card-emoji { font-size: 2rem; }
+          .deals-card-name { font-size: 1.15em; }
           .deals-game-body {
             padding: 1.5rem 1rem;
           }

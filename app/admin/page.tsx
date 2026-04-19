@@ -3838,6 +3838,7 @@ export default function AdminPage() {
                     emoji: "🛍️",
                     bgColor: "#6366f1",
                     textColor: "#ffffff",
+                    backgroundImage: "",
                     featuredProductIds: [],
                     enabled: false,
                   };
@@ -3963,6 +3964,35 @@ export default function AdminPage() {
                     />
                   </Field>
                 </div>
+
+                <Field label="Background Image URL (optional — overrides gradient)">
+                  <input
+                    value={store.backgroundImage ?? ""}
+                    placeholder="https://example.com/image.jpg"
+                    onChange={(e) => {
+                      const stores = [...content.dealsHub.specialStores];
+                      stores[si] = { ...stores[si], backgroundImage: e.target.value };
+                      setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                    }}
+                    className={inputClassName()}
+                  />
+                  {store.backgroundImage && (
+                    <div className="mt-2 relative h-24 w-full rounded-lg overflow-hidden border border-black/10">
+                      <img src={store.backgroundImage} alt="Preview" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], backgroundImage: "" };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className="absolute top-1 right-1 rounded-full bg-red-600 text-white text-xs px-2 py-0.5 font-bold hover:bg-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </Field>
 
                 {/* Featured products for this store */}
                 <div className="space-y-2">
