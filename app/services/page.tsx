@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
+import FlutterWaveButton from "@/components/FlutterWaveButton";
 
 type ServiceResult = {
   success: boolean;
@@ -41,6 +42,11 @@ function ServicesContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [result, setResult] = useState<ServiceResult | null>(null);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [paymentRef, setPaymentRef] = useState("");
+  const [paymentError, setPaymentError] = useState("");
+  const [orderRef] = useState(() => `SVC-${Date.now()}`);
+  const selectedService = useMemo(() => services.find((s) => s.id === packageId), [services, packageId]);
 
   useEffect(() => {
     if (!packageId && services[0]?.id) {
@@ -106,6 +112,7 @@ function ServicesContent() {
           issue,
           preferredTime,
           requestedDate: requestedDate || undefined,
+          paymentRef,
         }),
       });
       const contentType = response.headers.get("content-type") || "";
@@ -353,14 +360,45 @@ function ServicesContent() {
           <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
             <p>👤 Your request has been submitted! Watch your email for updates.</p>
           </div>
+        ) : !paymentVerified ? (
+          <div className="space-y-3 border-t border-black/10 pt-4">
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+              <p className="font-bold">💳 Payment Required</p>
+              <p className="mt-1 text-xs">Pay for the service first, then you can submit your request. Make sure your name and phone number above are correct.</p>
+              {selectedService && (
+                <p className="mt-2 font-black text-base text-amber-900">Amount: ₵{selectedService.price.toFixed(2)}</p>
+              )}
+            </div>
+            {paymentError && (
+              <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">❌ {paymentError}</p>
+            )}
+            <FlutterWaveButton
+              amount={selectedService?.price ?? 0}
+              orderRef={orderRef}
+              customerName={customerName}
+              customerEmail=""
+              customerPhone={phone}
+              onPaymentSuccess={() => {
+                setPaymentVerified(true);
+                setPaymentRef(orderRef);
+                setPaymentError("");
+              }}
+              onPaymentFailure={(err) => setPaymentError(err)}
+            />
+          </div>
         ) : (
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-styled rounded-full w-full disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? "Submitting..." : "Submit Service Request"}
-          </button>
+          <div className="space-y-3">
+            <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700">
+              ✅ Payment confirmed! Your request is ready to submit.
+            </div>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-styled rounded-full w-full disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting ? "Submitting..." : "Submit Service Request"}
+            </button>
+          </div>
         )}
       </form>
     </section>

@@ -7,6 +7,10 @@
 ALTER TABLE service_requests
   ADD COLUMN IF NOT EXISTS requested_date DATE DEFAULT NULL;
 
+-- Add payment_ref column to store Flutterwave transaction reference
+ALTER TABLE service_requests
+  ADD COLUMN IF NOT EXISTS payment_ref TEXT DEFAULT NULL;
+
 -- Update status constraint: pending → approved/declined → completed
 -- (Drop any existing constraint first, then add new one)
 -- Note: If no constraint exists, this is safe — DO NOTHING on error

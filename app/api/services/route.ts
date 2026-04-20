@@ -19,6 +19,7 @@ type ServiceRequestPayload = {
   issue?: string;
   preferredTime?: string;
   requestedDate?: string;
+  paymentRef?: string;
 };
 
 /** Normalize and validate Ghana phone numbers to E.164 format (+233XXXXXXXXX) */
@@ -168,6 +169,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!body.paymentRef) {
+    return NextResponse.json(
+      { error: "Payment is required before submitting a service request." },
+      { status: 402 }
+    );
+  }
+
   if (!features.services) {
     return NextResponse.json({ error: "Services are currently unavailable" }, { status: 403 });
   }
@@ -200,6 +208,7 @@ export async function POST(request: Request) {
     issue: body.issue,
     preferred_time: body.preferredTime || null,
     requested_date: body.requestedDate || null,
+    payment_ref: body.paymentRef,
     status: "pending",
   }).select().single();
 
