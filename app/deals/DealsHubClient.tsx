@@ -687,7 +687,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           position: relative;
           height: 18em;
           border: 2px solid rgba(75, 30, 133, 0.5);
-          border-radius: 0.35em;
+          border-radius: 1rem;
           text-decoration: none;
           display: flex;
           flex-direction: column;
@@ -728,7 +728,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           inset: 0;
           z-index: 2;
           background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(217,70,239,0.2), transparent);
-          border-radius: 0.35em;
+          border-radius: 1rem;
           opacity: 0;
           transition: opacity 0.5s ease;
           pointer-events: none;
