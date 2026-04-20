@@ -296,14 +296,14 @@ export default function ReferralDashboard() {
           box-sizing: border-box;
           border-radius: 0px 1.5rem;
           overflow: hidden;
-          backdrop-filter: blur(40px);
-          background-image: radial-gradient(#2121218a, #212121cc),
+          background-image: radial-gradient(rgba(33,33,33,0.95), rgba(33,33,33,0.98)),
             linear-gradient(35deg, var(--tier-dark) 62%, var(--tier-from) 100%);
           background-origin: border-box;
           background-clip: content-box, border-box;
           box-shadow: 1px 1px 2rem var(--tier-glow);
           transform-style: preserve-3d;
           transition: all 0.5s cubic-bezier(0.23,1,0.32,1);
+          content-visibility: auto;
         }
         .ref-tier-card:hover {
           transform: rotateY(15deg) scale(1.03);
@@ -373,7 +373,8 @@ export default function ReferralDashboard() {
           inset: 0;
           z-index: 1;
           border-radius: 0px 0.8rem;
-          backdrop-filter: blur(2px);
+          backdrop-filter: none;
+          background: rgba(33, 33, 33, 0.92);
           background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.3) 100%);
           pointer-events: none;
         }

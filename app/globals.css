@@ -70,7 +70,9 @@ html {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(220, 80, 20, 0.45) 25%, rgba(255, 255, 255, 1) 50%, rgba(220, 80, 20, 0.4) 75%, rgba(255, 255, 255, 0.98) 100%);
   background-size: 400% 400%;
+  background-attachment: fixed;
   animation: gradient-shift 12s ease infinite;
+  will-change: background-position;
 }
 
 body {
