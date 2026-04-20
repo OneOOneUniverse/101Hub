@@ -4,7 +4,6 @@ import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
-import FlutterWaveButton from "@/components/FlutterWaveButton";
 import { useStoreContent } from "@/lib/use-store-content";
 
 type ServiceResult = {
@@ -42,8 +41,6 @@ function ServicesContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [result, setResult] = useState<ServiceResult | null>(null);
-  const [paymentDone, setPaymentDone] = useState(false);
-  const [paymentVerified, setPaymentVerified] = useState(false);
 
   useEffect(() => {
     if (!packageId && services[0]?.id) {
@@ -95,12 +92,6 @@ function ServicesContent() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     
-    // Block submission if payment hasn't been verified
-    if (!paymentVerified) {
-      setSubmitError("⚠️ Payment must be completed before submitting your request.");
-      return;
-    }
-
     setSubmitting(true);
     setSubmitError("");
 
@@ -139,7 +130,6 @@ function ServicesContent() {
       setPreferredTime("");
       setRequestedDate("");
       setPackageId(services[0]?.id ?? "");
-      setPaymentVerified(false);
     } catch {
       setSubmitError("Network error. Please try again.");
     } finally {
@@ -364,40 +354,13 @@ function ServicesContent() {
             <p>👤 Your request has been submitted! Watch your email for updates.</p>
           </div>
         ) : (
-          // Payment button - required to be completed before form submission
-          <div className="space-y-3">
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
-              <p className="font-semibold">💳 Payment Required</p>
-              <p className="text-xs mt-1">Complete payment below to submit your service request to our admin team.</p>
-            </div>
-            <FlutterWaveButton
-              onPaymentSuccess={() => {
-                setPaymentVerified(true);
-                setSubmitError("");
-                // Auto-submit after payment succeeds
-                setTimeout(() => {
-                  onSubmit({
-                    preventDefault: () => {},
-                  } as FormEvent<HTMLFormElement>);
-                }, 500);
-              }}
-              onPaymentFailure={(msg: string) => {
-                setPaymentVerified(false);
-                setSubmitError(msg || "Payment failed. Please try again.");
-              }}
-              amount={services.find((s) => s.id === packageId)?.price ?? 0}
-              orderRef={`SERVICE-${Date.now()}`}
-              customerName={customerName || "Customer"}
-              customerEmail=""
-              customerPhone={phone}
-            />
-            {paymentDone && !paymentVerified && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
-                <p className="font-semibold">❌ Payment Not Verified</p>
-                <p className="text-xs mt-1">Payment was not successfully completed. Please try again.</p>
-              </div>
-            )}
-          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn-styled rounded-full w-full disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? "Submitting..." : "Submit Service Request"}
+          </button>
         )}
       </form>
     </section>

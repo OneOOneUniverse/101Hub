@@ -4,7 +4,6 @@ import { FormEvent, useMemo, useState, useEffect } from "react";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { CreditCardIcon, GiftIcon, TruckIcon } from "@/components/Icons";
 import { useStoreContent } from "@/lib/use-store-content";
-import PaystackButton from "@/components/PaystackButton";
 import AnimatedPaymentModal from "@/components/AnimatedPaymentModal";
 import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 import { saveOrderToLocal } from "@/lib/order-status";
@@ -50,7 +49,7 @@ const GHANA_REGIONS: Record<string, string[]> = {
 
 type OrderLine = { name: string; qty: number; unitPrice: number; lineTotal: number };
 
-type PaymentMethod = "paystack" | "manual";
+type PaymentMethod = "manual";
 
 type CheckoutResult = {
   success: boolean;
@@ -95,30 +94,15 @@ export default function CheckoutForm() {
   const [showPaymentAnimation, setShowPaymentAnimation] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<CheckoutResult | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
+  const paymentMethod: PaymentMethod = "manual";
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [paymentProofError, setPaymentProofError] = useState("");
-  const [showPaystack, setShowPaystack] = useState(false);
-  const [paystackOrderRef, setPaystackOrderRef] = useState("");
   const [invalidProducts, setInvalidProducts] = useState<CartLine[]>([]);
   const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
   const [rewardApplied, setRewardApplied] = useState(false);
   const [dealsReward, setDealsReward] = useState<DealsReward | null>(null);
   const [dealsRewardApplied, setDealsRewardApplied] = useState(false);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
-  const paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "";
-  const isPaystackConfigured = Boolean(paystackPublicKey) && !paystackPublicKey.startsWith("pk_test_xxx");
-
-  // Default to manual if Paystack not configured or disabled by admin
-  useEffect(() => {
-    const paystackAllowed = isPaystackConfigured && (content?.paymentSettings?.paystackEnabled ?? true);
-    const manualAllowed = content?.paymentSettings?.manualEnabled ?? true;
-    if (!paystackAllowed) {
-      setPaymentMethod("manual");
-    } else if (!manualAllowed && paymentMethod === "manual") {
-      setPaymentMethod("paystack");
-    }
-  }, [isPaystackConfigured, content?.paymentSettings, paymentMethod]);
 
   // Validate cart items on mount and when products change
   useEffect(() => {
@@ -313,14 +297,8 @@ export default function CheckoutForm() {
         return;
       }
 
-      // For Paystack, show payment widget; for manual, show confirmation
-      if (paymentMethod === "paystack") {
-        setPaystackOrderRef(data.orderRef);
-        setShowPaystack(true);
-        setShowPaymentAnimation(false);
-      } else {
-        // Simulate processing delay
-        setTimeout(() => {
+      // Simulate processing delay
+      setTimeout(() => {
           setShowPaymentAnimation(false);
           localStorage.removeItem(STORAGE_KEY);
           localStorage.removeItem(REWARD_APPLIED_KEY);
@@ -347,7 +325,6 @@ export default function CheckoutForm() {
           setResult(data);
           setItems([]);
         }, 2000);
-      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Network error. Please try again.";
       setError(errorMsg);
@@ -355,104 +332,6 @@ export default function CheckoutForm() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  async function handlePaystackSuccess(reference: string) {
-    setShowPaystack(false);
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(REWARD_APPLIED_KEY);
-    window.dispatchEvent(new Event("101hub:cart-updated"));
-
-    // Verify the payment server-side
-    try {
-      await fetch("/api/checkout/verify-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reference }),
-      });
-    } catch {
-      // Non-fatal — order was already recorded
-    }
-
-    const deliverySettings = content?.deliverySettings;
-    const totalQty = items.reduce((sum, l) => sum + l.qty, 0);
-    const subtotal = items.reduce((sum, line) => {
-      const product = products.find((item) => item.id === line.productId);
-      return sum + (product ? product.price * line.qty : 0);
-    }, 0);
-    let delivery = 0;
-    if (subtotal > 0 && deliverySettings) {
-      if (totalQty >= deliverySettings.freeDeliveryItemThreshold) {
-        delivery = 0;
-      } else {
-        const allFree = items.every((line) => {
-          const product = products.find((p) => p.id === line.productId);
-          return product?.noDeliveryFee === true;
-        });
-        if (!allFree) {
-          if ((deliverySettings.deliveryTypes ?? []).length > 0 && deliveryType) {
-            const dt = deliverySettings.deliveryTypes.find((t) => t.id === deliveryType);
-            delivery = dt ? dt.fee : 0;
-          } else {
-            delivery = deliverySettings.defaultFee;
-          }
-        }
-      }
-    }
-    const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
-    const total = subtotal + delivery + processingFee;
-
-    setResult({
-      success: true,
-      orderRef: paystackOrderRef,
-      paymentMethod: "Paystack (Online)",
-      message: "✅ Payment confirmed! Your order is being processed.",
-      customer: { name: customerName, phone, address, note, deliveryType: deliveryType || undefined },
-      lines: items.map((line) => {
-        const product = products.find((item) => item.id === line.productId);
-        return {
-          name: product?.name ?? line.productId,
-          qty: line.qty,
-          unitPrice: product?.price ?? 0,
-          lineTotal: (product?.price ?? 0) * line.qty,
-        };
-      }),
-      totals: { subtotal, delivery, processingFee, total },
-      storePhone: process.env.NEXT_PUBLIC_STORE_PHONE ?? "+233 548656980",
-      storeEmail: process.env.NEXT_PUBLIC_STORE_EMAIL ?? "",
-    });
-    saveOrderToLocal({
-      orderRef: paystackOrderRef,
-      customerName,
-      customerPhone: phone,
-      customerAddress: address,
-      customerEmail: email,
-      customerNote: note,
-      items: items.map((line) => {
-        const product = products.find((item) => item.id === line.productId);
-        return {
-          name: product?.name ?? line.productId,
-          qty: line.qty,
-          unitPrice: product?.price ?? 0,
-          lineTotal: (product?.price ?? 0) * line.qty,
-        };
-      }),
-      subtotal,
-      delivery,
-      processingFee,
-      deliveryType: deliveryType || undefined,
-      total,
-      paymentMethod: "paystack",
-      paymentStatus: "verified",
-      orderStatus: "confirmed",
-      createdAt: new Date().toISOString(),
-    });
-    setItems([]);
-  }
-
-  function handlePaystackClose() {
-    setShowPaystack(false);
-    setError("Payment was cancelled. You can try again or switch to manual transfer.");
   }
 
   // ── Order confirmation screen ───────────────────────────────────────────────
@@ -609,56 +488,6 @@ export default function CheckoutForm() {
             </div>
           </div>
         )}
-
-        {/* Payment Method Selection */}
-        <div className="form-section">
-          <div className="form-section-header flex items-center gap-1.5">
-            <CreditCardIcon size={16} /> Payment Method
-          </div>
-          <div className="space-y-3">
-          {(() => {
-            const paystackAllowed = isPaystackConfigured && (content.paymentSettings?.paystackEnabled ?? true);
-            const manualAllowed = content.paymentSettings?.manualEnabled ?? true;
-            return (
-              <div className="space-y-2">
-                {paystackAllowed && (
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="payment-method"
-                      value="paystack"
-                      checked={paymentMethod === "paystack"}
-                      onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm font-medium">
-                      Paystack (Card / Mobile Money / Bank Transfer)
-                    </span>
-                  </label>
-                )}
-                {manualAllowed && (
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="payment-method"
-                      value="manual"
-                      checked={paymentMethod === "manual"}
-                      onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm font-medium">
-                      Manual Transfer (Upload Payment Proof)
-                    </span>
-                  </label>
-                )}
-                {!paystackAllowed && !manualAllowed && (
-                  <p className="text-sm text-red-700 font-semibold">No payment methods are currently available. Please contact the store.</p>
-                )}
-              </div>
-            );
-          })()}
-          </div>
-        </div>
 
         {/* Personal Info Section */}
         <div className="form-section">
@@ -1047,47 +876,15 @@ export default function CheckoutForm() {
           </div>
         )}
 
-        {paymentMethod === "paystack" && (
-          <div className="rounded-lg bg-green-50 p-4 border border-green-200">
-            <p className="text-sm text-green-900">
-              You will complete payment of <span className="font-bold">GHS {totals.total.toFixed(2)}</span> securely via Paystack (Card, MTN/Vodafone Mobile Money, or bank transfer).
-            </p>
-          </div>
-        )}
-
         {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
 
-        {showPaystack && (
-          <div className="space-y-3 border-t border-black/10 pt-4">
-            <p className="text-sm font-semibold text-[var(--ink)]">Complete Your Payment</p>
-            <PaystackButton
-              amount={paymentAmount}
-              orderRef={paystackOrderRef}
-              customerEmail={email || "guest@101hub.com"}
-              customerName={customerName}
-              customerPhone={phone}
-              onSuccess={handlePaystackSuccess}
-              onClose={handlePaystackClose}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPaystack(false)}
-              className="w-full rounded-full bg-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-400"
-            >
-              ← Back
-            </button>
-          </div>
-        )}
-
-        {!showPaystack && (
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-styled rounded-full disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? "Placing order..." : "Place Order"}
-          </button>
-        )}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="btn-styled rounded-full disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {submitting ? "Placing order..." : "Place Order"}
+        </button>
 
         <p className="text-xs text-center text-[var(--ink-soft)]">
           Questions? Call us:{" "}
