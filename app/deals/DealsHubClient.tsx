@@ -20,6 +20,16 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
   const [redeeming, setRedeeming] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState("");
   const [openGame, setOpenGame] = useState<"spin" | "scratch" | "trivia" | null>(null);
+  const [activeReward, setActiveReward] = useState<{ id: number; discountCedis: number; label: string } | null>(null);
+
+  const refreshActiveReward = useCallback(() => {
+    fetch("/api/deals/active-reward")
+      .then((r) => r.json())
+      .then((d: { hasReward: boolean; reward?: { id: number; discountCedis: number; label: string } }) => {
+        setActiveReward(d.hasReward && d.reward ? d.reward : null);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -27,7 +37,8 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
       .then((r) => r.json())
       .then((d: { balance?: number }) => setPoints(d.balance ?? 0))
       .catch(() => {});
-  }, [isSignedIn]);
+    refreshActiveReward();
+  }, [isSignedIn, refreshActiveReward]);
 
   const refreshPoints = useCallback(() => {
     fetch("/api/deals/points")
@@ -56,23 +67,23 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
       const res = await fetch("/api/deals/redeem", { method: "POST" });
       const data = (await res.json()) as { discountCedis?: number; pointsUsed?: number; remainingBalance?: number; error?: string };
       if (!res.ok) {
-        setRedeemMsg(data.error ?? "Failed to redeem");
+        setRedeemMsg(data.error ?? "Failed to claim");
       } else {
-        setRedeemMsg(`✅ Redeemed GHS ${data.discountCedis} discount! Use it at checkout.`);
+        setRedeemMsg(`✅ Claimed GHS ${data.discountCedis} discount! Apply it at checkout.`);
         refreshPoints();
+        refreshActiveReward();
       }
     } catch {
       setRedeemMsg("Network error — try again");
     } finally {
       setRedeeming(false);
-      setTimeout(() => setRedeemMsg(""), 6000);
     }
-  }, [redeeming, refreshPoints]);
+  }, [redeeming, refreshPoints, refreshActiveReward]);
 
   const enabledStores = dealsHub.specialStores.filter((s) => s.enabled);
   const hasGames = dealsHub.spinWheel.enabled || dealsHub.scratchCard.enabled || dealsHub.trivia.enabled;
   const minRedeem = dealsHub.minRedeemPoints || 0;
-  const canRedeem = minRedeem > 0 ? points >= minRedeem : points >= dealsHub.pointsPerCedi;
+  const canRedeem = !activeReward && (minRedeem > 0 ? points >= minRedeem : points >= dealsHub.pointsPerCedi);
   const progressPct = minRedeem > 0 ? Math.min(100, Math.round((points / minRedeem) * 100)) : 100;
 
   return (
@@ -113,28 +124,45 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
       </section>
 
       {/* Reward Claim Section */}
-      {isSignedIn && minRedeem > 0 && (
+      {isSignedIn && (
         <section className="deals-redeem">
           <div className="deals-redeem-inner">
-            <h2 className="deals-redeem-title">🎁 Claim Your Rewards</h2>
-            <p className="deals-redeem-desc">
-              Earn <strong>{minRedeem.toLocaleString()}</strong> points to unlock a discount you can use at checkout.
-            </p>
-            <div className="deals-progress-bar">
-              <div className="deals-progress-fill" style={{ width: `${progressPct}%` }} />
-            </div>
-            <div className="deals-progress-labels">
-              <span>{points.toLocaleString()} pts</span>
-              <span>{minRedeem.toLocaleString()} pts</span>
-            </div>
-            {canRedeem ? (
-              <button onClick={handleRedeem} disabled={redeeming} className="deals-redeem-btn">
-                {redeeming ? "Redeeming..." : `Redeem GHS ${Math.floor(points / dealsHub.pointsPerCedi)} Discount`}
-              </button>
-            ) : (
-              <p className="deals-redeem-hint">
-                {minRedeem - points} more points to go!
-              </p>
+            {/* Active reward banner — claimed but not yet used */}
+            {activeReward && (
+              <div className="deals-active-reward">
+                <div className="deals-active-icon">✨</div>
+                <div className="deals-active-info">
+                  <p className="deals-active-title">{activeReward.label}</p>
+                  <p className="deals-active-hint">Apply this discount at checkout</p>
+                </div>
+                <Link href="/cart" className="deals-active-btn">Use Now →</Link>
+              </div>
+            )}
+
+            {/* Claim section — only if no active reward */}
+            {!activeReward && minRedeem > 0 && (
+              <>
+                <h2 className="deals-redeem-title">🎁 Claim Your Rewards</h2>
+                <p className="deals-redeem-desc">
+                  Earn <strong>{minRedeem.toLocaleString()}</strong> points to unlock a discount you can use at checkout.
+                </p>
+                <div className="deals-progress-bar">
+                  <div className="deals-progress-fill" style={{ width: `${progressPct}%` }} />
+                </div>
+                <div className="deals-progress-labels">
+                  <span>{points.toLocaleString()} pts</span>
+                  <span>{minRedeem.toLocaleString()} pts</span>
+                </div>
+                {canRedeem ? (
+                  <button onClick={handleRedeem} disabled={redeeming} className="deals-redeem-btn">
+                    {redeeming ? "Claiming..." : `Claim GHS ${Math.floor(points / dealsHub.pointsPerCedi)} Discount`}
+                  </button>
+                ) : (
+                  <p className="deals-redeem-hint">
+                    {minRedeem - points} more points to go!
+                  </p>
+                )}
+              </>
             )}
             {redeemMsg && <p className="deals-redeem-msg">{redeemMsg}</p>}
           </div>
@@ -591,6 +619,61 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           font-weight: 700;
           color: #059669;
           animation: deals-toast-in 0.3s ease;
+        }
+
+        /* Active reward banner */
+        .deals-active-reward {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+          padding: 1rem 1.2rem;
+          border-radius: 0.75rem;
+          background: linear-gradient(135deg, rgba(5,150,105,0.08), rgba(16,185,129,0.05));
+          border: 1.5px solid rgba(5,150,105,0.25);
+        }
+
+        .deals-active-icon {
+          font-size: 1.6rem;
+          flex-shrink: 0;
+        }
+
+        .deals-active-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .deals-active-title {
+          font-size: 0.9rem;
+          font-weight: 800;
+          color: #065f46;
+          margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .deals-active-hint {
+          font-size: 0.72rem;
+          color: #047857;
+          margin: 0.1rem 0 0;
+        }
+
+        .deals-active-btn {
+          flex-shrink: 0;
+          padding: 0.5rem 1.2rem;
+          border-radius: 99px;
+          background: linear-gradient(135deg, #059669, #10b981);
+          color: #fff;
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 10px rgba(5,150,105,0.25);
+        }
+
+        .deals-active-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 15px rgba(5,150,105,0.35);
         }
 
         /* ── Store cards (dealcc.jsx inspired) ── */

@@ -40,6 +40,7 @@ type CheckoutPayload = {
   paymentMethod?: "paystack" | "manual";
   paymentProof?: string;
   applyReward?: boolean;
+  applyDealsReward?: boolean;
 };
 
 type OrderLine = { name: string; qty: number; unitPrice: number; lineTotal: number };
@@ -154,6 +155,33 @@ export async function POST(request: Request) {
     }
   }
 
+  // ── Apply deals reward if requested ──
+  let dealsDiscount = 0;
+  let dealsRewardLabel = "";
+
+  if (body.applyDealsReward && clerkUser?.id) {
+    const { data: prize } = await supabaseAdmin
+      .from("game_prizes")
+      .select("id, prize_value, prize_label")
+      .eq("user_id", clerkUser.id)
+      .eq("prize_type", "discount_fixed")
+      .eq("redeemed", false)
+      .order("won_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (prize) {
+      dealsDiscount = prize.prize_value;
+      dealsRewardLabel = prize.prize_label;
+      total = Math.max(0, total - dealsDiscount);
+      // Mark as redeemed
+      await supabaseAdmin
+        .from("game_prizes")
+        .update({ redeemed: true, redeemed_at: new Date().toISOString() })
+        .eq("id", prize.id);
+    }
+  }
+
   const paymentStatus =
     paymentMethod === "paystack"
       ? "Payment processing via Paystack..."
@@ -197,6 +225,8 @@ export async function POST(request: Request) {
     order_status: paymentMethod === "paystack" ? "confirmed" : "payment_pending_admin_review",
     reward_discount: rewardDiscount > 0 ? rewardDiscount : null,
     reward_tier: rewardTierName || null,
+    deals_discount: dealsDiscount > 0 ? dealsDiscount : null,
+    deals_reward_label: dealsRewardLabel || null,
   });
 
   if (dbError) {

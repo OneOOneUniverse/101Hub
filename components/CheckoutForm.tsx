@@ -18,8 +18,15 @@ type ActiveReward = {
   freeShipping: boolean;
 };
 
+type DealsReward = {
+  id: number;
+  discountCedis: number;
+  label: string;
+};
+
 const STORAGE_KEY = "101hub-cart";
 const REWARD_APPLIED_KEY = "101hub-reward-applied";
+const DEALS_REWARD_APPLIED_KEY = "101hub-deals-reward-applied";
 const MANUAL_PAYMENT_NUMBER = "+233 548656980";
 
 const GHANA_REGIONS: Record<string, string[]> = {
@@ -96,6 +103,8 @@ export default function CheckoutForm() {
   const [invalidProducts, setInvalidProducts] = useState<CartLine[]>([]);
   const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
   const [rewardApplied, setRewardApplied] = useState(false);
+  const [dealsReward, setDealsReward] = useState<DealsReward | null>(null);
+  const [dealsRewardApplied, setDealsRewardApplied] = useState(false);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
   const paystackPublicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "";
   const isPaystackConfigured = Boolean(paystackPublicKey) && !paystackPublicKey.startsWith("pk_test_xxx");
@@ -133,10 +142,22 @@ export default function CheckoutForm() {
       .then((d) => {
         if (d.hasReward) {
           setActiveReward(d.reward);
-          // Check if reward was applied in cart
           try {
             const applied = localStorage.getItem(REWARD_APPLIED_KEY);
             if (applied) setRewardApplied(true);
+          } catch {}
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/deals/active-reward")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.hasReward) {
+          setDealsReward(d.reward);
+          try {
+            const applied = localStorage.getItem(DEALS_REWARD_APPLIED_KEY);
+            if (applied) setDealsRewardApplied(true);
           } catch {}
         }
       })
@@ -187,11 +208,12 @@ export default function CheckoutForm() {
 
     const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
     const rewardDiscount = rewardApplied && activeReward ? subtotal * activeReward.discountPercent / 100 : 0;
+    const dealsDiscount = dealsRewardApplied && dealsReward ? dealsReward.discountCedis : 0;
     const effectiveDelivery = rewardApplied && activeReward?.freeShipping ? 0 : delivery;
-    const total = subtotal - rewardDiscount + effectiveDelivery + processingFee;
+    const total = Math.max(0, subtotal - rewardDiscount - dealsDiscount + effectiveDelivery + processingFee);
 
-    return { subtotal, delivery, processingFee, total, rewardDiscount, effectiveDelivery };
-  }, [items, products, location, deliveryType, content?.deliverySettings, rewardApplied, activeReward]);
+    return { subtotal, delivery, processingFee, total, rewardDiscount, dealsDiscount, effectiveDelivery };
+  }, [items, products, location, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward]);
 
   // Payment amount is the full total
   const paymentAmount = totals.total;
@@ -270,6 +292,7 @@ export default function CheckoutForm() {
           paymentMethod,
           paymentProof: paymentProofBase64,
           applyReward: rewardApplied && activeReward ? true : false,
+          applyDealsReward: dealsRewardApplied && dealsReward ? true : false,
         }),
       });
 
@@ -1078,7 +1101,7 @@ export default function CheckoutForm() {
       <aside className="panel p-6">
         <h2 className="text-xl font-black">Order Summary</h2>
 
-        {/* Reward toggle in checkout */}
+        {/* Referral reward toggle */}
         {activeReward && (
           <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
             <div className="flex items-center justify-between gap-2">
@@ -1119,6 +1142,46 @@ export default function CheckoutForm() {
           </div>
         )}
 
+        {/* Deals reward toggle */}
+        {dealsReward && (
+          <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-lg">🎁</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-violet-900 truncate">
+                    {dealsReward.label}
+                  </p>
+                  <p className="text-xs text-violet-700">
+                    GHS {dealsReward.discountCedis.toFixed(2)} off
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDealsRewardApplied((prev) => {
+                    const next = !prev;
+                    if (next) {
+                      localStorage.setItem(DEALS_REWARD_APPLIED_KEY, "true");
+                    } else {
+                      localStorage.removeItem(DEALS_REWARD_APPLIED_KEY);
+                    }
+                    return next;
+                  });
+                }}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  dealsRewardApplied
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : "bg-violet-600 text-white hover:bg-violet-700"
+                }`}
+              >
+                {dealsRewardApplied ? "Remove" : "Apply"}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mt-4 space-y-2 text-sm">
           {items.map((line) => {
             const product = products.find((item) => item.id === line.productId);
@@ -1144,6 +1207,14 @@ export default function CheckoutForm() {
                   ✨ {activeReward.tierName} ({activeReward.discountPercent}% off)
                 </span>
                 <span className="font-semibold">−GHS {totals.rewardDiscount.toFixed(2)}</span>
+              </div>
+            )}
+            {dealsRewardApplied && dealsReward && totals.dealsDiscount > 0 && (
+              <div className="mt-1 flex items-center justify-between text-violet-700">
+                <span className="flex items-center gap-1 text-xs">
+                  🎁 {dealsReward.label}
+                </span>
+                <span className="font-semibold">−GHS {totals.dealsDiscount.toFixed(2)}</span>
               </div>
             )}
             <div className="mt-1 flex items-center justify-between">
