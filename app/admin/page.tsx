@@ -1941,10 +1941,18 @@ export default function AdminPage() {
                     }}
                     className={inputClassName()}
                   >
-                    <option value="">None</option>
+                    <option value="">— No subcategory —</option>
                     {(() => {
                       const catDef = content.categories.find((c) => c.name === product.category);
-                      return (catDef?.subCategories ?? []).map((sub) => (
+                      const subs = catDef?.subCategories ?? [];
+                      if (subs.length === 0) {
+                        return [
+                          <option key="empty" value="" disabled>
+                            (Add subcategories in category editor first)
+                          </option>
+                        ];
+                      }
+                      return subs.map((sub) => (
                         <option key={sub} value={sub}>{sub}</option>
                       ));
                     })()}

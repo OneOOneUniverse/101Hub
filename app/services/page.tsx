@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
+import FlutterWaveButton from "@/components/FlutterWaveButton";
 import { useStoreContent } from "@/lib/use-store-content";
 
 type ServiceResult = {
@@ -41,6 +42,7 @@ function ServicesContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [result, setResult] = useState<ServiceResult | null>(null);
+  const [paymentDone, setPaymentDone] = useState(false);
 
   useEffect(() => {
     if (!packageId && services[0]?.id) {
@@ -347,13 +349,31 @@ function ServicesContent() {
           </div>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="btn-styled rounded-lg text-sm disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {submitting ? "Submitting..." : "Request Service"}
-        </button>
+        {result ? (
+          // Show success message instead of button
+          <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+            <p>👤 Your request has been submitted! Watch your email for updates.</p>
+          </div>
+        ) : (
+          // Payment button
+          <FlutterWaveButton
+            onPaymentSuccess={() => {
+              setPaymentDone(true);
+              onSubmit({
+                preventDefault: () => {},
+              } as FormEvent<HTMLFormElement>);
+            }}
+            onPaymentFailure={(msg: string) => {
+              setSubmitError(msg || "Payment failed. Please try again.");
+              setPaymentDone(false);
+            }}
+            amount={services.find((s) => s.id === packageId)?.price ?? 0}
+            orderRef={`SERVICE-${Date.now()}`}
+            customerName={customerName || "Customer"}
+            customerEmail=""
+            customerPhone={phone}
+          />
+        )}
       </form>
     </section>
   );
