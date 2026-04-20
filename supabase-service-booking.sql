@@ -11,6 +11,10 @@ ALTER TABLE service_requests
 ALTER TABLE service_requests
   ADD COLUMN IF NOT EXISTS payment_ref TEXT DEFAULT NULL;
 
+-- Add payment_proof column to store base64 screenshot of payment
+ALTER TABLE service_requests
+  ADD COLUMN IF NOT EXISTS payment_proof TEXT DEFAULT NULL;
+
 -- Update status constraint: pending → approved/declined → completed
 -- (Drop any existing constraint first, then add new one)
 -- Note: If no constraint exists, this is safe — DO NOTHING on error

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
-import FlutterWaveButton from "@/components/FlutterWaveButton";
 
 type ServiceResult = {
   success: boolean;
@@ -42,11 +41,11 @@ function ServicesContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [result, setResult] = useState<ServiceResult | null>(null);
-  const [paymentVerified, setPaymentVerified] = useState(false);
-  const [paymentRef, setPaymentRef] = useState("");
-  const [paymentError, setPaymentError] = useState("");
-  const [orderRef] = useState(() => `SVC-${Date.now()}`);
+  const [step, setStep] = useState<"form" | "payment">("form");
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [paymentProofError, setPaymentProofError] = useState("");
   const selectedService = useMemo(() => services.find((s) => s.id === packageId), [services, packageId]);
+  const MANUAL_PAYMENT_NUMBER = "+233 548656980";
 
   useEffect(() => {
     if (!packageId && services[0]?.id) {
@@ -97,11 +96,24 @@ function ServicesContent() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    
+
+    if (!paymentProof) {
+      setPaymentProofError("Payment screenshot is required.");
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError("");
+    setPaymentProofError("");
 
     try {
+      const paymentProofBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(paymentProof);
+      });
+
       const response = await fetch("/api/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,7 +124,7 @@ function ServicesContent() {
           issue,
           preferredTime,
           requestedDate: requestedDate || undefined,
-          paymentRef,
+          paymentProof: paymentProofBase64,
         }),
       });
       const contentType = response.headers.get("content-type") || "";
@@ -130,18 +142,25 @@ function ServicesContent() {
       }
 
       setResult(data);
-      // Reset form after success
       setCustomerName("");
       setPhone("");
       setIssue("");
       setPreferredTime("");
       setRequestedDate("");
       setPackageId(services[0]?.id ?? "");
+      setPaymentProof(null);
+      setStep("form");
     } catch {
       setSubmitError("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function onProceedToPayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStep("payment");
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
 
   if (!services.length) {
@@ -240,167 +259,190 @@ function ServicesContent() {
       </div>
 
       {/* Request Service Form */}
-      <form ref={formRef} onSubmit={onSubmit} className="form-styled space-y-3 sm:space-y-4 p-4 sm:p-6">
-        <h2 className="text-xl font-black sm:text-2xl">Request a Service</h2>
-        <p className="text-sm text-[var(--ink-soft)]">
-          Fill out this form to request one of our services. We'll be in touch within 24 hours.
-        </p>
-
-        <div>
-          <label htmlFor="pkg" className="mb-1 block text-xs font-semibold sm:text-sm">
-            Service Package
-          </label>
-          <select
-            id="pkg"
-            value={packageId}
-            onChange={(event) => setPackageId(event.target.value)}
-            className="input-styled text-sm"
-          >
-            {services.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name} — ₵{item.price.toFixed(2)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="name" className="mb-1 block text-xs font-semibold sm:text-sm">
-            Full Name
-          </label>
-          <input
-            id="name"
-            required
-            value={customerName}
-            onChange={(event) => setCustomerName(event.target.value)}
-            placeholder="John Doe"
-            className="input-styled text-sm"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="phone" className="mb-1 block text-xs font-semibold sm:text-sm">
-            Phone Number
-          </label>
-          <input
-            id="phone"
-            required
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="+233 548656980"
-            className="input-styled text-sm"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="issue" className="mb-1 block text-xs font-semibold sm:text-sm">
-            What do you need help with?
-          </label>
-          <textarea
-            id="issue"
-            required
-            value={issue}
-            onChange={(event) => setIssue(event.target.value)}
-            placeholder="Describe the issue or what you need..."
-            className="input-styled h-20 sm:h-24 text-sm"
-          />
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label htmlFor="date" className="mb-1 block text-xs font-semibold sm:text-sm">
-              Preferred Date
-            </label>
-            <input
-              id="date"
-              type="date"
-              required
-              value={requestedDate}
-              min={new Date().toISOString().split("T")[0]}
-              onChange={(event) => setRequestedDate(event.target.value)}
-              className="input-styled text-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="time" className="mb-1 block text-xs font-semibold sm:text-sm">
-              Preferred Time
-            </label>
-            <select
-              id="time"
-              required
-              value={preferredTime}
-              onChange={(event) => setPreferredTime(event.target.value)}
-              className="input-styled text-sm"
-            >
-              <option value="">-- Select a time --</option>
-              <option value="Morning">🌅 Morning (8 AM – 12 PM)</option>
-              <option value="Afternoon">☀️ Afternoon (12 PM – 4 PM)</option>
-              <option value="Evening">🌙 Evening (4 PM – 8 PM)</option>
-              <option value="Flexible">🔄 Flexible (Any time)</option>
-            </select>
-          </div>
-        </div>
-
-        {submitError ? (
-          <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-            ❌ {submitError}
-          </p>
-        ) : null}
-        
-        {result ? (
+      {result ? (
+        <div className="form-styled space-y-3 p-4 sm:p-6">
           <div className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
             <p>✅ Ticket {result.ticketRef}: {result.message}</p>
             <p className="text-xs mt-1">We'll contact you shortly with next steps.</p>
           </div>
-        ) : null}
-
-        {result ? (
-          // Show success message instead of button
           <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
-            <p>👤 Your request has been submitted! Watch your email for updates.</p>
+            <p>👤 Your request has been submitted! Watch your phone for updates.</p>
           </div>
-        ) : !paymentVerified ? (
-          <div className="space-y-3 border-t border-black/10 pt-4">
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-              <p className="font-bold">💳 Payment Required</p>
-              <p className="mt-1 text-xs">Pay for the service first, then you can submit your request. Make sure your name and phone number above are correct.</p>
-              {selectedService && (
-                <p className="mt-2 font-black text-base text-amber-900">Amount: ₵{selectedService.price.toFixed(2)}</p>
-              )}
+        </div>
+      ) : step === "form" ? (
+        /* ── STEP 1: Service request details ── */
+        <form ref={formRef} onSubmit={onProceedToPayment} className="form-styled space-y-3 sm:space-y-4 p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--brand-deep)] text-white text-xs font-bold">1</span>
+            <h2 className="text-xl font-black sm:text-2xl">Request a Service</h2>
+          </div>
+          <p className="text-sm text-[var(--ink-soft)]">Fill out this form. You'll be taken to the payment step next.</p>
+
+          <div>
+            <label htmlFor="pkg" className="mb-1 block text-xs font-semibold sm:text-sm">Service Package</label>
+            <select id="pkg" value={packageId} onChange={(e) => setPackageId(e.target.value)} className="input-styled text-sm">
+              {services.map((item) => (
+                <option key={item.id} value={item.id}>{item.name} — ₵{item.price.toFixed(2)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="name" className="mb-1 block text-xs font-semibold sm:text-sm">Full Name</label>
+            <input id="name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="John Doe" className="input-styled text-sm" />
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="mb-1 block text-xs font-semibold sm:text-sm">Phone Number</label>
+            <input id="phone" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+233 548656980" className="input-styled text-sm" />
+          </div>
+
+          <div>
+            <label htmlFor="issue" className="mb-1 block text-xs font-semibold sm:text-sm">What do you need help with?</label>
+            <textarea id="issue" required value={issue} onChange={(e) => setIssue(e.target.value)} placeholder="Describe the issue or what you need..." className="input-styled h-20 sm:h-24 text-sm" />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="date" className="mb-1 block text-xs font-semibold sm:text-sm">Preferred Date</label>
+              <input id="date" type="date" required value={requestedDate} min={new Date().toISOString().split("T")[0]} onChange={(e) => setRequestedDate(e.target.value)} className="input-styled text-sm" />
             </div>
-            {paymentError && (
-              <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">❌ {paymentError}</p>
-            )}
-            <FlutterWaveButton
-              amount={selectedService?.price ?? 0}
-              orderRef={orderRef}
-              customerName={customerName}
-              customerEmail=""
-              customerPhone={phone}
-              onPaymentSuccess={() => {
-                setPaymentVerified(true);
-                setPaymentRef(orderRef);
-                setPaymentError("");
+            <div>
+              <label htmlFor="time" className="mb-1 block text-xs font-semibold sm:text-sm">Preferred Time</label>
+              <select id="time" required value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)} className="input-styled text-sm">
+                <option value="">-- Select a time --</option>
+                <option value="Morning">🌅 Morning (8 AM – 12 PM)</option>
+                <option value="Afternoon">☀️ Afternoon (12 PM – 4 PM)</option>
+                <option value="Evening">🌙 Evening (4 PM – 8 PM)</option>
+                <option value="Flexible">🔄 Flexible (Any time)</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" className="btn-styled rounded-full w-full">
+            Proceed to Payment →
+          </button>
+        </form>
+      ) : (
+        /* ── STEP 2: Manual payment ── */
+        <form ref={formRef} onSubmit={(e) => void onSubmit(e)} className="form-styled space-y-4 p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--brand-deep)] text-white text-xs font-bold">2</span>
+            <h2 className="text-xl font-black sm:text-2xl">Complete Payment</h2>
+          </div>
+
+          {/* Summary */}
+          {selectedService && (
+            <div className="rounded-lg border border-black/10 bg-[var(--base-light)] p-3 text-sm">
+              <p className="font-semibold">{selectedService.name}</p>
+              <p className="text-[var(--ink-soft)] text-xs mt-0.5">For: {customerName} · {phone}</p>
+              <p className="font-black text-[var(--brand-deep)] text-base mt-1">Amount: ₵{selectedService.price.toFixed(2)}</p>
+            </div>
+          )}
+
+          {/* Payment instructions */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
+            <p className="text-sm font-bold text-blue-900">How to Pay</p>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
+              <div>
+                <p className="text-sm font-semibold text-blue-900">Open Your Mobile Money / Bank App</p>
+                <p className="text-xs text-blue-800">MTN Mobile Money, Vodafone Cash, or your bank app</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</div>
+              <div>
+                <p className="text-sm font-semibold text-blue-900">Send Transfer</p>
+                <div className="mt-1 p-2 bg-white rounded border border-blue-200">
+                  <p className="text-xs text-blue-900 font-mono font-bold">{MANUAL_PAYMENT_NUMBER}</p>
+                  <p className="text-xs text-blue-800 mt-1">Amount: GHS {selectedService?.price.toFixed(2) ?? "0.00"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">3</div>
+              <div>
+                <p className="text-sm font-semibold text-blue-900">Take a Screenshot</p>
+                <p className="text-xs text-blue-800">Capture the confirmation screen showing the amount, recipient number, and transaction status.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">4</div>
+              <div>
+                <p className="text-sm font-semibold text-blue-900">Upload Screenshot Below</p>
+                <p className="text-xs text-blue-800">Use the upload field below to attach your proof of payment.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Screenshot upload */}
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <label htmlFor="payment-proof" className="mb-2 block">
+              <span className="text-sm font-bold text-red-900">📸 Screenshot Upload Required <span className="text-red-600">*</span></span>
+              <p className="text-xs text-red-800 mt-0.5">This is mandatory to verify your payment</p>
+            </label>
+            <div className="mb-3 p-3 bg-white rounded border border-red-200">
+              <p className="text-xs font-semibold text-red-900 mb-1">✓ What We Need:</p>
+              <ul className="text-xs text-red-800 space-y-1 ml-4 list-disc">
+                <li>Screenshot of transfer confirmation screen</li>
+                <li>Must show amount: <span className="font-bold">GHS {selectedService?.price.toFixed(2)}</span></li>
+                <li>Must show recipient: <span className="font-bold">{MANUAL_PAYMENT_NUMBER}</span></li>
+                <li>Transaction reference or status visible</li>
+              </ul>
+            </div>
+            <input
+              id="payment-proof"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.currentTarget.files?.[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    setPaymentProofError("Image must be smaller than 5MB");
+                    setPaymentProof(null);
+                  } else {
+                    setPaymentProof(file);
+                    setPaymentProofError("");
+                  }
+                }
               }}
-              onPaymentFailure={(err) => setPaymentError(err)}
+              className="w-full text-sm border border-red-300 rounded px-2 py-2 bg-white"
             />
+            {paymentProof && (
+              <p className="text-xs text-green-600 mt-2 font-semibold">✓ Screenshot selected: {paymentProof.name}</p>
+            )}
+            {paymentProofError && (
+              <p className="text-xs text-red-600 mt-2">{paymentProofError}</p>
+            )}
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700">
-              ✅ Payment confirmed! Your request is ready to submit.
-            </div>
+
+          {submitError && (
+            <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">❌ {submitError}</p>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setStep("form")}
+              className="flex-1 rounded-full border-2 border-[var(--brand-deep)] px-4 py-2.5 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand-deep)] hover:text-white transition-colors"
+            >
+              ← Back
+            </button>
             <button
               type="submit"
               disabled={submitting}
-              className="btn-styled rounded-full w-full disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex-1 btn-styled rounded-full disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Submitting..." : "Submit Service Request"}
+              {submitting ? "Submitting..." : "Submit Request"}
             </button>
           </div>
-        )}
-      </form>
+        </form>
+      )}
     </section>
   );
 }

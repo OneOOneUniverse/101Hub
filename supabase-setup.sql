@@ -36,6 +36,7 @@ create table service_requests (
   issue           text not null,
   preferred_time  text,
   payment_ref     text,
+  payment_proof   text,
   status          text not null default 'pending',
   created_at      timestamptz not null default now(),
   updated_at      timestamptz
