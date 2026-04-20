@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
+import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 
 type ServiceResult = {
   success: boolean;
@@ -340,9 +341,24 @@ function ServicesContent() {
             </div>
           )}
 
-          {/* Payment instructions */}
+          {/* Copyable payment details */}
+          <PaymentDetailsCard
+            title="Payment Account Details"
+            fields={
+              content?.manualPaymentDetails && content.manualPaymentDetails.length > 0
+                ? content.manualPaymentDetails.filter((f) => f.value)
+                : [
+                    { label: "Transaction/Phone Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                    { label: "Bank Name", value: "MTN Mobile Money", icon: "🏦" },
+                    { label: "Amount", value: `GHS ${selectedService?.price.toFixed(2) ?? "0.00"}`, icon: "💰" },
+                  ]
+            }
+          />
+
+          {/* Step-by-step instructions */}
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
-            <p className="text-sm font-bold text-blue-900">How to Pay</p>
+            <p className="text-sm font-bold text-blue-900">📋 How to Pay</p>
 
             <div className="flex gap-3">
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
@@ -355,11 +371,8 @@ function ServicesContent() {
             <div className="flex gap-3">
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</div>
               <div>
-                <p className="text-sm font-semibold text-blue-900">Send Transfer</p>
-                <div className="mt-1 p-2 bg-white rounded border border-blue-200">
-                  <p className="text-xs text-blue-900 font-mono font-bold">{MANUAL_PAYMENT_NUMBER}</p>
-                  <p className="text-xs text-blue-800 mt-1">Amount: GHS {selectedService?.price.toFixed(2) ?? "0.00"}</p>
-                </div>
+                <p className="text-sm font-semibold text-blue-900">Send the Exact Amount</p>
+                <p className="text-xs text-blue-800">Use the copy buttons above to copy the number and amount.</p>
               </div>
             </div>
 
