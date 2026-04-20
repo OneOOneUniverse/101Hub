@@ -123,11 +123,14 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
 
   const noDeliveryFee = toBoolean(candidate.noDeliveryFee, fallback?.noDeliveryFee ?? false) || undefined;
 
+  const subCategory = toOptionalText(candidate.subCategory) ?? fallback?.subCategory;
+
   return {
     id: toText(candidate.id, fallback?.id ?? `product-${index + 1}`),
     slug: normalizeSlug(rawSlug),
     name: toText(candidate.name, fallback?.name ?? "Untitled product"),
     category,
+    ...(subCategory && { subCategory }),
     description: toText(candidate.description, fallback?.description ?? ""),
     price: toNumber(candidate.price, fallback?.price ?? 0),
     stock: Math.max(0, Math.trunc(toNumber(candidate.stock, fallback?.stock ?? 0))),
@@ -280,12 +283,16 @@ function sanitizeCategoryFeature(feature: unknown, index: number): CategoryFeatu
 function sanitizeCategory(category: unknown, index: number): Category {
   const candidate = typeof category === "object" && category !== null ? category as Partial<Category> : {};
   const rawFeatures = Array.isArray(candidate.features) ? candidate.features : [];
+  const rawSubs = Array.isArray(candidate.subCategories)
+    ? candidate.subCategories.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+    : undefined;
   return {
     id: toText(candidate.id, `cat-${index + 1}`),
     name: toText(candidate.name, `Category ${index + 1}`),
     description: toOptionalText(candidate.description),
     image: toOptionalText(candidate.image),
     features: rawFeatures.map((item, featureIndex) => sanitizeCategoryFeature(item, featureIndex)),
+    ...(rawSubs && rawSubs.length > 0 && { subCategories: rawSubs }),
   };
 }
 

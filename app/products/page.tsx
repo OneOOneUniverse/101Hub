@@ -47,6 +47,7 @@ function ProductsPageContent() {
 
   const [query, setQuery] = useState(searchQuery);
   const [category, setCategory] = useState("All");
+  const [subCategory, setSubCategory] = useState("All");
   const [addedId, setAddedId] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,6 +64,20 @@ function ProductsPageContent() {
     if (!content?.categories) return defaultProductCategories;
     return getProductCategories(content.categories);
   }, [content?.categories]);
+
+  // Get subcategories for the active category (from Category definition + from products)
+  const activeSubCategories = useMemo(() => {
+    if (category === "All" || category === "New Drops") return [];
+    // From category definition
+    const catDef = (content?.categories ?? []).find((c) => c.name === category);
+    const defined = catDef?.subCategories ?? [];
+    // From product data
+    const fromProducts = products
+      .filter((p) => p.category === category && p.subCategory)
+      .map((p) => p.subCategory!);
+    // Merge and deduplicate
+    return [...new Set([...defined, ...fromProducts])];
+  }, [category, content?.categories, products]);
 
   useEffect(() => {
     const syncReviewSummaries = () => {
@@ -99,9 +114,10 @@ function ProductsPageContent() {
       }
 
       const categoryMatch = category === "All" || item.category === category;
+      const subCategoryMatch = subCategory === "All" || item.subCategory === subCategory;
       const text = `${item.name} ${item.description}`.toLowerCase();
       const searchMatch = term ? text.includes(term) : true;
-      return categoryMatch && searchMatch;
+      return categoryMatch && subCategoryMatch && searchMatch;
     });
 
     // Apply sorting based on sortBy state
@@ -142,12 +158,12 @@ function ProductsPageContent() {
     });
 
     return result;
-  }, [category, products, query, sortBy]);
+  }, [category, subCategory, products, query, sortBy]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [query, category, sortBy]);
+  }, [query, category, subCategory, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PRODUCTS_PER_PAGE));
   const paginatedProducts = filtered.slice(
@@ -226,7 +242,7 @@ function ProductsPageContent() {
             {/* "All" card */}
             <button
               type="button"
-              onClick={() => setCategory("All")}
+              onClick={() => { setCategory("All"); setSubCategory("All"); }}
               className={`category-card shrink-0${category === "All" ? " category-card--active" : ""}`}
             >
               <div style={{ position: 'absolute', inset: 0, background: '#1a1a1a', ...(content.allCategoryImage ? { backgroundImage: `url('${content.allCategoryImage}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}) }} />
@@ -247,7 +263,7 @@ function ProductsPageContent() {
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setCategory(cat.name)}
+                onClick={() => { setCategory(cat.name); setSubCategory("All"); }}
                 className={`category-card shrink-0${category === cat.name ? " category-card--active" : ""}`}
               >
                 <div style={{
@@ -274,6 +290,40 @@ function ProductsPageContent() {
           </div>
           </div>
         </div>
+
+        {/* Subcategory pills — shown when a category with subcategories is selected */}
+        {activeSubCategories.length > 0 && (
+          <div className="mt-3 -mx-4 overflow-x-auto sm:-mx-6 md:-mx-8">
+            <div className="flex items-center gap-2 px-4 pb-1 sm:px-6 md:px-8" style={{ minWidth: 'max-content' }}>
+              <span className="text-xs font-bold text-[var(--ink-soft)] mr-1 shrink-0">Sub:</span>
+              <button
+                type="button"
+                onClick={() => setSubCategory("All")}
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 ${
+                  subCategory === "All"
+                    ? "bg-[var(--brand)] text-white shadow-md shadow-[var(--brand)]/25"
+                    : "bg-black/5 text-[var(--ink-soft)] hover:bg-black/10"
+                }`}
+              >
+                All
+              </button>
+              {activeSubCategories.map((sub) => (
+                <button
+                  key={sub}
+                  type="button"
+                  onClick={() => setSubCategory(sub)}
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 ${
+                    subCategory === sub
+                      ? "bg-[var(--brand)] text-white shadow-md shadow-[var(--brand)]/25"
+                      : "bg-black/5 text-[var(--ink-soft)] hover:bg-black/10"
+                  }`}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-3 flex gap-3 flex-col sm:flex-row sm:items-center">
           <input

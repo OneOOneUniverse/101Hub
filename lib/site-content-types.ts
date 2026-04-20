@@ -31,6 +31,7 @@ export type Product = {
   slug: string;
   name: string;
   category: ProductCategory;
+  subCategory?: string;
   description: string;
   price: number;
   stock: number;
@@ -188,6 +189,7 @@ export type Category = {
   description?: string;
   image?: string;
   features: CategoryFeature[];
+  subCategories?: string[];
 };
 
 export type FAQ = {

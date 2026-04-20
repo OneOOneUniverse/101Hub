@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import type { DealsHubContent, Product, SpinWheelSlice } from "@/lib/site-content-types";
@@ -85,6 +85,31 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
   const minRedeem = dealsHub.minRedeemPoints || 0;
   const canRedeem = !activeReward && (minRedeem > 0 ? points >= minRedeem : points >= dealsHub.pointsPerCedi);
   const progressPct = minRedeem > 0 ? Math.min(100, Math.round((points / minRedeem) * 100)) : 100;
+
+  // ── Store slider state ──
+  const [storeSlide, setStoreSlide] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+
+  const prevStore = useCallback(() => {
+    setStoreSlide((i) => (i <= 0 ? enabledStores.length - 1 : i - 1));
+  }, [enabledStores.length]);
+
+  const nextStore = useCallback(() => {
+    setStoreSlide((i) => (i >= enabledStores.length - 1 ? 0 : i + 1));
+  }, [enabledStores.length]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) nextStore();
+      else prevStore();
+    }
+  }, [nextStore, prevStore]);
 
   return (
     <div className="deals-hub">
@@ -176,45 +201,88 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         </div>
       )}
 
-      {/* ─── STORES SECTION ─── */}
+      {/* ─── STORES SLIDER ─── */}
       {enabledStores.length > 0 && (
         <section className="deals-section">
           <h2 className="deals-section-heading">
             <span className="deals-section-icon">🏪</span> Special Stores
           </h2>
-          <div className="deals-stores-grid">
-            {enabledStores.map((store) => {
-              const hasImg = !!store.backgroundImage;
-              return (
-                <Link key={store.id} href={`/deals/store/${store.slug}`} className="deals-card group/card">
-                  {hasImg ? (
-                    <img src={store.backgroundImage} alt="" className="deals-card-img" />
-                  ) : null}
-                  <div
-                    className="deals-card-gradient"
-                    style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }}
-                  />
-                  <div className="deals-card-hover-overlay" />
-                  <div className="deals-card-pulse" />
-                  <div className="deals-card-dots">
-                    <span /><span /><span />
-                  </div>
-                  <div className="deals-card-body" style={{ color: store.textColor }}>
-                    <span className="deals-card-emoji">{store.emoji}</span>
-                    <h3 className="deals-card-name">{store.name}</h3>
-                    <p className="deals-card-desc">{store.description}</p>
-                    <span className="deals-card-btn">
-                      <span className="deals-card-btn-sweep" />
-                      <span className="deals-card-btn-text">Explore Now</span>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="deals-card-btn-arrow"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                    </span>
-                  </div>
-                  <div className="deals-card-shine" />
-                  <div className="deals-card-orb" />
-                </Link>
-              );
-            })}
+
+          <div className="deals-slider-wrapper">
+            {/* Prev arrow */}
+            {enabledStores.length > 1 && (
+              <button className="deals-slider-arrow deals-slider-arrow--prev" onClick={prevStore} aria-label="Previous store">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+              </button>
+            )}
+
+            <div
+              className="deals-slider-track"
+              ref={sliderRef}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div
+                className="deals-slider-slides"
+                style={{ transform: `translateX(-${storeSlide * 100}%)` }}
+              >
+                {enabledStores.map((store) => {
+                  const hasImg = !!store.backgroundImage;
+                  return (
+                    <div key={store.id} className="deals-slider-slide">
+                      <Link href={`/deals/store/${store.slug}`} className="deals-card group/card">
+                        {hasImg ? (
+                          <img src={store.backgroundImage} alt="" className="deals-card-img" />
+                        ) : null}
+                        <div
+                          className="deals-card-gradient"
+                          style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }}
+                        />
+                        <div className="deals-card-hover-overlay" />
+                        <div className="deals-card-pulse" />
+                        <div className="deals-card-dots">
+                          <span /><span /><span />
+                        </div>
+                        <div className="deals-card-body" style={{ color: store.textColor }}>
+                          <span className="deals-card-emoji">{store.emoji}</span>
+                          <h3 className="deals-card-name">{store.name}</h3>
+                          <p className="deals-card-desc">{store.description}</p>
+                          <span className="deals-card-btn">
+                            <span className="deals-card-btn-sweep" />
+                            <span className="deals-card-btn-text">Explore Now</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="deals-card-btn-arrow"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                          </span>
+                        </div>
+                        <div className="deals-card-shine" />
+                        <div className="deals-card-orb" />
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Next arrow */}
+            {enabledStores.length > 1 && (
+              <button className="deals-slider-arrow deals-slider-arrow--next" onClick={nextStore} aria-label="Next store">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+              </button>
+            )}
           </div>
+
+          {/* Dot indicators */}
+          {enabledStores.length > 1 && (
+            <div className="deals-slider-dots">
+              {enabledStores.map((store, i) => (
+                <button
+                  key={store.id}
+                  className={`deals-slider-dot${i === storeSlide ? " deals-slider-dot--active" : ""}`}
+                  onClick={() => setStoreSlide(i)}
+                  aria-label={`Go to ${store.name}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -676,11 +744,86 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           box-shadow: 0 4px 15px rgba(5,150,105,0.35);
         }
 
-        /* ── Store cards (dealcc.jsx inspired) ── */
-        .deals-stores-grid {
-          display: grid;
-          gap: 1.25rem;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        /* ── Store cards (dealcc.jsx inspired) — Slider ── */
+        .deals-slider-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .deals-slider-track {
+          flex: 1;
+          overflow: hidden;
+          border-radius: 1.5rem;
+        }
+
+        .deals-slider-slides {
+          display: flex;
+          transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+          will-change: transform;
+        }
+
+        .deals-slider-slide {
+          flex: 0 0 100%;
+          min-width: 0;
+          padding: 0 0.25rem;
+          box-sizing: border-box;
+        }
+
+        /* Navigation arrows */
+        .deals-slider-arrow {
+          flex-shrink: 0;
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          border: 2px solid rgba(75, 30, 133, 0.35);
+          background: linear-gradient(135deg, rgba(75,30,133,0.08), rgba(124,58,237,0.04));
+          backdrop-filter: blur(12px);
+          color: #7c3aed;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          z-index: 5;
+        }
+        .deals-slider-arrow:hover {
+          background: linear-gradient(135deg, rgba(75,30,133,0.2), rgba(124,58,237,0.15));
+          border-color: rgba(124,58,237,0.6);
+          box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+          transform: scale(1.08);
+          color: #a78bfa;
+        }
+        .deals-slider-arrow:active {
+          transform: scale(0.95);
+        }
+
+        /* Dot indicators */
+        .deals-slider-dots {
+          display: flex;
+          justify-content: center;
+          gap: 0.5rem;
+          margin-top: 1rem;
+        }
+        .deals-slider-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          border: 2px solid rgba(124, 58, 237, 0.35);
+          background: transparent;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          padding: 0;
+        }
+        .deals-slider-dot:hover {
+          border-color: #7c3aed;
+          background: rgba(124, 58, 237, 0.15);
+        }
+        .deals-slider-dot--active {
+          background: linear-gradient(135deg, #7c3aed, #a78bfa);
+          border-color: #7c3aed;
+          box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
         }
 
         .deals-card {
@@ -1148,8 +1291,13 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           .deals-hero {
             padding: 2rem 1rem 1.5rem;
           }
-          .deals-stores-grid {
-            grid-template-columns: 1fr 1fr;
+          .deals-slider-arrow {
+            width: 34px;
+            height: 34px;
+          }
+          .deals-slider-arrow svg {
+            width: 16px;
+            height: 16px;
           }
           .deals-card {
             height: 15em;
@@ -1169,8 +1317,9 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         }
 
         @media (max-width: 380px) {
-          .deals-stores-grid {
-            grid-template-columns: 1fr;
+          .deals-slider-arrow {
+            width: 30px;
+            height: 30px;
           }
         }
       `}</style>

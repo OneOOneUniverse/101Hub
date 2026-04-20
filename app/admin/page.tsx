@@ -1928,6 +1928,28 @@ export default function AdminPage() {
                     ))}
                   </select>
                 </Field>
+                <Field label="Sub Category">
+                  <select
+                    value={product.subCategory ?? ""}
+                    onChange={(event) => {
+                      const products = [...content.products];
+                      products[index] = {
+                        ...product,
+                        subCategory: event.target.value || undefined,
+                      };
+                      setContent({ ...content, products });
+                    }}
+                    className={inputClassName()}
+                  >
+                    <option value="">None</option>
+                    {(() => {
+                      const catDef = content.categories.find((c) => c.name === product.category);
+                      return (catDef?.subCategories ?? []).map((sub) => (
+                        <option key={sub} value={sub}>{sub}</option>
+                      ));
+                    })()}
+                  </select>
+                </Field>
                 <Field label="Badge">
                   <input
                     value={product.badge ?? ""}
@@ -2764,6 +2786,61 @@ export default function AdminPage() {
                       ))}
                       {category.features.length === 0 && (
                         <p className="text-xs italic text-[var(--ink-soft)]">No features yet</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sub Categories */}
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-[var(--brand-deep)]">Sub Categories ({(category.subCategories ?? []).length})</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const categories = [...content.categories];
+                          const subs = [...(category.subCategories ?? []), ""];
+                          categories[categoryIndex] = { ...category, subCategories: subs };
+                          setContent({ ...content, categories });
+                        }}
+                        className="rounded-full border border-[var(--brand)] px-3 py-1 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                      >
+                        + Add
+                      </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      {(category.subCategories ?? []).map((sub, subIndex) => (
+                        <div key={subIndex} className="flex items-center gap-2 rounded-lg bg-purple-500/5 px-3 py-2">
+                          <input
+                            type="text"
+                            value={sub}
+                            onChange={(event) => {
+                              const categories = [...content.categories];
+                              const subs = [...(category.subCategories ?? [])];
+                              subs[subIndex] = event.target.value;
+                              categories[categoryIndex] = { ...category, subCategories: subs };
+                              setContent({ ...content, categories });
+                            }}
+                            placeholder="Sub category name"
+                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--ink-soft)]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const categories = [...content.categories];
+                              const subs = [...(category.subCategories ?? [])];
+                              subs.splice(subIndex, 1);
+                              categories[categoryIndex] = { ...category, subCategories: subs };
+                              setContent({ ...content, categories });
+                            }}
+                            className="text-xs font-bold text-red-600 hover:text-red-700"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      {(category.subCategories ?? []).length === 0 && (
+                        <p className="text-xs italic text-[var(--ink-soft)]">No sub categories yet</p>
                       )}
                     </div>
                   </div>

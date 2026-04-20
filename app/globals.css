@@ -60,11 +60,27 @@ html {
   100% { transform: translateX(-50%); }
 }
 
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+html {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(230, 100, 30, 0.25) 25%, rgba(255, 255, 255, 0.98) 50%, rgba(230, 100, 30, 0.22) 75%, rgba(255, 255, 255, 0.95) 100%);
+  background-size: 400% 400%;
+  animation: gradient-shift 12s ease infinite;
+}
+
 body {
   background:
-    radial-gradient(circle at 8% 10%, #fff3ec 0%, transparent 30%),
-    radial-gradient(circle at 90% 5%, #ffe0cc 0%, transparent 24%),
-    var(--surface);
+    radial-gradient(circle at 25% 25%, rgba(163, 177, 198, 0.12) 15%, transparent 15%),
+    radial-gradient(circle at 75% 75%, rgba(163, 177, 198, 0.12) 15%, transparent 15%),
+    radial-gradient(circle at 8% 10%, rgba(255, 243, 236, 0.6) 0%, transparent 30%),
+    radial-gradient(circle at 90% 5%, rgba(255, 224, 204, 0.5) 0%, transparent 24%);
+  background-size: 10px 10px, 10px 10px, 100% 100%, 100% 100%;
+  background-color: var(--surface);
   color: var(--ink);
   font-family: var(--font-geist-sans), sans-serif;
 }
