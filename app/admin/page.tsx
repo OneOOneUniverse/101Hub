@@ -336,23 +336,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     void loadContent();
-    void loadRole();
   }, []);
-
-  async function loadRole() {
-    try {
-      const res = await fetch("/api/admin/role", { cache: "no-store" });
-      const data = (await res.json()) as { role?: string };
-      if (data.role === "supervisor") setAdminRole("supervisor");
-    } catch {
-      // default to admin on error — API routes still enforce server-side
-    }
-  }
-
-  const visibleSections = useMemo(() => {
-    if (adminRole === "admin") return adminSections;
-    return adminSections.filter((s) => SUPERVISOR_SECTIONS.has(s.id));
-  }, [adminRole]);
 
   async function loadContent() {
     setLoading(true);
@@ -360,12 +344,13 @@ export default function AdminPage() {
 
     try {
       const response = await fetch("/api/admin/content", { cache: "no-store" });
-      const data = (await response.json()) as SiteContent & { error?: string };
+      const data = (await response.json()) as SiteContent & { _role?: string; error?: string };
 
       if (!response.ok) {
         throw new Error(data.error || "Could not load admin content.");
       }
 
+      if (data._role === "supervisor") setAdminRole("supervisor");
       setContent(withDeliveryDefaults(data));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not load admin content.");
@@ -373,6 +358,11 @@ export default function AdminPage() {
       setLoading(false);
     }
   }
+
+  const visibleSections = useMemo(() => {
+    if (adminRole === "admin") return adminSections;
+    return adminSections.filter((s) => SUPERVISOR_SECTIONS.has(s.id));
+  }, [adminRole]);
 
   function updateFeatures(feature: keyof SiteFeatures, value: boolean) {
     setContent((current) =>
@@ -2332,8 +2322,9 @@ export default function AdminPage() {
                     className={inputClassName()}
                   />
                   {service.subServices && service.subServices.length > 0 && (() => {
-                    const max = Math.max(...service.subServices.map((s) => s.price));
-                    const min = Math.min(...service.subServices.map((s) => s.price));
+                    const prices = service.subServices.map((s) => s.price);
+                    const max = Math.max(...prices);
+                    const min = Math.min(...prices);
                     return min !== max ? (
                       <p className="mt-1 text-xs text-[var(--ink-soft)]">⚡ Auto range from sub-services: ₵{min.toFixed(2)} – ₵{max.toFixed(2)}</p>
                     ) : null;

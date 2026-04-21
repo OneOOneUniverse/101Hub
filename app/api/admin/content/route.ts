@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { saveSiteContent, sanitizeSiteContent, getSiteContent } from "@/lib/site-content";
 import type { SiteContent } from "@/lib/site-content-types";
-import { isCurrentUserAdmin } from "@/lib/auth";
+import { isCurrentUserAdmin, getCurrentUserRole } from "@/lib/auth";
 import { notifyAllUsers } from "@/lib/db-notifications";
 
 function getDuplicates(values: string[]): string[] {
@@ -84,13 +84,19 @@ async function requireAdmin() {
 }
 
 export async function GET() {
-  const authError = await requireAdmin();
-  if (authError) {
-    return authError;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const role = await getCurrentUserRole();
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
   const content = await getSiteContent();
-  return NextResponse.json(content);
+  return NextResponse.json({ ...content, _role: role });
 }
 
 export async function PUT(request: Request) {

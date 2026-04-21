@@ -144,16 +144,42 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
   };
 }
 
+function sanitizeSubService(sub: unknown, index: number): import("@/lib/site-content-types").SubService {
+  const c = typeof sub === "object" && sub !== null ? sub as Record<string, unknown> : {};
+  return {
+    id: toText(c.id, `sub-${index + 1}`),
+    name: toText(c.name, "Untitled"),
+    price: Math.max(0, toNumber(c.price, 0)),
+    ...(typeof c.description === "string" && c.description.trim() ? { description: c.description.trim() } : {}),
+  };
+}
+
 function sanitizeService(service: unknown, index: number, fallback?: ServicePackage): ServicePackage {
   const candidate = typeof service === "object" && service !== null ? service as Partial<ServicePackage> : {};
+
+  const rawSubServices = Array.isArray(candidate.subServices) ? candidate.subServices : null;
+  const subServices = rawSubServices && rawSubServices.length > 0
+    ? rawSubServices.map((s, i) => sanitizeSubService(s, i))
+    : undefined;
+
+  const rawPriceMax = candidate.priceMax !== undefined ? toNumber(candidate.priceMax) : fallback?.priceMax;
+  const priceMax = rawPriceMax !== undefined && rawPriceMax > 0 ? rawPriceMax : undefined;
 
   return {
     id: toText(candidate.id, fallback?.id ?? `service-${index + 1}`),
     name: toText(candidate.name, fallback?.name ?? "Untitled service"),
     turnaround: toText(candidate.turnaround, fallback?.turnaround ?? "Same day"),
     price: Math.max(0, toNumber(candidate.price, fallback?.price ?? 0)),
+    ...(priceMax !== undefined && { priceMax }),
+    ...(typeof candidate.pricingNote === "string" && candidate.pricingNote.trim() ? { pricingNote: candidate.pricingNote.trim() } : {}),
+    ...(subServices && { subServices }),
     details: toText(candidate.details, fallback?.details ?? ""),
     image: toOptionalText(candidate.image) ?? fallback?.image,
+    images: toOptionalTextArray(candidate.images) ?? fallback?.images,
+    providerName: toOptionalText(candidate.providerName) ?? fallback?.providerName,
+    phone: toOptionalText(candidate.phone) ?? fallback?.phone,
+    email: toOptionalText(candidate.email) ?? fallback?.email,
+    currentOffers: toOptionalText(candidate.currentOffers) ?? fallback?.currentOffers,
   };
 }
 
