@@ -242,7 +242,8 @@ type AdminSectionId =
   | "sms"
   | "broadcast-email"
   | "faqs"
-  | "deals-hub";
+  | "deals-hub"
+  | "reviews";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
@@ -267,6 +268,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "broadcast-email", label: "📧 Broadcast Email" },
   { id: "faqs", label: "FAQs" },
   { id: "deals-hub", label: "🎮 Deals Hub" },
+  { id: "reviews", label: "⭐ Reviews" },
 ];
 
 /** Sections a supervisor can see (subset of full admin). */
@@ -4597,6 +4599,213 @@ export default function AdminPage() {
           </div>
         </Section>
       ) : null}
+
+      {activeSection === "reviews" ? (
+        <AdminReviewsSection />
+      ) : null}
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Reviews Moderation
+// ─────────────────────────────────────────────────────────────────────────────
+
+type AdminReview = {
+  id: string;
+  user_id: string;
+  user_name: string;
+  content: string;
+  rating: number;
+  created_at: string;
+  is_deleted: boolean;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  deletion_reason: string | null;
+  general_review_reactions: { id: string; reaction_type: string }[];
+  general_review_replies: { id: string; user_name: string; content: string; created_at: string; is_deleted: boolean }[];
+};
+
+function AdminReviewsSection() {
+  const [reviews, setReviews] = useState<AdminReview[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteReason, setDeleteReason] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    void loadReviews(1, showDeleted);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showDeleted]);
+
+  async function loadReviews(pageNum: number, deleted: boolean) {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/reviews?page=${pageNum}&deleted=${deleted ? "1" : "0"}`);
+      const json = (await res.json()) as { reviews: AdminReview[]; total: number };
+      setReviews(json.reviews ?? []);
+      setTotal(json.total ?? 0);
+      setPage(pageNum);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function deleteReview(id: string) {
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/reviews/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: deleteReason[id] ?? "" }),
+      });
+      if (res.ok) {
+        void loadReviews(page, showDeleted);
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function deleteReply(reviewId: string, replyId: string) {
+    const res = await fetch(`/api/reviews/${reviewId}/replies/${replyId}`, { method: "DELETE" });
+    if (res.ok) {
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId
+            ? { ...r, general_review_replies: r.general_review_replies.filter((rep) => rep.id !== replyId) }
+            : r
+        )
+      );
+    }
+  }
+
+  const PAGE_SIZE = 30;
+  const hasMore = reviews.length === PAGE_SIZE;
+
+  return (
+    <Section
+      title="⭐ Reviews Moderation"
+      description="View, monitor, and remove community reviews that violate site rules."
+    >
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <label className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+          <input
+            type="checkbox"
+            checked={showDeleted}
+            onChange={(e) => setShowDeleted(e.target.checked)}
+            className="h-4 w-4 accent-[var(--brand)]"
+          />
+          Show removed reviews
+        </label>
+        <span className="text-xs text-[var(--ink-soft)]">{total} review{total !== 1 ? "s" : ""} found</span>
+        <button
+          onClick={() => void loadReviews(page, showDeleted)}
+          className="ml-auto rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-[var(--ink-soft)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+        >
+          Refresh
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-xl border border-black/08 p-4 animate-pulse space-y-2">
+              <div className="h-3 w-32 rounded bg-gray-200" />
+              <div className="h-3 w-full rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      ) : reviews.length === 0 ? (
+        <p className="text-sm text-[var(--ink-soft)] text-center py-8">No reviews found.</p>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((r) => (
+            <div
+              key={r.id}
+              className={`rounded-xl border p-4 space-y-3 ${r.is_deleted ? "border-red-200 bg-red-50" : "border-black/08 bg-white"}`}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-[var(--ink)]">{r.user_name}</span>
+                    <span className="flex gap-0.5">
+                      {[1,2,3,4,5].map((s) => (
+                        <svg key={s} className={`h-3.5 w-3.5 ${s <= r.rating ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </span>
+                    {r.is_deleted && (
+                      <span className="rounded-full bg-red-200 px-2 py-0.5 text-xs font-semibold text-red-700">Removed</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">
+                    {new Date(r.created_at).toLocaleString()} · {r.general_review_reactions.length} reaction{r.general_review_reactions.length !== 1 ? "s" : ""} · {r.general_review_replies.length} repl{r.general_review_replies.length !== 1 ? "ies" : "y"}
+                  </p>
+                  {r.is_deleted && r.deletion_reason && (
+                    <p className="text-xs text-red-600 mt-0.5">Reason: {r.deletion_reason}</p>
+                  )}
+                </div>
+                {!r.is_deleted && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={deleteReason[r.id] ?? ""}
+                      onChange={(e) => setDeleteReason((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                      placeholder="Removal reason"
+                      className="rounded-lg border border-black/10 px-3 py-1.5 text-xs text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-red-300 w-48"
+                    />
+                    <button
+                      onClick={() => void deleteReview(r.id)}
+                      disabled={deletingId === r.id}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {deletingId === r.id ? "…" : "Remove"}
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-[var(--ink)] leading-relaxed border-l-2 border-[var(--brand)] pl-3">{r.content}</p>
+
+              {/* Replies */}
+              {r.general_review_replies.length > 0 && (
+                <div className="space-y-2 border-t border-black/05 pt-2">
+                  <p className="text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wide">Replies</p>
+                  {r.general_review_replies.map((rep) => (
+                    <div key={rep.id} className={`flex items-start justify-between gap-2 rounded-lg px-3 py-2 ${rep.is_deleted ? "bg-red-50" : "bg-gray-50"}`}>
+                      <div>
+                        <span className="text-xs font-bold text-[var(--ink)]">{rep.user_name}</span>
+                        {rep.is_deleted && <span className="ml-2 text-xs text-red-500">removed</span>}
+                        <p className="text-xs text-[var(--ink-soft)] mt-0.5">{rep.content}</p>
+                      </div>
+                      {!rep.is_deleted && (
+                        <button
+                          onClick={() => void deleteReply(r.id, rep.id)}
+                          className="shrink-0 text-xs text-red-500 hover:text-red-700 font-semibold"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {hasMore && (
+            <button
+              onClick={() => void loadReviews(page + 1, showDeleted)}
+              className="w-full rounded-xl border border-black/10 bg-white py-2.5 text-sm font-semibold text-[var(--ink-soft)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+            >
+              Load more
+            </button>
+          )}
+        </div>
+      )}
+    </Section>
   );
 }
