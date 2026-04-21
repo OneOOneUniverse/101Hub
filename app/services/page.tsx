@@ -54,6 +54,19 @@ function ServicesContent() {
   const selectedService = useMemo(() => services.find((s) => s.id === packageId), [services, packageId]);
   const selectedSub = useMemo(() => selectedService?.subServices?.find((s) => s.id === tierId) ?? null, [selectedService, tierId]);
   const effectivePrice = selectedSub?.price ?? selectedService?.price ?? 0;
+
+  function serviceDisplayPrice(svc: typeof selectedService) {
+    if (!svc) return "";
+    if (svc.subServices && svc.subServices.length > 0) {
+      const prices = svc.subServices.map((s) => s.price);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      if (min !== max) return `₵${min.toFixed(2)} – ₵${max.toFixed(2)}`;
+      return `₵${min.toFixed(2)}`;
+    }
+    const base = `₵${svc.price.toFixed(2)}`;
+    return svc.priceMax && svc.priceMax > svc.price ? `${base} – ₵${svc.priceMax.toFixed(2)}` : base;
+  }
   const MANUAL_PAYMENT_NUMBER = "+233 548656980";
 
   useEffect(() => {
@@ -299,15 +312,16 @@ function ServicesContent() {
                   </div>
                   <div className="text-right">
                     <p className="text-[var(--ink-soft)]">Price</p>
-                    <p className="font-black text-[var(--brand-deep)]">₵{service.price.toFixed(2)}{service.priceMax && service.priceMax > service.price ? ` – ₵${service.priceMax.toFixed(2)}` : ""}</p>
+                    <p className="font-black text-[var(--brand-deep)]">{serviceDisplayPrice(service)}</p>
                   </div>
                 </div>
 
-          {selectedService?.subServices && selectedService.subServices.length > 0 && (
-            <div className="mb-3 text-xs py-2 px-2 bg-[var(--base-light)] rounded text-[var(--ink-soft)]">
-              <p className="font-semibold">🔧 {selectedService.subServices.length} sub-service{selectedService.subServices.length > 1 ? "s" : ""} available</p>
-            </div>
-          )}
+                {/* Sub-services badge */}
+                {service.subServices && service.subServices.length > 0 && (
+                  <div className="mb-3 text-xs py-2 px-2 bg-[var(--base-light)] rounded text-[var(--ink-soft)]">
+                    <p className="font-semibold">🔧 {service.subServices.length} sub-service{service.subServices.length > 1 ? "s" : ""} available</p>
+                  </div>
+                )}
 
                 {/* Provider Info Snippet */}
                 {service.providerName && (
@@ -353,7 +367,7 @@ function ServicesContent() {
             <label htmlFor="pkg" className="mb-1 block text-xs font-semibold sm:text-sm">Service Package</label>
             <select id="pkg" value={packageId} onChange={(e) => setPackageId(e.target.value)} className="input-styled text-sm">
               {services.map((item) => (
-                <option key={item.id} value={item.id}>{item.name} — ₵{item.price.toFixed(2)}{item.priceMax && item.priceMax > item.price ? `–₵${item.priceMax.toFixed(2)}` : ""}</option>
+                <option key={item.id} value={item.id}>{item.name} — {serviceDisplayPrice(item)}</option>
               ))}
             </select>
           </div>

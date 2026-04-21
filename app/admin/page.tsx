@@ -2331,21 +2331,13 @@ export default function AdminPage() {
                     }}
                     className={inputClassName()}
                   />
-                </Field>
-                <Field label="Max Price (optional — for ranges)">
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={service.priceMax ?? ""}
-                    placeholder="Leave blank for fixed price"
-                    onChange={(event) => {
-                      const services = [...content.services];
-                      services[index] = { ...service, priceMax: event.target.value ? Number(event.target.value) : undefined };
-                      setContent({ ...content, services });
-                    }}
-                    className={inputClassName()}
-                  />
+                  {service.subServices && service.subServices.length > 0 && (() => {
+                    const max = Math.max(...service.subServices.map((s) => s.price));
+                    const min = Math.min(...service.subServices.map((s) => s.price));
+                    return min !== max ? (
+                      <p className="mt-1 text-xs text-[var(--ink-soft)]">⚡ Auto range from sub-services: ₵{min.toFixed(2)} – ₵{max.toFixed(2)}</p>
+                    ) : null;
+                  })()}
                 </Field>
                 <Field label="Image URL or path">
                   <input

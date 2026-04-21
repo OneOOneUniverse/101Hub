@@ -110,9 +110,23 @@ export default function ServiceDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wide">Price</p>
-                <p className="text-lg font-black text-[var(--brand-deep)]">
-                  ₵{service.price.toFixed(2)}{service.priceMax && service.priceMax > service.price ? ` – ₵${service.priceMax.toFixed(2)}` : ""}
-                </p>
+                {(() => {
+                  if (service.subServices && service.subServices.length > 0) {
+                    const prices = service.subServices.map((s) => s.price);
+                    const min = Math.min(...prices);
+                    const max = Math.max(...prices);
+                    return (
+                      <p className="text-lg font-black text-[var(--brand-deep)]">
+                        {min !== max ? `₵${min.toFixed(2)} – ₵${max.toFixed(2)}` : `₵${min.toFixed(2)}`}
+                      </p>
+                    );
+                  }
+                  return (
+                    <p className="text-lg font-black text-[var(--brand-deep)]">
+                      ₵{service.price.toFixed(2)}{service.priceMax && service.priceMax > service.price ? ` – ₵${service.priceMax.toFixed(2)}` : ""}
+                    </p>
+                  );
+                })()}
               </div>
               <div>
                 <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wide">Turnaround</p>
