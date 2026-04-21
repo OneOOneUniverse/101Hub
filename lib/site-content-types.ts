@@ -47,11 +47,21 @@ export type Product = {
 
 };
 
+export type SubService = {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+};
+
 export type ServicePackage = {
   id: string;
   name: string;
   turnaround: string;
   price: number;
+  priceMax?: number;
+  pricingNote?: string;
+  subServices?: SubService[];
   details: string;
   image?: string;
   images?: string[];

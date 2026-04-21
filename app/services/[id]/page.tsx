@@ -111,7 +111,7 @@ export default function ServiceDetailPage() {
               <div>
                 <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wide">Price</p>
                 <p className="text-lg font-black text-[var(--brand-deep)]">
-                  ₵{service.price.toFixed(2)}
+                  ₵{service.price.toFixed(2)}{service.priceMax && service.priceMax > service.price ? ` – ₵${service.priceMax.toFixed(2)}` : ""}
                 </p>
               </div>
               <div>
@@ -131,6 +131,29 @@ export default function ServiceDetailPage() {
               <p className="text-sm text-black leading-relaxed mt-2">{service.details}</p>
             </div>
           </div>
+
+          {/* Pricing Tiers */}
+          {service.subServices && service.subServices.length > 0 && (
+            <div className="rounded-lg border border-black/10 bg-white p-4 space-y-3">
+              <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wide">Sub-Services & Pricing</p>
+              {service.pricingNote && (
+                <p className="text-xs text-[var(--ink-soft)]">{service.pricingNote}</p>
+              )}
+              <div className="divide-y divide-black/5">
+                {service.subServices.map((sub) => (
+                  <div key={sub.id} className="py-2.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm font-bold text-black">{sub.name}</span>
+                      <span className="shrink-0 font-black text-[var(--brand-deep)]">₵{sub.price.toFixed(2)}</span>
+                    </div>
+                    {sub.description && (
+                      <p className="mt-0.5 text-xs text-[var(--ink-soft)] leading-snug">{sub.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Current Offers */}
           {service.currentOffers && (

@@ -20,6 +20,8 @@ type ServiceRequestPayload = {
   preferredTime?: string;
   requestedDate?: string;
   paymentProof?: string;
+  tierLabel?: string;
+  confirmedAmount?: number;
 };
 
 /** Normalize and validate Ghana phone numbers to E.164 format (+233XXXXXXXXX) */
@@ -81,6 +83,8 @@ async function sendNotifications(opts: {
   customerPhone: string;
   issue: string;
   preferredTime?: string;
+  tierLabel?: string;
+  confirmedAmount?: number;
 }) {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
@@ -103,7 +107,8 @@ async function sendNotifications(opts: {
   
   <div style="background:#f0f9ff;border:1px solid #7dd3fc;padding:16px;border-radius:8px;margin-bottom:16px">
     <p style="margin:0 0 8px 0;font-weight:bold">📦 Service Package</p>
-    <p style="margin:0;font-size:1.1em;color:#075985">${opts.packageName}</p>
+    <p style="margin:0;font-size:1.1em;color:#075985">${opts.packageName}${opts.tierLabel ? ` — ${opts.tierLabel}` : ""}</p>
+    ${opts.confirmedAmount != null ? `<p style="margin:4px 0 0 0;font-size:0.9em;color:#075985">💰 Amount: GHS ${opts.confirmedAmount.toFixed(2)}</p>` : ""}
   </div>
 
   <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:16px">
@@ -228,6 +233,8 @@ export async function POST(request: Request) {
     customerPhone: normalizedPhone,
     issue: body.issue,
     preferredTime: body.preferredTime,
+    tierLabel: body.tierLabel,
+    confirmedAmount: body.confirmedAmount,
   });
 
   return NextResponse.json(

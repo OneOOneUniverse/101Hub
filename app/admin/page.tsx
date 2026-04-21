@@ -97,6 +97,7 @@ function createService(): ServicePackage {
     details: "",
     image: "",
     images: [],
+    subServices: [],
   };
 }
 
@@ -2317,7 +2318,7 @@ export default function AdminPage() {
                     className={inputClassName()}
                   />
                 </Field>
-                <Field label="Price">
+                <Field label="Price (min / fixed)">
                   <input
                     type="number"
                     min={0}
@@ -2326,6 +2327,21 @@ export default function AdminPage() {
                     onChange={(event) => {
                       const services = [...content.services];
                       services[index] = { ...service, price: Number(event.target.value || 0) };
+                      setContent({ ...content, services });
+                    }}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Max Price (optional — for ranges)">
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={service.priceMax ?? ""}
+                    placeholder="Leave blank for fixed price"
+                    onChange={(event) => {
+                      const services = [...content.services];
+                      services[index] = { ...service, priceMax: event.target.value ? Number(event.target.value) : undefined };
                       setContent({ ...content, services });
                     }}
                     className={inputClassName()}
@@ -2396,6 +2412,114 @@ export default function AdminPage() {
                   productSlug={service.id}
                   label="Service Gallery Images (Additional Photos) 🖼️"
                 />
+              </div>
+
+              <div className="mt-4 border-t border-black/10 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-[var(--ink-soft)]">Sub-Services <span className="font-normal opacity-60">(optional — nested items under this service)</span></h4>
+                    <p className="text-xs text-[var(--ink-soft)] mt-0.5">Each sub-service has its own name, price, and optional description. Drives the price range and booking selector.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const services = [...content.services];
+                      const subs = [...(service.subServices ?? [])];
+                      subs.push({ id: createId("sub"), name: "", price: 0, description: "" });
+                      services[index] = { ...service, subServices: subs };
+                      setContent({ ...content, services });
+                    }}
+                    className="shrink-0 rounded-full border border-[var(--brand)] px-3 py-1 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                  >
+                    + Add Sub-Service
+                  </button>
+                </div>
+                <div className="mb-3">
+                  <Field label="Pricing Note (shown to customers, e.g. price depends on device model)">
+                    <input
+                      value={service.pricingNote ?? ""}
+                      placeholder="e.g. Price depends on screen size and damage level"
+                      onChange={(event) => {
+                        const services = [...content.services];
+                        services[index] = { ...service, pricingNote: event.target.value };
+                        setContent({ ...content, services });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                </div>
+                {(service.subServices ?? []).map((sub, sIdx) => (
+                  <div key={sub.id} className="mb-3 rounded-lg border border-black/10 bg-[var(--base-light)] p-3">
+                    <div className="flex gap-2 items-start mb-2">
+                      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--brand-deep)] text-white text-xs font-bold">{sIdx + 1}</span>
+                      <div className="flex-1 grid gap-2 sm:grid-cols-[1fr_auto]">
+                        <Field label="Sub-Service Name">
+                          <input
+                            value={sub.name}
+                            placeholder="e.g. Screen Crack Repair"
+                            onChange={(event) => {
+                              const services = [...content.services];
+                              const subs = [...(service.subServices ?? [])];
+                              subs[sIdx] = { ...sub, name: event.target.value };
+                              services[index] = { ...service, subServices: subs };
+                              setContent({ ...content, services });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <div className="flex gap-2 items-end">
+                          <div className="w-28">
+                            <Field label="Price (₵)">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={sub.price}
+                                onChange={(event) => {
+                                  const services = [...content.services];
+                                  const subs = [...(service.subServices ?? [])];
+                                  subs[sIdx] = { ...sub, price: Number(event.target.value || 0) };
+                                  services[index] = { ...service, subServices: subs };
+                                  setContent({ ...content, services });
+                                }}
+                                className={inputClassName()}
+                              />
+                            </Field>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const services = [...content.services];
+                              const subs = [...(service.subServices ?? [])];
+                              subs.splice(sIdx, 1);
+                              services[index] = { ...service, subServices: subs };
+                              setContent({ ...content, services });
+                            }}
+                            className="mb-1 rounded border border-red-200 px-2 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="pl-7">
+                      <Field label="Short Description (optional — shown to customer as a hint)">
+                        <input
+                          value={sub.description ?? ""}
+                          placeholder="e.g. Includes parts and labour, same-day fix"
+                          onChange={(event) => {
+                            const services = [...content.services];
+                            const subs = [...(service.subServices ?? [])];
+                            subs[sIdx] = { ...sub, description: event.target.value };
+                            services[index] = { ...service, subServices: subs };
+                            setContent({ ...content, services });
+                          }}
+                          className={inputClassName()}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="mt-4 border-t border-black/10 pt-4">
