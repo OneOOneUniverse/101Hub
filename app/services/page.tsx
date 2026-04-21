@@ -272,15 +272,12 @@ function ServicesContent() {
             <div className="product-card__content flex flex-col h-full">
               {/* Service Image */}
               {service.image ? (
-                <div className="relative mb-3 overflow-hidden rounded-lg border border-black/10 bg-cover bg-center h-40 group/image">
-                  <div
-                    className="w-full h-full"
-                    style={{ backgroundImage: `url('${service.image}')` }}
-                    role="img"
-                    aria-label={`${service.name} service image`}
-                  >
-                    <span className="sr-only">{service.name} service image</span>
-                  </div>
+                <div className="relative mb-3 overflow-hidden rounded-lg border border-black/10 bg-[var(--base-light)] h-40 group/image">
+                  <img
+                    src={service.image}
+                    alt={`${service.name} service image`}
+                    className="w-full h-full object-cover object-center"
+                  />
                   {/* Gallery Count Badge */}
                   {service.images && service.images.length > 0 && (
                     <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
