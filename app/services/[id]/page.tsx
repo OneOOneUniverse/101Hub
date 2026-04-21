@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useStoreContent } from "@/lib/use-store-content";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
+import ServiceShareButton from "@/components/ServiceShareButton";
 
 export default function ServiceDetailPage() {
   const params = useParams();
@@ -214,13 +215,31 @@ export default function ServiceDetailPage() {
             )}
           </div>
 
-          {/* CTA Button */}
-          <a
-            href={`/services?contact=${serviceId}`}
-            className="block w-full rounded-lg border-2 border-[var(--brand-deep)] bg-[var(--brand-deep)] px-4 py-3 text-center text-sm font-bold text-white hover:bg-[var(--brand)] transition-colors"
-          >
-            Request This Service
-          </a>
+          {/* CTA + Share */}
+          <div className="flex gap-3">
+            <a
+              href={`/services?contact=${serviceId}`}
+              className="flex-1 rounded-lg border-2 border-[var(--brand-deep)] bg-[var(--brand-deep)] px-4 py-3 text-center text-sm font-bold text-white hover:bg-[var(--brand)] transition-colors"
+            >
+              Request This Service
+            </a>
+            <ServiceShareButton
+              serviceId={serviceId}
+              serviceName={service.name}
+              serviceDetails={service.details}
+              priceDisplay={(() => {
+                if (service.subServices && service.subServices.length > 0) {
+                  const prices = service.subServices.map((s) => s.price);
+                  const min = Math.min(...prices);
+                  const max = Math.max(...prices);
+                  return min !== max ? `₵${min.toFixed(2)} – ₵${max.toFixed(2)}` : `₵${min.toFixed(2)}`;
+                }
+                return service.priceMax && service.priceMax > service.price
+                  ? `₵${service.price.toFixed(2)} – ₵${service.priceMax.toFixed(2)}`
+                  : `₵${service.price.toFixed(2)}`;
+              })()}
+            />
+          </div>
         </div>
       </div>
     </section>

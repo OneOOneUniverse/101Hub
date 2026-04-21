@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
 import PaymentDetailsCard from "@/components/PaymentDetailsCard";
+import ServiceShareButton from "@/components/ServiceShareButton";
 
 type ServiceResult = {
   success: boolean;
@@ -330,13 +331,22 @@ function ServicesContent() {
                   </div>
                 )}
 
-                {/* CTA Button */}
-                <Link
-                  href={`/services/${service.id}`}
-                  className="w-full rounded-lg border-2 border-[var(--brand-deep)] bg-[var(--brand-deep)] px-3 py-2 text-center text-xs font-bold text-white hover:bg-[var(--brand)] transition-colors mt-auto"
-                >
-                  View Details & Contact
-                </Link>
+                {/* CTA + Share */}
+                <div className="flex items-center gap-2 mt-auto">
+                  <Link
+                    href={`/services/${service.id}`}
+                    className="flex-1 rounded-lg border-2 border-[var(--brand-deep)] bg-[var(--brand-deep)] px-3 py-2 text-center text-xs font-bold text-white hover:bg-[var(--brand)] transition-colors"
+                  >
+                    View Details & Contact
+                  </Link>
+                  <ServiceShareButton
+                    serviceId={service.id}
+                    serviceName={service.name}
+                    serviceDetails={service.details}
+                    priceDisplay={serviceDisplayPrice(service)}
+                    variant="card"
+                  />
+                </div>
               </div>
             </div>
           </article>
