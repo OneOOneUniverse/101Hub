@@ -93,6 +93,7 @@ export default function PaymentDetailsCard({
 
               {/* Copy Button */}
               <button
+                type="button"
                 onClick={() => copyToClipboard(field.label, field.value)}
                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   isCopied
