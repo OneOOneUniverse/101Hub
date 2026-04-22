@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSiteContent } from "@/lib/site-content";

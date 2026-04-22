@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import { getSiteContent } from "@/lib/site-content";
 import { redirect } from "next/navigation";
 import DealsHubClient from "./DealsHubClient";

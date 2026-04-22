@@ -811,7 +811,15 @@ export default function CheckoutForm() {
                           : `border-gray-200 bg-white text-[var(--ink-soft)] ${provider.accentClasses}`
                       }`}
                     >
-                      <span className="text-2xl leading-none">{provider.emoji}</span>
+                      {content?.providerLogos?.[provider.id as keyof NonNullable<typeof content.providerLogos>] ? (
+                        <img
+                          src={content.providerLogos[provider.id as keyof NonNullable<typeof content.providerLogos>]!}
+                          alt={provider.name}
+                          className="w-8 h-8 object-contain"
+                        />
+                      ) : (
+                        <span className="text-2xl leading-none">{provider.emoji}</span>
+                      )}
                       <span className="text-xs font-bold leading-tight">{provider.shortName}</span>
                     </button>
                   );
@@ -836,7 +844,15 @@ export default function CheckoutForm() {
               return (
                 <div>
                   <div className={`mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${provider.activeBg} ${provider.activeText}`}>
-                    <span className="text-base">{provider.emoji}</span>
+                    {content?.providerLogos?.[provider.id as keyof NonNullable<typeof content.providerLogos>] ? (
+                      <img
+                        src={content.providerLogos[provider.id as keyof NonNullable<typeof content.providerLogos>]!}
+                        alt={provider.name}
+                        className="w-5 h-5 object-contain flex-shrink-0"
+                      />
+                    ) : (
+                      <span className="text-base">{provider.emoji}</span>
+                    )}
                     {provider.name} — send <span className="font-black">GHS {totals.total.toFixed(2)}</span> to:
                   </div>
                   <PaymentDetailsCard

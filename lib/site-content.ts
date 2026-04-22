@@ -656,6 +656,15 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     ...(rawPaymentWalkthrough.length > 0 && { paymentWalkthrough: rawPaymentWalkthrough.map((item, index) => sanitizePaymentWalkthroughStep(item, index)) }),
     ...(Array.isArray(candidate.manualPaymentDetails) && { manualPaymentDetails: (candidate.manualPaymentDetails as unknown[]).map(sanitizeManualPaymentField) }),
     ...(candidate.providerPaymentDetails && { providerPaymentDetails: sanitizeProviderPaymentDetails(candidate.providerPaymentDetails) }),
+    ...(candidate.providerLogos && typeof candidate.providerLogos === "object" && {
+      providerLogos: Object.fromEntries(
+        (["mtn", "telecel", "at", "bank"] as const)
+          .flatMap((k) => {
+            const v = (candidate.providerLogos as Record<string, unknown>)[k];
+            return typeof v === "string" && v ? [[k, v]] : [];
+          })
+      ) as SiteContent["providerLogos"],
+    }),
     dealsHub: sanitizeDealsHub(candidate.dealsHub ?? (defaultContent as Partial<SiteContent>).dealsHub),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };

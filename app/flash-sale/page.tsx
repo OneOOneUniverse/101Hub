@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import Link from "next/link";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { getSiteContent } from "@/lib/site-content";

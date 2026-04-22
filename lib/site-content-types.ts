@@ -331,6 +331,12 @@ export type SiteContent = {
   paymentWalkthrough?: PaymentWalkthroughStep[];
   manualPaymentDetails?: ManualPaymentField[];
   providerPaymentDetails?: ProviderPaymentDetails;
+  providerLogos?: {
+    mtn?: string;
+    telecel?: string;
+    at?: string;
+    bank?: string;
+  };
   smsTemplates?: SmsTemplate[];
   faqs?: FAQ[];
   dealsHub: DealsHubContent;

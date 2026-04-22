@@ -3579,6 +3579,49 @@ export default function AdminPage() {
                   <h3 className="text-base font-bold text-[var(--brand-deep)]">{provider.name}</h3>
                 </div>
 
+                {/* Provider Logo */}
+                <div className="flex items-center gap-3">
+                  {content.providerLogos?.[provider.id as keyof NonNullable<typeof content.providerLogos>] ? (
+                    <img
+                      src={content.providerLogos[provider.id as keyof NonNullable<typeof content.providerLogos>]}
+                      alt={provider.name}
+                      className="w-12 h-12 object-contain rounded-lg border border-black/10 bg-gray-50 p-1"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 flex items-center justify-center rounded-lg border border-dashed border-black/20 bg-gray-50 text-2xl">
+                      {provider.emoji}
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <ImageUploadButton
+                      folder="payment-providers"
+                      label="Upload Logo"
+                      onUpload={(url) => {
+                        setContent((current) => {
+                          if (!current) return current;
+                          return { ...current, providerLogos: { ...(current.providerLogos ?? {}), [provider.id]: url } };
+                        });
+                      }}
+                    />
+                    {content.providerLogos?.[provider.id as keyof NonNullable<typeof content.providerLogos>] && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setContent((current) => {
+                            if (!current) return current;
+                            const logos = { ...(current.providerLogos ?? {}) };
+                            delete logos[provider.id as keyof typeof logos];
+                            return { ...current, providerLogos: logos };
+                          });
+                        }}
+                        className="text-xs font-bold text-red-600 hover:underline text-left"
+                      >
+                        Remove Logo
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   {fields.map((field, index) => (
                     <div key={index} className="rounded-xl border border-black/10 bg-gray-50 p-4 space-y-3">

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getSiteContent } from "@/lib/site-content";
 import ServiceDetailClient from "./ServiceDetailClient";
 
+export const revalidate = 60;
+
 type ServicePageProps = {
   params: Promise<{ id: string }>;
 };
