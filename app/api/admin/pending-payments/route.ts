@@ -32,7 +32,7 @@ export async function GET() {
       customerEmail: row.customer_email as string,
       phone: row.customer_phone as string,
       amount: row.total as number,
-      paymentMethod: row.payment_method as "paystack" | "manual",
+      paymentMethod: "manual" as const,
       paymentProof: row.payment_proof as string | undefined,
       status: row.payment_status as "pending" | "verified" | "rejected",
       createdAt: row.created_at as string,
