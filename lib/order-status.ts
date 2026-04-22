@@ -9,7 +9,7 @@ export type OrderStatus =
   | "completed"
   | "cancelled";
 
-export type PaymentMethod = "paystack" | "flutterwave" | "manual";
+export type PaymentMethod = "manual";
 
 export interface OrderData {
   orderRef: string;
@@ -121,9 +121,7 @@ export function getOrderTimeline(orderStatus: OrderStatus) {
   });
 }
 
-export function getPaymentMethodDisplay(method: PaymentMethod): string {
-  if (method === "flutterwave") return "Flutterwave (Online)";
-  if (method === "paystack") return "Paystack (Online)";
+export function getPaymentMethodDisplay(_method: PaymentMethod): string {
   return "Manual Transfer";
 }
 
