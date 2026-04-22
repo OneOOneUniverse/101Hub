@@ -51,7 +51,6 @@ const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
 };
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
-  paystackEnabled: true,
   manualEnabled: true,
 };
 
@@ -3217,29 +3216,8 @@ export default function AdminPage() {
       {activeSection === "payments" ? (
         <Section title="Payment Methods" description="Control which payment methods customers can use at checkout.">
           <div className="space-y-4">
-            <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
+            <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
               <label className="flex items-center justify-between gap-4 cursor-pointer">
-                <div>
-                  <p className="text-sm font-bold text-[var(--brand-deep)]">Paystack (Card / Mobile Money / Bank Transfer)</p>
-                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">Customers can pay online via card, MoMo, or bank transfer through Paystack.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={content.paymentSettings?.paystackEnabled ?? true}
-                  onChange={(event) =>
-                    setContent({
-                      ...content,
-                      paymentSettings: {
-                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
-                        paystackEnabled: event.target.checked,
-                      },
-                    })
-                  }
-                  className="h-5 w-5 accent-[var(--brand)]"
-                />
-              </label>
-
-              <label className="flex items-center justify-between gap-4 cursor-pointer border-t border-black/10 pt-4">
                 <div>
                   <p className="text-sm font-bold text-[var(--brand-deep)]">Manual Transfer (Upload Payment Proof)</p>
                   <p className="text-xs text-[var(--ink-soft)] mt-0.5">Customers pay via mobile money or bank transfer and upload a screenshot as proof.</p>
@@ -3251,7 +3229,7 @@ export default function AdminPage() {
                     setContent({
                       ...content,
                       paymentSettings: {
-                        ...(content.paymentSettings ?? { paystackEnabled: true, manualEnabled: true }),
+                        ...(content.paymentSettings ?? { manualEnabled: true }),
                         manualEnabled: event.target.checked,
                       },
                     })
@@ -3261,9 +3239,9 @@ export default function AdminPage() {
               </label>
             </div>
 
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Important</p>
-              <p className="text-xs text-amber-800">At least one payment method must be usable at checkout. Disabling all methods will prevent customers from placing orders. Paystack also requires a valid API key to function — set <code className="bg-amber-100 px-1 rounded">NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY</code> in your environment.</p>
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm font-bold text-blue-900 mb-1">ℹ️ Manual payment only</p>
+              <p className="text-xs text-blue-800">This store uses manual bank/MoMo transfer as the only payment method. Customers upload a payment screenshot as proof and orders are verified by the admin.</p>
             </div>
           </div>
         </Section>

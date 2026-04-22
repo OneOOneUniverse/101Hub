@@ -37,7 +37,7 @@ type CheckoutPayload = {
   deliveryType?: string;
   note?: string;
   items?: Array<{ productId: string; qty: number }>;
-  paymentMethod?: "paystack" | "manual";
+  paymentMethod?: "manual";
   paymentProof?: string;
   applyReward?: boolean;
   applyDealsReward?: boolean;
@@ -67,12 +67,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Checkout is currently unavailable" }, { status: 403 });
   }
 
-  const paymentMethod = body.paymentMethod ?? "paystack";
-  // Validate payment method is enabled
-  if (paymentMethod === "paystack" && !(paymentSettings?.paystackEnabled ?? true)) {
-    return NextResponse.json({ error: "Paystack payments are currently unavailable" }, { status: 403 });
-  }
-  if (paymentMethod === "manual" && !(paymentSettings?.manualEnabled ?? true)) {
+  const paymentMethod = "manual" as const;
+  if (!(paymentSettings?.manualEnabled ?? true)) {
     return NextResponse.json({ error: "Manual transfer payments are currently unavailable" }, { status: 403 });
   }
 
@@ -182,29 +178,9 @@ export async function POST(request: Request) {
     }
   }
 
-  const paymentStatus =
-    paymentMethod === "paystack"
-      ? "Payment processing via Paystack..."
-      : "⏳ Awaiting admin verification";
+  const paymentStatus = "⏳ Awaiting admin verification";
 
-  // Fire-and-forget — never block the response on email/SMS
-  void sendOrderEmails({
-    orderRef,
-    customerName: body.customerName,
-    customerEmail: body.email ?? "",
-    phone: body.phone,
-    address: body.address,
-    note: body.note ?? "",
-    lines,
-    subtotal,
-    delivery,
-    processingFee,
-    total,
-    paymentMethod,
-    paymentStatus,
-  });
-
-  // Save order to Supabase (awaited so it completes before response)
+  // Save order to Supabase first — emails are only sent after a successful insert
   const { error: dbError } = await supabaseAdmin.from("orders").insert({
     order_ref: orderRef,
     customer_name: body.customerName,
@@ -221,8 +197,8 @@ export async function POST(request: Request) {
     total,
     payment_method: paymentMethod,
     payment_proof: body.paymentProof ?? null,
-    payment_status: paymentMethod === "paystack" ? "verified" : "pending",
-    order_status: paymentMethod === "paystack" ? "confirmed" : "payment_pending_admin_review",
+    payment_status: "pending",
+    order_status: "payment_pending_admin_review",
     reward_discount: rewardDiscount > 0 ? rewardDiscount : null,
     reward_tier: rewardTierName || null,
     deals_discount: dealsDiscount > 0 ? dealsDiscount : null,
@@ -231,7 +207,25 @@ export async function POST(request: Request) {
 
   if (dbError) {
     console.error("[checkout] Supabase insert failed:", dbError.message);
+    return NextResponse.json({ error: "Could not save your order. Please try again." }, { status: 500 });
   }
+
+  // Send confirmation emails — now that the order is confirmed in the DB
+  await sendOrderEmails({
+    orderRef,
+    customerName: body.customerName,
+    customerEmail: body.email ?? "",
+    phone: body.phone,
+    address: body.address,
+    note: body.note ?? "",
+    lines,
+    subtotal,
+    delivery: effectiveDelivery,
+    processingFee,
+    total,
+    paymentMethod,
+    paymentStatus,
+  });
 
   // Track order in analytics
   void supabase.from("analytics_events").insert({
@@ -248,7 +242,7 @@ export async function POST(request: Request) {
     await notifyAdmins(
       'order',
       '📦 New Order Received',
-      `${body.customerName} placed order ${orderRef} (GHS ${total.toFixed(2)}) — ${paymentMethod === 'manual' ? 'Awaiting payment verification' : 'Paid via Paystack'}`,
+      `${body.customerName} placed order ${orderRef} (GHS ${total.toFixed(2)}) — Awaiting payment verification`,
       { order_ref: orderRef, link: '/admin' },
     );
   } catch (e) { console.error('[checkout] notifyAdmins failed:', e); }
@@ -275,16 +269,14 @@ export async function POST(request: Request) {
     {
       success: true,
       orderRef,
-      paymentMethod: paymentMethod === "paystack" ? "Paystack (Online)" : "Manual Transfer",
+      paymentMethod: "Manual Transfer",
       customer: { name: body.customerName, phone: body.phone, address: body.address, note: body.note ?? "", deliveryType: body.deliveryType },
       lines,
       totals: { subtotal, delivery: effectiveDelivery, processingFee, total, rewardDiscount },
       reward: rewardDiscount > 0 ? { tierName: rewardTierName, discount: rewardDiscount, freeShipping: rewardFreeShipping } : null,
       storePhone: process.env.STORE_PHONE ?? "+233 548656980",
       storeEmail: process.env.STORE_EMAIL ?? "josephsakyi247@gmail.com",
-      message: paymentMethod === "manual"
-        ? "Order submitted! We will verify your payment and call you to confirm delivery."
-        : "Order placed! Complete payment via Paystack.",
+      message: "Order submitted! We will verify your payment and call you to confirm delivery.",
     },
     { status: 201 }
   );

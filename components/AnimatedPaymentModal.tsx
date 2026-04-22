@@ -6,7 +6,7 @@ type AnimatedPaymentModalProps = {
   isOpen: boolean;
   amount: number;
   onClose: () => void;
-  paymentMethod: "paystack" | "manual";
+  paymentMethod?: string;
 };
 
 export default function AnimatedPaymentModal({
@@ -413,11 +413,7 @@ export default function AnimatedPaymentModal({
               <div className="payment-info">
                 <div className="payment-label">Processing Payment</div>
                 <div className="payment-amount">GHS {amount.toFixed(2)}</div>
-                <div className="payment-method-label">
-                  {paymentMethod === "paystack"
-                    ? "Via Paystack"
-                    : "Manual Transfer"}
-                </div>
+                <div className="payment-method-label">Manual Transfer</div>
               </div>
             </div>
           </div>

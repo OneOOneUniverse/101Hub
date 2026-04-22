@@ -174,7 +174,6 @@ export type DeliverySettings = {
 };
 
 export type PaymentSettings = {
-  paystackEnabled: boolean;
   manualEnabled: boolean;
 };
 

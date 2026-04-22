@@ -348,7 +348,6 @@ const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
 };
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
-  paystackEnabled: true,
   manualEnabled: true,
 };
 
@@ -387,7 +386,6 @@ function sanitizeDeliverySettings(value: unknown): DeliverySettings {
 function sanitizePaymentSettings(value: unknown): PaymentSettings {
   const candidate = typeof value === "object" && value !== null ? value as Partial<PaymentSettings> : {};
   return {
-    paystackEnabled: toBoolean(candidate.paystackEnabled, DEFAULT_PAYMENT_SETTINGS.paystackEnabled),
     manualEnabled: toBoolean(candidate.manualEnabled, DEFAULT_PAYMENT_SETTINGS.manualEnabled),
   };
 }

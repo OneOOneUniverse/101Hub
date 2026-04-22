@@ -12,7 +12,6 @@ create table orders (
   delivery        numeric not null,
   processing_fee  numeric not null default 0,
   total           numeric not null,
-  downpayment     numeric not null,
   payment_method  text not null,
   payment_proof   text,
   payment_status  text not null default 'pending',
@@ -85,3 +84,7 @@ create policy "authenticated_admins_can_update" on site_content
 -- ─────────────────────────────────────────────────────────────────────────────
 alter table orders add column if not exists delivery_type   text;
 alter table orders add column if not exists processing_fee  numeric not null default 0;
+
+-- Migration: remove downpayment column (store is full-payment only, manual transfer)
+-- Run this if you already have an orders table with the downpayment column
+alter table orders drop column if exists downpayment;
