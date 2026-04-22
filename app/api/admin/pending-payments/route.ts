@@ -7,7 +7,7 @@ type PendingPayment = {
   customerEmail: string;
   phone: string;
   amount: number;
-  paymentMethod: "paystack" | "manual";
+  paymentMethod: "manual";
   paymentProof?: string;
   status: "pending" | "verified" | "rejected";
   createdAt: string;

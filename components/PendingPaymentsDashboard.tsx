@@ -8,7 +8,7 @@ type PendingPayment = {
   customerName: string;
   phone: string;
   amount: number;
-  paymentMethod: "flutterwave" | "manual";
+  paymentMethod: "manual";
   paymentProof?: string;
   status: "pending" | "verified" | "rejected";
   createdAt: string;
@@ -108,7 +108,6 @@ export default function PendingPaymentsDashboard() {
   }
 
   const pendingManualPayments = payments.filter((p) => p.paymentMethod === "manual" && p.status === "pending");
-  const pendingFlutterWavePayments = payments.filter((p) => p.paymentMethod === "flutterwave" && p.status === "pending");
 
   return (
     <section className="panel space-y-4 p-6">
@@ -171,60 +170,6 @@ export default function PendingPaymentsDashboard() {
                     className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
                   >
                     ✕ Reject
-                  </button>
-                  <button
-                    onClick={() =>
-                      window.open(
-                        `tel:${payment.phone.replace(/\D/g, "")}`,
-                        "_blank"
-                      )
-                    }
-                    className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
-                  >
-                    📞 Call
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Flutterwave Payments (Auto-Verified) */}
-      {pendingFlutterWavePayments.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="font-bold text-[var(--ink)] mb-2">Flutterwave Payments ({pendingFlutterWavePayments.length})</h3>
-          <div className="space-y-2">
-            {pendingFlutterWavePayments.map((payment) => (
-              <article
-                key={payment.orderRef}
-                className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="font-bold text-[var(--ink)]">{payment.customerName}</p>
-                    <p className="text-sm text-[var(--ink-soft)]">{payment.phone}</p>
-                    <p className="font-mono text-xs text-green-800 mt-1">{payment.orderRef}</p>
-                    <p className="text-xs text-green-700 mt-1.5">📅 Payment: {formatOrderDate(payment.createdAt)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-black text-xl text-green-900">GHS {payment.amount.toFixed(2)}</p>
-                    <p className="inline-block px-2 py-1 rounded-full bg-green-200 text-xs font-bold text-green-900 mt-1">
-                      ✓ VERIFIED
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-xs text-green-700">
-                  Payment verified via Flutterwave. Click approve to confirm order processing.
-                </p>
-
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setEstimateModal({ orderRef: payment.orderRef, value: "" })}
-                    className="flex-1 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700"
-                  >
-                    ✓ Confirm Order
                   </button>
                   <button
                     onClick={() =>
