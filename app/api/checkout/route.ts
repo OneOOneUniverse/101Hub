@@ -206,8 +206,8 @@ export async function POST(request: Request) {
   });
 
   if (dbError) {
-    console.error("[checkout] Supabase insert failed:", dbError.message);
-    return NextResponse.json({ error: "Could not save your order. Please try again." }, { status: 500 });
+    console.error("[checkout] Supabase insert failed:", dbError.message, dbError.code, dbError.details, dbError.hint);
+    return NextResponse.json({ error: "Could not save your order. Please try again.", detail: dbError.message }, { status: 500 });
   }
 
   // Send confirmation emails — now that the order is confirmed in the DB

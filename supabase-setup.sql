@@ -82,9 +82,17 @@ create policy "authenticated_admins_can_update" on site_content
 -- Migration: add delivery_type and processing_fee to existing orders tables
 -- Run these if you already have an orders table (skip for fresh setups)
 -- ─────────────────────────────────────────────────────────────────────────────
-alter table orders add column if not exists delivery_type   text;
-alter table orders add column if not exists processing_fee  numeric not null default 0;
+alter table orders add column if not exists delivery_type         text;
+alter table orders add column if not exists processing_fee        numeric not null default 0;
 
 -- Migration: remove downpayment column (store is full-payment only, manual transfer)
 -- Run this if you already have an orders table with the downpayment column
 alter table orders drop column if exists downpayment;
+
+-- Migration: add all extended columns used by the app
+alter table orders add column if not exists clerk_user_id          text;
+alter table orders add column if not exists reward_discount        numeric;
+alter table orders add column if not exists reward_tier            text;
+alter table orders add column if not exists deals_discount         numeric;
+alter table orders add column if not exists deals_reward_label     text;
+alter table orders add column if not exists estimated_delivery_date text;
