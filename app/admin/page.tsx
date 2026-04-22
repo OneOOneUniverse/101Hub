@@ -13,8 +13,8 @@ import {
   type FooterContent,
   type LocationDeliveryFee,
   type ManualPaymentField,
-  type PaymentSettings,
-  type Product,
+  type ProviderPaymentDetails,
+  type PaymentSettings,  type Product,
   type PromoSlide,
   type ServicePackage,
   type SiteContent,
@@ -3583,111 +3583,113 @@ export default function AdminPage() {
       {activeSection === "payment-details" ? (
         <Section
           title="Payment Details"
-          description="Configure the payment account details shown to customers during manual bank transfer / mobile money checkout. These fields appear with copy-to-clipboard buttons."
+          description="Set the account details shown to customers for each payment provider. Customers see these with copy-to-clipboard buttons after selecting their preferred provider at checkout."
         >
-          <div className="space-y-4">
-            {(content?.manualPaymentDetails ?? [
-              { label: "Transaction/Phone Number", value: "", icon: "📱" },
-              { label: "Account Name", value: "", icon: "👤" },
-              { label: "Bank Name", value: "", icon: "🏦" },
-            ]).map((field, index) => (
-              <div key={index} className="rounded-xl border border-black/10 bg-white p-4 space-y-3">
+          {(
+            [
+              { id: "mtn" as const, name: "MTN Mobile Money", emoji: "🟡", defaults: [{ label: "MoMo Number", value: "0548656980", icon: "📱" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Network", value: "MTN Mobile Money", icon: "🏦" }] },
+              { id: "telecel" as const, name: "Telecel Cash", emoji: "🔴", defaults: [{ label: "Telecel Number", value: "0548656980", icon: "📱" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Network", value: "Telecel Cash", icon: "🏦" }] },
+              { id: "at" as const, name: "AT Money", emoji: "🔵", defaults: [{ label: "AT Number", value: "0548656980", icon: "📱" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Network", value: "AT Money (AirtelTigo)", icon: "🏦" }] },
+              { id: "bank" as const, name: "Bank Transfer", emoji: "🏛️", defaults: [{ label: "Account Number", value: "", icon: "🔢" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Bank", value: "", icon: "🏦" }, { label: "Branch", value: "", icon: "📍" }] },
+            ] as Array<{ id: keyof ProviderPaymentDetails; name: string; emoji: string; defaults: ManualPaymentField[] }>
+          ).map((provider) => {
+            const fields: ManualPaymentField[] = content.providerPaymentDetails?.[provider.id] ?? provider.defaults;
+            return (
+              <div key={provider.id} className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{field.icon}</span>
-                  <span className="text-sm font-bold text-[var(--ink)]">{field.label}</span>
+                  <span className="text-xl">{provider.emoji}</span>
+                  <h3 className="text-base font-bold text-[var(--brand-deep)]">{provider.name}</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <Field label="Label">
-                    <input
-                      type="text"
-                      value={field.label}
-                      onChange={(e) => {
-                        setContent((current) => {
-                          if (!current) return current;
-                          const details = [...(current.manualPaymentDetails ?? [
-                            { label: "Transaction/Phone Number", value: "", icon: "📱" },
-                            { label: "Account Name", value: "", icon: "👤" },
-                            { label: "Bank Name", value: "", icon: "🏦" },
-                          ])];
-                          details[index] = { ...details[index], label: e.target.value };
-                          return { ...current, manualPaymentDetails: details };
-                        });
-                      }}
-                      className={inputClassName()}
-                    />
-                  </Field>
-                  <Field label="Value (what customer copies)">
-                    <input
-                      type="text"
-                      value={field.value}
-                      onChange={(e) => {
-                        setContent((current) => {
-                          if (!current) return current;
-                          const details = [...(current.manualPaymentDetails ?? [
-                            { label: "Transaction/Phone Number", value: "", icon: "📱" },
-                            { label: "Account Name", value: "", icon: "👤" },
-                            { label: "Bank Name", value: "", icon: "🏦" },
-                          ])];
-                          details[index] = { ...details[index], value: e.target.value };
-                          return { ...current, manualPaymentDetails: details };
-                        });
-                      }}
-                      placeholder="e.g. 0548656980"
-                      className={inputClassName()}
-                    />
-                  </Field>
-                  <Field label="Icon (emoji)">
-                    <input
-                      type="text"
-                      value={field.icon}
-                      onChange={(e) => {
-                        setContent((current) => {
-                          if (!current) return current;
-                          const details = [...(current.manualPaymentDetails ?? [
-                            { label: "Transaction/Phone Number", value: "", icon: "📱" },
-                            { label: "Account Name", value: "", icon: "👤" },
-                            { label: "Bank Name", value: "", icon: "🏦" },
-                          ])];
-                          details[index] = { ...details[index], icon: e.target.value };
-                          return { ...current, manualPaymentDetails: details };
-                        });
-                      }}
-                      className={inputClassName()}
-                    />
-                  </Field>
+
+                <div className="space-y-3">
+                  {fields.map((field, index) => (
+                    <div key={index} className="rounded-xl border border-black/10 bg-gray-50 p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{field.icon}</span>
+                        <span className="text-sm font-semibold text-[var(--ink)]">{field.label || "New Field"}</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <Field label="Label">
+                          <input
+                            type="text"
+                            value={field.label}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updated = [...fields];
+                                updated[index] = { ...updated[index], label: e.target.value };
+                                return { ...current, providerPaymentDetails: { ...(current.providerPaymentDetails ?? {}), [provider.id]: updated } };
+                              });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Value (what customer copies)">
+                          <input
+                            type="text"
+                            value={field.value}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updated = [...fields];
+                                updated[index] = { ...updated[index], value: e.target.value };
+                                return { ...current, providerPaymentDetails: { ...(current.providerPaymentDetails ?? {}), [provider.id]: updated } };
+                              });
+                            }}
+                            placeholder="e.g. 0548656980"
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Icon (emoji)">
+                          <input
+                            type="text"
+                            value={field.icon}
+                            onChange={(e) => {
+                              setContent((current) => {
+                                if (!current) return current;
+                                const updated = [...fields];
+                                updated[index] = { ...updated[index], icon: e.target.value };
+                                return { ...current, providerPaymentDetails: { ...(current.providerPaymentDetails ?? {}), [provider.id]: updated } };
+                              });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setContent((current) => {
+                            if (!current) return current;
+                            const updated = [...fields];
+                            updated.splice(index, 1);
+                            return { ...current, providerPaymentDetails: { ...(current.providerPaymentDetails ?? {}), [provider.id]: updated } };
+                          });
+                        }}
+                        className="text-xs font-bold text-red-600 hover:underline"
+                      >
+                        Remove Field
+                      </button>
+                    </div>
+                  ))}
                 </div>
+
                 <button
                   type="button"
                   onClick={() => {
                     setContent((current) => {
                       if (!current) return current;
-                      const details = [...(current.manualPaymentDetails ?? [])];
-                      details.splice(index, 1);
-                      return { ...current, manualPaymentDetails: details };
+                      const updated = [...fields, { label: "", value: "", icon: "💳" }];
+                      return { ...current, providerPaymentDetails: { ...(current.providerPaymentDetails ?? {}), [provider.id]: updated } };
                     });
                   }}
-                  className="text-xs font-bold text-red-600 hover:underline"
+                  className="rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
                 >
-                  Remove Field
+                  + Add Field
                 </button>
               </div>
-            ))}
-
-            <button
-              type="button"
-              onClick={() => {
-                setContent((current) => {
-                  if (!current) return current;
-                  const details = [...(current.manualPaymentDetails ?? [])];
-                  details.push({ label: "", value: "", icon: "💳" });
-                  return { ...current, manualPaymentDetails: details };
-                });
-              }}
-              className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)]"
-            >
-              + Add Payment Field
-            </button>
-          </div>
+            );
+          })}
         </Section>
       ) : null}
 

@@ -29,6 +29,8 @@ import {
   type SpecialStore,
   type SpinWheelSlice,
   type TriviaQuestion,
+  type ManualPaymentField,
+  type ProviderPaymentDetails,
 } from "@/lib/site-content-types";
 import { getSiteContentFromDb, saveSiteContentToDb } from "@/lib/site-content-db";
 
@@ -588,6 +590,26 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
   };
 }
 
+function sanitizeManualPaymentField(value: unknown): ManualPaymentField {
+  const c = typeof value === "object" && value !== null ? value as Partial<ManualPaymentField> : {};
+  return {
+    label: toText(c.label, ""),
+    value: toText(c.value, ""),
+    icon: toText(c.icon, "💳"),
+  };
+}
+
+function sanitizeProviderPaymentDetails(value: unknown): ProviderPaymentDetails {
+  const c = typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+  const result: ProviderPaymentDetails = {};
+  for (const key of ["mtn", "telecel", "at", "bank"] as const) {
+    if (Array.isArray(c[key])) {
+      result[key] = (c[key] as unknown[]).map(sanitizeManualPaymentField);
+    }
+  }
+  return result;
+}
+
 export function sanitizeSiteContent(value: unknown): SiteContent {
   const candidate = typeof value === "object" && value !== null ? value as Partial<SiteContent> : {};
   const rawProducts = Array.isArray(candidate.products) ? candidate.products : defaultContent.products;
@@ -634,6 +656,8 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     smsTemplates: rawSmsTemplates.map((item, index) => sanitizeSmsTemplate(item, index)),
     ...(rawFaqs.length > 0 && { faqs: rawFaqs.map((item, index) => sanitizeFAQ(item, index)) }),
     ...(rawPaymentWalkthrough.length > 0 && { paymentWalkthrough: rawPaymentWalkthrough.map((item, index) => sanitizePaymentWalkthroughStep(item, index)) }),
+    ...(Array.isArray(candidate.manualPaymentDetails) && { manualPaymentDetails: (candidate.manualPaymentDetails as unknown[]).map(sanitizeManualPaymentField) }),
+    ...(candidate.providerPaymentDetails && { providerPaymentDetails: sanitizeProviderPaymentDetails(candidate.providerPaymentDetails) }),
     dealsHub: sanitizeDealsHub(candidate.dealsHub ?? (defaultContent as Partial<SiteContent>).dealsHub),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };

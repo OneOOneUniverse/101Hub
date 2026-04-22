@@ -298,6 +298,13 @@ export type ManualPaymentField = {
   icon: string;
 };
 
+export type ProviderPaymentDetails = {
+  mtn?: ManualPaymentField[];
+  telecel?: ManualPaymentField[];
+  at?: ManualPaymentField[];
+  bank?: ManualPaymentField[];
+};
+
 export type SiteContent = {
   storeName: string;
   storeDescription: string;
@@ -324,6 +331,7 @@ export type SiteContent = {
   paymentSettings: PaymentSettings;
   paymentWalkthrough?: PaymentWalkthroughStep[];
   manualPaymentDetails?: ManualPaymentField[];
+  providerPaymentDetails?: ProviderPaymentDetails;
   smsTemplates?: SmsTemplate[];
   faqs?: FAQ[];
   dealsHub: DealsHubContent;

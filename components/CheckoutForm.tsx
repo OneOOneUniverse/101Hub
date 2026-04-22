@@ -28,6 +28,82 @@ const REWARD_APPLIED_KEY = "101hub-reward-applied";
 const DEALS_REWARD_APPLIED_KEY = "101hub-deals-reward-applied";
 const MANUAL_PAYMENT_NUMBER = "+233 548656980";
 
+type PaymentProvider = {
+  id: string;
+  name: string;
+  shortName: string;
+  emoji: string;
+  accentClasses: string;
+  activeBg: string;
+  activeBorder: string;
+  activeText: string;
+  fields: Array<{ label: string; value: string; icon: string }>;
+};
+
+const PAYMENT_PROVIDERS: PaymentProvider[] = [
+  {
+    id: "mtn",
+    name: "MTN Mobile Money",
+    shortName: "MTN MoMo",
+    emoji: "🟡",
+    accentClasses: "border-yellow-300 hover:border-yellow-400 hover:bg-yellow-50",
+    activeBg: "bg-yellow-50",
+    activeBorder: "border-yellow-400",
+    activeText: "text-yellow-800",
+    fields: [
+      { label: "MoMo Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+      { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+      { label: "Network", value: "MTN Mobile Money", icon: "🏦" },
+    ],
+  },
+  {
+    id: "telecel",
+    name: "Telecel Cash",
+    shortName: "Telecel",
+    emoji: "🔴",
+    accentClasses: "border-red-300 hover:border-red-400 hover:bg-red-50",
+    activeBg: "bg-red-50",
+    activeBorder: "border-red-400",
+    activeText: "text-red-800",
+    fields: [
+      { label: "Telecel Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+      { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+      { label: "Network", value: "Telecel Cash", icon: "🏦" },
+    ],
+  },
+  {
+    id: "at",
+    name: "AT Money",
+    shortName: "AT",
+    emoji: "🔵",
+    accentClasses: "border-blue-300 hover:border-blue-400 hover:bg-blue-50",
+    activeBg: "bg-blue-50",
+    activeBorder: "border-blue-400",
+    activeText: "text-blue-800",
+    fields: [
+      { label: "AT Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+      { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+      { label: "Network", value: "AT Money (AirtelTigo)", icon: "🏦" },
+    ],
+  },
+  {
+    id: "bank",
+    name: "Bank Transfer",
+    shortName: "Bank",
+    emoji: "🏛️",
+    accentClasses: "border-indigo-300 hover:border-indigo-400 hover:bg-indigo-50",
+    activeBg: "bg-indigo-50",
+    activeBorder: "border-indigo-400",
+    activeText: "text-indigo-800",
+    fields: [
+      { label: "Account Number", value: "1020543896", icon: "🔢" },
+      { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+      { label: "Bank", value: "GCB Bank", icon: "🏦" },
+      { label: "Branch", value: "Accra Main", icon: "📍" },
+    ],
+  },
+];
+
 const GHANA_REGIONS: Record<string, string[]> = {
   "Greater Accra": ["Accra Central", "East Legon", "Cantonments", "Osu", "Labone", "Airport Residential", "Madina", "Adenta", "Achimota", "Dome", "Dansoman", "Kaneshie", "Lapaz", "Darkuman", "Tema", "Tema New Town", "Ashaiman", "Nungua", "Teshie", "Labadi", "Kasoa", "Weija", "Spintex", "Sakumono", "Lashibi", "Tsaddo", "Batsonaa", "Kpone", "Prampram"],
   "Ashanti": ["Kumasi", "Obuasi", "Ejisu", "Konongo", "Mampong", "Bekwai", "Offinso", "Suame", "Tafo", "Asokwa", "Adum", "Bantama", "Krofrom", "Atonsu", "Ahinsan", "Abrepo", "Kwadaso", "Nhyiaeso", "Oforikrom"],
@@ -95,6 +171,7 @@ export default function CheckoutForm() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<CheckoutResult | null>(null);
   const paymentMethod: PaymentMethod = "manual";
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [paymentProofError, setPaymentProofError] = useState("");
   const [invalidProducts, setInvalidProducts] = useState<CartLine[]>([]);
@@ -245,6 +322,12 @@ export default function CheckoutForm() {
         return;
       }
 
+      if (paymentMethod === "manual" && !selectedProvider) {
+        setError("Please select a payment provider before placing your order.");
+        setSubmitting(false);
+        return;
+      }
+
       // Show animation only after validation passes
       setShowPaymentAnimation(true);
 
@@ -274,6 +357,7 @@ export default function CheckoutForm() {
           note,
           items,
           paymentMethod,
+          paymentProvider: selectedProvider,
           paymentProof: paymentProofBase64,
           applyReward: rewardApplied && activeReward ? true : false,
           applyDealsReward: dealsRewardApplied && dealsReward ? true : false,
@@ -708,19 +792,60 @@ export default function CheckoutForm() {
               <p className="text-xs text-amber-700">Full payment required</p>
             </div>
 
-            {/* Copyable Payment Details Card */}
-            <PaymentDetailsCard
-              title="Payment Account Details"
-              fields={
-                content?.manualPaymentDetails && content.manualPaymentDetails.length > 0
+            {/* Provider Selector */}
+            <div>
+              <p className="text-sm font-semibold mb-3">
+                Select Payment Provider <span className="text-red-500">*</span>
+              </p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {PAYMENT_PROVIDERS.map((provider) => {
+                  const isActive = selectedProvider === provider.id;
+                  return (
+                    <button
+                      key={provider.id}
+                      type="button"
+                      onClick={() => setSelectedProvider(provider.id)}
+                      className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-center transition-all ${
+                        isActive
+                          ? `${provider.activeBg} ${provider.activeBorder} ${provider.activeText} shadow-sm`
+                          : `border-gray-200 bg-white text-[var(--ink-soft)] ${provider.accentClasses}`
+                      }`}
+                    >
+                      <span className="text-2xl leading-none">{provider.emoji}</span>
+                      <span className="text-xs font-bold leading-tight">{provider.shortName}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {!selectedProvider && (
+                <p className="mt-2 text-xs text-[var(--ink-soft)]">
+                  Choose how you&apos;ll send the payment to see account details.
+                </p>
+              )}
+            </div>
+
+            {/* Copyable Payment Details Card — changes per provider */}
+            {selectedProvider && (() => {
+              const provider = PAYMENT_PROVIDERS.find((p) => p.id === selectedProvider)!;
+              const adminFields = content?.providerPaymentDetails?.[selectedProvider as keyof typeof content.providerPaymentDetails]
+                ?? (selectedProvider === "mtn" && content?.manualPaymentDetails && content.manualPaymentDetails.length > 0
                   ? content.manualPaymentDetails.filter((f) => f.value)
-                  : [
-                      { label: "Transaction/Phone Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
-                      { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
-                      { label: "Bank Name", value: "MTN Mobile Money", icon: "🏦" },
-                    ]
-              }
-            />
+                  : null);
+              // Use admin-configured fields if available, otherwise fall back to PAYMENT_PROVIDERS defaults
+              const fields = adminFields && adminFields.length > 0 ? adminFields.filter((f) => f.value) : provider.fields.filter((f) => f.value);
+              return (
+                <div>
+                  <div className={`mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${provider.activeBg} ${provider.activeText}`}>
+                    <span className="text-base">{provider.emoji}</span>
+                    {provider.name} — send <span className="font-black">GHS {totals.total.toFixed(2)}</span> to:
+                  </div>
+                  <PaymentDetailsCard
+                    title="Account Details"
+                    fields={fields}
+                  />
+                </div>
+              );
+            })()}
 
             {/* Step-by-step Walkthrough */}
             <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
@@ -766,8 +891,8 @@ export default function CheckoutForm() {
                     <div className="flex gap-3">
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
                       <div>
-                        <p className="text-sm font-semibold text-blue-900">Open Your Mobile Money / Bank App</p>
-                        <p className="text-xs text-blue-800">MTN Mobile Money, Vodafone Cash, or your bank app</p>
+                        <p className="text-sm font-semibold text-blue-900">Open Your {selectedProvider ? PAYMENT_PROVIDERS.find((p) => p.id === selectedProvider)?.name : "Mobile Money / Bank"} App</p>
+                        <p className="text-xs text-blue-800">Open the app for your selected payment provider</p>
                       </div>
                     </div>
 
@@ -777,7 +902,11 @@ export default function CheckoutForm() {
                       <div>
                         <p className="text-sm font-semibold text-blue-900">Send Transfer</p>
                         <div className="mt-1 p-2 bg-white rounded border border-blue-200">
-                          <p className="text-xs text-blue-900 font-mono font-bold">{MANUAL_PAYMENT_NUMBER}</p>
+                          <p className="text-xs text-blue-900 font-mono font-bold">
+                            {selectedProvider
+                              ? PAYMENT_PROVIDERS.find((p) => p.id === selectedProvider)?.fields[0].value || MANUAL_PAYMENT_NUMBER
+                              : MANUAL_PAYMENT_NUMBER}
+                          </p>
                           <p className="text-xs text-blue-800 mt-1">Amount: GHS {totals.total.toFixed(2)}</p>
                         </div>
                       </div>
@@ -835,9 +964,13 @@ export default function CheckoutForm() {
                 <ul className="text-xs text-red-800 space-y-1 ml-4 list-disc">
                   <li>Screenshot of transfer confirmation screen</li>
                   <li>Must show amount: <span className="font-bold">GHS {totals.total.toFixed(2)}</span></li>
-                  <li>Must show recipient: <span className="font-bold">{MANUAL_PAYMENT_NUMBER}</span></li>
+                  <li>Must show recipient: <span className="font-bold">
+                    {selectedProvider
+                      ? PAYMENT_PROVIDERS.find((p) => p.id === selectedProvider)?.fields[0].value || MANUAL_PAYMENT_NUMBER
+                      : MANUAL_PAYMENT_NUMBER}
+                  </span></li>
                   <li>Transaction reference or status visible</li>
-                  <li>Date & time visible</li>
+                  <li>Date &amp; time visible</li>
                 </ul>
               </div>
 

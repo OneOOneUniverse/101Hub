@@ -6,8 +6,20 @@ export default function SiteLoader() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoaded(true), 1800);
-    return () => clearTimeout(timer);
+    // Dismiss as soon as the browser fires "load" (all resources ready).
+    // Fall back to a short timeout so the loader never hangs on slow networks.
+    if (document.readyState === "complete") {
+      setLoaded(true);
+      return;
+    }
+    const onLoad = () => setLoaded(true);
+    window.addEventListener("load", onLoad, { once: true });
+    // Safety net: never block the UI longer than 3 s
+    const fallback = setTimeout(() => setLoaded(true), 3000);
+    return () => {
+      window.removeEventListener("load", onLoad);
+      clearTimeout(fallback);
+    };
   }, []);
 
   return (
