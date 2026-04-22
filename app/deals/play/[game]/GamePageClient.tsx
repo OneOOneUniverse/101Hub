@@ -141,7 +141,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
     maxAttempts > 0 && status
       ? Math.min(100, Math.round((status.attemptsUsed / maxAttempts) * 100))
       : 0;
-  const attemptsLeft: number | null = status?.attemptsLeft ?? null;
+  const attemptsLeft = status?.attemptsLeft;
 
   return (
     <div className="gp-root">
@@ -250,7 +250,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
             )}
 
             {/* Try again button if attempts remain and prize message shown */}
-            {prizeMessage && status && (attemptsLeft === null || attemptsLeft > 0) && (
+            {prizeMessage && status && (status.attemptsLeft === null || (status.attemptsLeft ?? 0) > 0) && (
               <button className="gp-try-again-btn" onClick={handleRetry}>
                 🔄 Try Again
               </button>
