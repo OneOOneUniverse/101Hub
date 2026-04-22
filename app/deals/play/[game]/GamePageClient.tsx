@@ -141,7 +141,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
     maxAttempts > 0 && status
       ? Math.min(100, Math.round((status.attemptsUsed / maxAttempts) * 100))
       : 0;
-  const attemptsLeft = status?.attemptsLeft;
+  const attemptsLeft: number | null = status?.attemptsLeft ?? null;
 
   return (
     <div className="gp-root">
