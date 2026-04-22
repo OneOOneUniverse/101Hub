@@ -2,11 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import type { DealsHubContent, Product, SpinWheelSlice } from "@/lib/site-content-types";
-import SpinWheel from "@/components/SpinWheel";
-import ScratchCard from "@/components/ScratchCard";
-import DailyTrivia from "@/components/DailyTrivia";
+import type { DealsHubContent, Product } from "@/lib/site-content-types";
 
 type Props = {
   dealsHub: DealsHubContent;
@@ -15,11 +13,10 @@ type Props = {
 
 export default function DealsHubClient({ dealsHub, products }: Props) {
   const { isSignedIn } = useUser();
+  const router = useRouter();
   const [points, setPoints] = useState(0);
-  const [prizeMessage, setPrizeMessage] = useState("");
   const [redeeming, setRedeeming] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState("");
-  const [openGame, setOpenGame] = useState<"spin" | "scratch" | "trivia" | null>(null);
   const [activeReward, setActiveReward] = useState<{ id: number; discountCedis: number; label: string } | null>(null);
 
   const refreshActiveReward = useCallback(() => {
@@ -46,18 +43,6 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
       .then((d: { balance?: number }) => setPoints(d.balance ?? 0))
       .catch(() => {});
   }, []);
-
-  const handlePrize = useCallback((prize: SpinWheelSlice) => {
-    if (prize.type === "no_prize") {
-      setPrizeMessage("No luck this time! Try again later.");
-    } else if (prize.type === "points") {
-      setPrizeMessage(`🎉 You won ${prize.value} points!`);
-      refreshPoints();
-    } else {
-      setPrizeMessage(`🎉 You won: ${prize.label}! Check your prizes in your profile.`);
-    }
-    setTimeout(() => setPrizeMessage(""), 5000);
-  }, [refreshPoints]);
 
   const handleRedeem = useCallback(async () => {
     if (redeeming) return;
@@ -194,13 +179,6 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         </section>
       )}
 
-      {/* Prize notification */}
-      {prizeMessage && (
-        <div className="deals-prize-toast">
-          <div className="deals-prize-toast-inner">{prizeMessage}</div>
-        </div>
-      )}
-
       {/* ─── STORES SLIDER ─── */}
       {enabledStores.length > 0 && (
         <section className="deals-section">
@@ -303,7 +281,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
           </h2>
           <div className="deals-games-grid">
             {dealsHub.spinWheel.enabled && (
-              <button className="gcard" onClick={() => setOpenGame("spin")}>
+              <button className="gcard" onClick={() => router.push("/deals/play/spin")}>
                 <div className="gcard-glow" />
                 <div className="gcard-icon">🎡</div>
                 <h3 className="gcard-name">{dealsHub.spinWheel.title}</h3>
@@ -316,7 +294,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
               </button>
             )}
             {dealsHub.scratchCard.enabled && (
-              <button className="gcard gcard--dark" onClick={() => setOpenGame("scratch")}>
+              <button className="gcard gcard--dark" onClick={() => router.push("/deals/play/scratch")}>
                 <div className="gcard-glow gcard-glow--purple" />
                 <div className="gcard-icon">🎟️</div>
                 <h3 className="gcard-name">{dealsHub.scratchCard.title}</h3>
@@ -329,7 +307,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
               </button>
             )}
             {dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && (
-              <button className="gcard" onClick={() => setOpenGame("trivia")}>
+              <button className="gcard" onClick={() => router.push("/deals/play/trivia")}>
                 <div className="gcard-glow" />
                 <div className="gcard-icon">🧠</div>
                 <h3 className="gcard-name">{dealsHub.trivia.title}</h3>
@@ -343,42 +321,6 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
             )}
           </div>
         </section>
-      )}
-
-      {/* ─── GAME MODAL ─── */}
-      {openGame && (
-        <div className="gmodal-overlay" onClick={() => setOpenGame(null)}>
-          <div className="gmodal" onClick={(e) => e.stopPropagation()}>
-            <button className="gmodal-close" onClick={() => setOpenGame(null)} aria-label="Close">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-            </button>
-
-            {openGame === "spin" && (
-              <div className="gmodal-content">
-                <h2 className="gmodal-title">🎡 {dealsHub.spinWheel.title}</h2>
-                <SpinWheel slices={dealsHub.spinWheel.slices} onResult={handlePrize} disabled={!isSignedIn} />
-              </div>
-            )}
-
-            {openGame === "scratch" && (
-              <div className="gmodal-content gmodal-content--dark">
-                <h2 className="gmodal-title gmodal-title--light">🎟️ {dealsHub.scratchCard.title}</h2>
-                <ScratchCard onResult={handlePrize} disabled={!isSignedIn} />
-              </div>
-            )}
-
-            {openGame === "trivia" && (
-              <div className="gmodal-content">
-                <h2 className="gmodal-title">🧠 {dealsHub.trivia.title}</h2>
-                {isSignedIn ? (
-                  <DailyTrivia questions={dealsHub.trivia.questions} />
-                ) : (
-                  <p className="text-center text-sm opacity-60">Sign in to play trivia</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
       )}
 
       {/* ─── STYLES ─── */}

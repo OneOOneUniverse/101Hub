@@ -470,6 +470,7 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
       { id: "sw-5", label: "Try Again", type: "no_prize", value: 0, color: "#6b7280", weight: 15 },
     ],
     cooldownHours: 24,
+    maxAttempts: 0,
   },
   scratchCard: {
     enabled: false,
@@ -482,6 +483,7 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
       { id: "sc-4", label: "Try Again", type: "no_prize", value: 0, color: "#6b7280", weight: 30 },
     ],
     cooldownHours: 12,
+    maxAttempts: 0,
   },
   trivia: {
     enabled: false,
@@ -491,6 +493,7 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
       { id: "q-1", question: "What year was Ghana founded?", options: ["1955", "1957", "1960", "1963"], correctIndex: 1, pointsReward: 50 },
     ],
     dailyLimit: 5,
+    maxAttempts: 0,
   },
 };
 
@@ -570,6 +573,7 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
       description: toText(spinObj.description as string | undefined, fb.spinWheel.description),
       slices: rawSpinSlices.map((item, i) => sanitizeSlice(item, i, fb.spinWheel.slices)),
       cooldownHours: Math.max(0, toNumber(spinObj.cooldownHours as number | undefined, fb.spinWheel.cooldownHours)),
+      maxAttempts: Math.max(0, Math.trunc(toNumber(spinObj.maxAttempts as number | undefined, fb.spinWheel.maxAttempts))),
     },
     scratchCard: {
       enabled: toBoolean(scratchObj.enabled as boolean | undefined, fb.scratchCard.enabled),
@@ -577,6 +581,7 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
       description: toText(scratchObj.description as string | undefined, fb.scratchCard.description),
       prizes: rawScratchPrizes.map((item, i) => sanitizeSlice(item, i, fb.scratchCard.prizes)),
       cooldownHours: Math.max(0, toNumber(scratchObj.cooldownHours as number | undefined, fb.scratchCard.cooldownHours)),
+      maxAttempts: Math.max(0, Math.trunc(toNumber(scratchObj.maxAttempts as number | undefined, fb.scratchCard.maxAttempts))),
     },
     trivia: {
       enabled: toBoolean(triviaObj.enabled as boolean | undefined, fb.trivia.enabled),
@@ -584,6 +589,7 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
       description: toText(triviaObj.description as string | undefined, fb.trivia.description),
       questions: rawQuestions.map((item, i) => sanitizeTriviaQuestion(item, i)),
       dailyLimit: Math.max(1, Math.trunc(toNumber(triviaObj.dailyLimit as number | undefined, fb.trivia.dailyLimit))),
+      maxAttempts: Math.max(0, Math.trunc(toNumber(triviaObj.maxAttempts as number | undefined, fb.trivia.maxAttempts))),
     },
   };
 }

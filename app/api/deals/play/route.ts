@@ -52,6 +52,27 @@ export async function POST(request: Request) {
     }
   }
 
+  // Check max attempts per cooldown window (or all-time if no cooldown)
+  const maxAttempts = (config as { maxAttempts?: number }).maxAttempts ?? 0;
+  if (maxAttempts > 0) {
+    const windowStart = config.cooldownHours > 0
+      ? new Date(Date.now() - config.cooldownHours * 60 * 60 * 1000).toISOString()
+      : new Date(new Date().setHours(0, 0, 0, 0)).toISOString(); // reset daily if no cooldown
+    const { count } = await supabaseAdmin
+      .from("game_plays")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("game_type", gameType)
+      .gte("created_at", windowStart);
+
+    if ((count ?? 0) >= maxAttempts) {
+      return NextResponse.json({
+        error: `You have used all ${maxAttempts} attempt${maxAttempts === 1 ? "" : "s"} for this game`,
+        attemptsExhausted: true,
+      }, { status: 429 });
+    }
+  }
+
   // Pick prize
   const slices = "slices" in config ? config.slices : config.prizes;
   const prize = weightedRandom(slices);

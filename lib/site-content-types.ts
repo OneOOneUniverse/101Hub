@@ -274,6 +274,7 @@ export type DealsHubContent = {
     description: string;
     slices: SpinWheelSlice[];
     cooldownHours: number; // hours between spins (0 = unlimited)
+    maxAttempts: number; // max plays per cooldown window (0 = unlimited)
   };
   scratchCard: {
     enabled: boolean;
@@ -281,6 +282,7 @@ export type DealsHubContent = {
     description: string;
     prizes: SpinWheelSlice[]; // reuse same shape
     cooldownHours: number;
+    maxAttempts: number; // max plays per cooldown window (0 = unlimited)
   };
   trivia: {
     enabled: boolean;
@@ -288,6 +290,7 @@ export type DealsHubContent = {
     description: string;
     questions: TriviaQuestion[];
     dailyLimit: number; // max questions per day
+    maxAttempts: number; // max game sessions per day (0 = unlimited)
   };
 };
 

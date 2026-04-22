@@ -4192,10 +4192,21 @@ export default function AdminPage() {
                   </Field>
                 </div>
 
-                <Field label="Background Image URL (optional — overrides gradient)">
+                <Field label="Background Image (optional — overrides gradient)">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <ImageUploadButton
+                      folder="deals"
+                      label="Upload Image"
+                      onUpload={(url) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], backgroundImage: url };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                    />
+                  </div>
                   <input
                     value={store.backgroundImage ?? ""}
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="Or paste image URL…"
                     onChange={(e) => {
                       const stores = [...content.dealsHub.specialStores];
                       stores[si] = { ...stores[si], backgroundImage: e.target.value };
@@ -4271,7 +4282,7 @@ export default function AdminPage() {
               </label>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-4">
               <Field label="Title">
                 <input
                   value={content.dealsHub.spinWheel.title}
@@ -4294,6 +4305,16 @@ export default function AdminPage() {
                   onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
                   className={inputClassName()}
                 />
+              </Field>
+              <Field label="Max attempts per window (0 = unlimited)">
+                <input
+                  type="number"
+                  min={0}
+                  value={content.dealsHub.spinWheel.maxAttempts ?? 0}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, spinWheel: { ...content.dealsHub.spinWheel, maxAttempts: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+                <span className="text-xs text-gray-500 mt-1 block">How many times a user can spin per cooldown window. 0 = no limit.</span>
               </Field>
             </div>
 
@@ -4417,7 +4438,7 @@ export default function AdminPage() {
               </label>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-4">
               <Field label="Title">
                 <input
                   value={content.dealsHub.scratchCard.title}
@@ -4440,6 +4461,16 @@ export default function AdminPage() {
                   onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
                   className={inputClassName()}
                 />
+              </Field>
+              <Field label="Max attempts per window (0 = unlimited)">
+                <input
+                  type="number"
+                  min={0}
+                  value={content.dealsHub.scratchCard.maxAttempts ?? 0}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, scratchCard: { ...content.dealsHub.scratchCard, maxAttempts: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+                <span className="text-xs text-gray-500 mt-1 block">0 = no limit per cooldown window.</span>
               </Field>
             </div>
 
@@ -4502,7 +4533,7 @@ export default function AdminPage() {
               </label>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-4">
               <Field label="Title">
                 <input
                   value={content.dealsHub.trivia.title}
@@ -4525,6 +4556,16 @@ export default function AdminPage() {
                   onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, dailyLimit: Math.max(1, Number(e.target.value || 5)) } } })}
                   className={inputClassName()}
                 />
+              </Field>
+              <Field label="Max sessions per day (0 = unlimited)">
+                <input
+                  type="number"
+                  min={0}
+                  value={content.dealsHub.trivia.maxAttempts ?? 0}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, trivia: { ...content.dealsHub.trivia, maxAttempts: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+                <span className="text-xs text-gray-500 mt-1 block">How many trivia sessions a user can start per day. 0 = no limit.</span>
               </Field>
             </div>
 
