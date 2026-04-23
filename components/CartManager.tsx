@@ -124,10 +124,7 @@ export default function CartManager() {
         if (!product) return null;
         return { product, qty: line.qty, lineTotal: line.qty * product.price, size: line.size, color: line.color };
       })
-      .filter(
-        (item): item is { product: (typeof products)[number]; qty: number; lineTotal: number; size?: string; color?: string } =>
-          item !== null
-      );
+      .filter(Boolean) as { product: (typeof products)[number]; qty: number; lineTotal: number; size?: string; color?: string }[];
 
     const subtotal = resolved.reduce((sum, item) => sum + item.lineTotal, 0);
     const delivery = subtotal > 250 ? 0 : subtotal > 0 ? 12 : 0;
