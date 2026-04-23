@@ -16,7 +16,8 @@ export default function LuckyNumber() {
   const [secret] = useState(randomNum);
   const [input, setInput] = useState("");
   const [guesses, setGuesses] = useState<{ num: number; hint: "too_low" | "too_high" | "correct" }[]>([]);
-  const [phase, setPhase] = useState<"playing" | "won" | "lost" | "claiming" | "claimed" | "limit">("playing");
+  const [phase, setPhase] = useState<"playing" | "won" | "lost" | "claimed" | "limit">("playing");
+  const [isClaiming, setIsClaiming] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
   const [playsLeft, setPlaysLeft] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
@@ -36,7 +37,7 @@ export default function LuckyNumber() {
 
   const claimPoints = useCallback(async () => {
     if (!isSignedIn) { setMsg("Sign in to save your points!"); return; }
-    setPhase("claiming");
+    setIsClaiming(true);
     try {
       const res = await fetch("/api/deals/minigame", {
         method: "POST",
@@ -45,12 +46,13 @@ export default function LuckyNumber() {
       });
       const data = (await res.json()) as { pointsEarned?: number; error?: string; limitReached?: boolean };
       if (data.limitReached) { setPhase("limit"); return; }
-      if (!res.ok) { setMsg(data.error ?? "Error"); setPhase("won"); return; }
+      if (!res.ok) { setMsg(data.error ?? "Error"); return; }
       setPointsEarned(data.pointsEarned ?? 0);
       setPhase("claimed");
     } catch {
       setMsg("Network error — try again");
-      setPhase("won");
+    } finally {
+      setIsClaiming(false);
     }
   }, [isSignedIn]);
 
@@ -101,10 +103,10 @@ export default function LuckyNumber() {
         {msg && <p className="text-sm text-red-500">{msg}</p>}
         <button
           onClick={claimPoints}
-          disabled={phase === "claiming"}
+          disabled={isClaiming}
           className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
         >
-          Claim 50 Points 🎁
+          {isClaiming ? "Claiming…" : "Claim 50 Points 🎁"}
         </button>
       </div>
     );
