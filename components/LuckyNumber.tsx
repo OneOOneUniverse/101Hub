@@ -101,7 +101,7 @@ export default function LuckyNumber() {
         {msg && <p className="text-sm text-red-500">{msg}</p>}
         <button
           onClick={claimPoints}
-          disabled={phase === "claiming" as unknown as boolean}
+          disabled={phase === "claiming"}
           className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
         >
           Claim 50 Points 🎁
