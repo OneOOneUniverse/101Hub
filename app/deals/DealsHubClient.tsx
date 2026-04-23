@@ -358,7 +358,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
             </button>
           </div>
         </section>
-      )}
+      }
 
       {/* ─── STYLES ─── */}
       <style jsx>{`
