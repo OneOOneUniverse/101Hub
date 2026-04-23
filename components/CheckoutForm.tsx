@@ -619,7 +619,7 @@ export default function CheckoutForm() {
         onClose={() => setShowPaymentAnimation(false)}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] items-start">
+      <div className="grid gap-6 md:grid-cols-[1.3fr_1fr] items-start">
         {/* ── Left: Form ─────────────────────────────────────────── */}
         <div className="space-y-5">
           {/* Page header */}

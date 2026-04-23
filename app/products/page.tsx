@@ -347,7 +347,7 @@ function ProductsPageContent() {
         </div>
       </section>
 
-      <section id="products-grid" className="grid grid-cols-2 items-start gap-2 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
+      <section id="products-grid" className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
         {paginatedProducts.map((item) => {
           // Product-specific discount takes priority
           const hasProductDiscount = item.discount && item.discount > 0;

@@ -57,7 +57,7 @@ export default async function FlashSalePage() {
         <p className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-700">
           {content.flashSale.pageEyebrow}
         </p>
-        <h1 className="mt-3 text-3xl font-black">{content.flashSale.pageTitle}</h1>
+        <h1 className="mt-3 text-2xl sm:text-3xl font-black">{content.flashSale.pageTitle}</h1>
         <p className="mt-2 text-[var(--ink-soft)]">
           {content.flashSale.pageDescription}
         </p>

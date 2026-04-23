@@ -75,7 +75,7 @@ export default function OrderLookupPage() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[var(--brand)]">
           <BoxIcon size={36} />
         </div>
-        <h1 className="text-3xl font-black text-[var(--brand-deep)]">Track Your Order</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-[var(--brand-deep)]">Track Your Order</h1>
         <p className="mt-2 text-sm text-[var(--ink-soft)]">
           Enter your order reference to see the current status of your delivery.
         </p>
@@ -128,10 +128,10 @@ export default function OrderLookupPage() {
               <a
                 key={order.orderRef}
                 href={`/orders/${order.orderRef}`}
-                className="flex items-center justify-between rounded-xl border border-black/10 px-4 py-3 hover:border-[var(--brand)] hover:bg-[var(--brand)]/5 transition-colors"
+                className="flex items-center justify-between gap-2 rounded-xl border border-black/10 px-4 py-3 hover:border-[var(--brand)] hover:bg-[var(--brand)]/5 transition-colors"
               >
-                <div>
-                  <p className="font-mono text-sm font-bold text-[var(--ink)]">{order.orderRef}</p>
+                <div className="min-w-0 overflow-hidden">
+                  <p className="font-mono text-sm font-bold text-[var(--ink)] truncate">{order.orderRef}</p>
                   <p className="text-xs text-[var(--ink-soft)] mt-0.5">
                     {new Date(order.createdAt).toLocaleDateString("en-GB", {
                       day: "numeric",

@@ -131,7 +131,7 @@ export default function WordScramble() {
         <p className="text-xs text-[var(--ink-soft)] mt-3">{word.length} letters · Tries: {tries}</p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={input}
@@ -148,7 +148,7 @@ export default function WordScramble() {
         <button
           onClick={submit}
           disabled={!input.trim()}
-          className="rounded-xl bg-[var(--brand)] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-40"
+          className="rounded-xl bg-[var(--brand)] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-40 w-full sm:w-auto"
         >
           Check!
         </button>
