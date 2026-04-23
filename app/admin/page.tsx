@@ -298,6 +298,8 @@ export default function AdminPage() {
   const [emailSending, setEmailSending] = useState(false);
   const [emailResult, setEmailResult] = useState<{ success?: string; error?: string } | null>(null);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const [productSizesRaw, setProductSizesRaw] = useState<Record<string, string>>({});
+  const [productColorsRaw, setProductColorsRaw] = useState<Record<string, string>>({});
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [newTemplateName, setNewTemplateName] = useState("");
   const [newTemplateMessage, setNewTemplateMessage] = useState("");
@@ -2138,13 +2140,17 @@ export default function AdminPage() {
                 </div>
                 <Field label="Sizes (comma-separated, optional)">
                   <input
-                    value={(product.sizes ?? []).join(", ")}
+                    value={productSizesRaw[product.id] ?? (product.sizes ?? []).join(", ")}
                     onChange={(event) => {
-                      const products = [...content.products];
+                      setProductSizesRaw(prev => ({ ...prev, [product.id]: event.target.value }));
+                    }}
+                    onBlur={(event) => {
                       const val = event.target.value.trim();
                       const sizes = val ? val.split(",").map(s => s.trim()).filter(Boolean) : undefined;
+                      const products = [...content.products];
                       products[index] = { ...product, sizes };
                       setContent({ ...content, products });
+                      setProductSizesRaw(prev => { const next = { ...prev }; delete next[product.id]; return next; });
                     }}
                     placeholder="e.g. 40, 41, 42, 43 or Small, Medium, Large, XL"
                     className={inputClassName()}
@@ -2153,13 +2159,17 @@ export default function AdminPage() {
                 </Field>
                 <Field label="Colors (comma-separated, optional)">
                   <input
-                    value={(product.colors ?? []).join(", ")}
+                    value={productColorsRaw[product.id] ?? (product.colors ?? []).join(", ")}
                     onChange={(event) => {
-                      const products = [...content.products];
+                      setProductColorsRaw(prev => ({ ...prev, [product.id]: event.target.value }));
+                    }}
+                    onBlur={(event) => {
                       const val = event.target.value.trim();
                       const colors = val ? val.split(",").map(c => c.trim()).filter(Boolean) : undefined;
+                      const products = [...content.products];
                       products[index] = { ...product, colors };
                       setContent({ ...content, products });
+                      setProductColorsRaw(prev => { const next = { ...prev }; delete next[product.id]; return next; });
                     }}
                     placeholder="e.g. Black, White, Navy Blue, Red"
                     className={inputClassName()}
