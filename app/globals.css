@@ -152,10 +152,10 @@ body {
 
 @media (max-width: 640px) {
   .promo-slider {
-    min-height: 180px;
+    min-height: 192px;
   }
   .promo-slide {
-    min-height: 180px;
+    min-height: 192px;
   }
   .promo-slide__caption {
     left: 0.75rem;

@@ -52,7 +52,7 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
 
   return (
     <section className="panel promo-slider slider-container relative mx-auto overflow-hidden" aria-label="Ongoing promos and offers">
-      <div className="relative h-40 sm:h-56 md:h-72 lg:h-80">
+      <div className="relative h-48 sm:h-56 md:h-72 lg:h-80">
         {slides.map((slide, index) => {
           const isActive = index === normalizedIndex;
 
@@ -80,12 +80,11 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
                 <Image
                   src={slide.src}
                   alt={slide.alt}
-                  width={1920}
-                  height={640}
+                  fill
                   priority={isActive}
-                  sizes="100vw"
+                  sizes="(max-width: 900px) 100vw, 900px"
                   quality={75}
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="object-cover"
                 />
               )}
               <figcaption className="promo-slide__caption">
