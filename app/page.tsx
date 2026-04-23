@@ -29,8 +29,19 @@ export default async function Home() {
         />
       ) : null}
       <section className="panel overflow-hidden">
-        {/* Hero with video background */}
-        <div className="relative isolate">
+        {/* Hero with video/image background */}
+        <div
+          className="relative isolate"
+          style={
+            content.home.heroBackgroundImage
+              ? {
+                  backgroundImage: `url(${content.home.heroBackgroundImage})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }
+              : undefined
+          }
+        >
           {/* Video background — auto-cycles through multiple videos */}
           <HeroVideoBackground
             desktopVideos={[

@@ -10,18 +10,18 @@ export default async function LuckyNumberPage() {
   if (!content.features.dealsHub || !content.dealsHub.enabled) redirect("/");
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0a1628] to-[#0f2244] px-4 py-10">
+    <main className="min-h-screen bg-[var(--surface)] px-4 py-10">
       <div className="max-w-lg mx-auto">
-        <Link href="/deals" className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white mb-6 transition">
+        <Link href="/deals" className="inline-flex items-center gap-1.5 text-sm text-[var(--ink-soft)] hover:text-[var(--brand)] mb-6 transition">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
           Back to Deals
         </Link>
         <div className="text-center mb-6">
           <p className="text-5xl mb-2">🎲</p>
-          <h1 className="text-2xl font-black text-white">Lucky Number</h1>
-          <p className="text-sm text-white/50 mt-1">Guess the secret number in 5 tries to earn 50 points!</p>
+          <h1 className="text-2xl font-black text-[var(--brand-deep)]">Lucky Number</h1>
+          <p className="text-sm text-[var(--ink-soft)] mt-1">Guess the secret number in 5 tries to earn 50 points!</p>
         </div>
-        <div className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm p-5">
+        <div className="rounded-2xl bg-white border border-black/10 shadow-sm p-5">
           <LuckyNumber />
         </div>
       </div>

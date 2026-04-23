@@ -143,6 +143,8 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
     ...(discount !== undefined && { discount }),
     ...(deliveryFee !== undefined && { deliveryFee }),
     ...(noDeliveryFee && { noDeliveryFee }),
+    ...(Array.isArray(candidate.sizes) && candidate.sizes.length > 0 && { sizes: candidate.sizes.filter((s): s is string => typeof s === "string" && s.trim().length > 0).map(s => s.trim()) }),
+    ...(Array.isArray(candidate.colors) && candidate.colors.length > 0 && { colors: candidate.colors.filter((c): c is string => typeof c === "string" && c.trim().length > 0).map(c => c.trim()) }),
   };
 }
 
@@ -240,6 +242,7 @@ function sanitizeHome(value: unknown, fallback: HomeContent): HomeContent {
     primaryCtaHref: toText(candidate.primaryCtaHref, fallback.primaryCtaHref),
     secondaryCtaLabel: toText(candidate.secondaryCtaLabel, fallback.secondaryCtaLabel),
     secondaryCtaHref: toText(candidate.secondaryCtaHref, fallback.secondaryCtaHref),
+    heroBackgroundImage: toOptionalText(candidate.heroBackgroundImage),
     highlights: sourceHighlights.map((item, index) =>
       sanitizeHighlight(item, index, fallback.highlights[index])
     ),

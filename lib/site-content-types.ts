@@ -44,7 +44,8 @@ export type Product = {
   discount?: number; // Optional discount percentage (0-100)
   deliveryFee?: number; // Optional per-product delivery fee
   noDeliveryFee?: boolean; // Optional flag for no delivery fee
-
+  sizes?: string[]; // Available sizes e.g. ["41", "42", "Large", "XL"]
+  colors?: string[]; // Available color options e.g. ["Black", "White", "Navy"]
 };
 
 export type SubService = {
@@ -107,6 +108,7 @@ export type HomeContent = {
   heroVideoMobileUrl?: string;
   heroVideos?: string[];
   heroMobileVideos?: string[];
+  heroBackgroundImage?: string; // Fallback image shown behind hero (when no video or as overlay base)
   highlights: HighlightCard[];
 };
 

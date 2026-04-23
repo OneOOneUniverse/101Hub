@@ -8,7 +8,7 @@ import { readWishlist } from "@/lib/product-feedback";
 import { getRelatedProducts } from "@/lib/store-data";
 import WishlistButton from "@/components/WishlistButton";
 
-type CartLine = { productId: string; qty: number };
+type CartLine = { productId: string; qty: number; size?: string; color?: string };
 
 type ActiveReward = {
   id: number;
@@ -93,19 +93,25 @@ export default function CartManager() {
     });
   }, []);
 
-  const updateQty = useCallback((productId: string, qty: number) => {
+  const updateQty = useCallback((productId: string, qty: number, size?: string, color?: string) => {
     setLines((prev) => {
       const next = prev
-        .map((line) => (line.productId === productId ? { ...line, qty } : line))
+        .map((line) =>
+          line.productId === productId && line.size === size && line.color === color
+            ? { ...line, qty }
+            : line
+        )
         .filter((line) => line.qty > 0);
       writeCart(next);
       return next;
     });
   }, []);
 
-  const removeLine = useCallback((productId: string) => {
+  const removeLine = useCallback((productId: string, size?: string, color?: string) => {
     setLines((prev) => {
-      const next = prev.filter((line) => line.productId !== productId);
+      const next = prev.filter(
+        (line) => !(line.productId === productId && line.size === size && line.color === color)
+      );
       writeCart(next);
       return next;
     });
@@ -116,10 +122,10 @@ export default function CartManager() {
       .map((line) => {
         const product = products.find((p) => p.id === line.productId);
         if (!product) return null;
-        return { product, qty: line.qty, lineTotal: line.qty * product.price };
+        return { product, qty: line.qty, lineTotal: line.qty * product.price, size: line.size, color: line.color };
       })
       .filter(
-        (item): item is { product: (typeof products)[number]; qty: number; lineTotal: number } =>
+        (item): item is { product: (typeof products)[number]; qty: number; lineTotal: number; size?: string; color?: string } =>
           item !== null
       );
 
@@ -214,34 +220,48 @@ export default function CartManager() {
         <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-4">
           {details.items.map((item) => (
             <article
-              key={item.product.id}
+              key={`${item.product.id}-${item.size ?? ""}-${item.color ?? ""}`}
               className="rounded-lg border border-black/10 bg-white p-3 sm:p-4"
             >
               <div className="flex items-start justify-between gap-2 sm:gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-[var(--ink-soft)] sm:text-sm">{item.product.category}</p>
                   <h2 className="text-sm font-bold sm:text-lg">{item.product.name}</h2>
+                  {(item.size || item.color) && (
+                    <div className="mt-0.5 flex flex-wrap gap-1.5">
+                      {item.size && (
+                        <span className="inline-flex items-center rounded-full bg-[var(--brand)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">
+                          Size: {item.size}
+                        </span>
+                      )}
+                      {item.color && (
+                        <span className="inline-flex items-center rounded-full bg-[var(--brand)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">
+                          Color: {item.color}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <p className="text-xs text-[var(--ink-soft)] sm:text-sm">GHS {item.product.price.toFixed(2)} each</p>
                 </div>
                 <button
-                  onClick={() => removeLine(item.product.id)}
+                  onClick={() => removeLine(item.product.id, item.size, item.color)}
                   className="text-xs font-semibold text-red-600 hover:text-red-800 flex-shrink-0 sm:text-sm"
                 >
                   Remove
                 </button>
               </div>
               <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
-                <label htmlFor={`qty-${item.product.id}`} className="text-xs text-[var(--ink-soft)] sm:text-sm">
+                <label htmlFor={`qty-${item.product.id}-${item.size ?? ""}-${item.color ?? ""}`} className="text-xs text-[var(--ink-soft)] sm:text-sm">
                   Qty
                 </label>
                 <input
-                  id={`qty-${item.product.id}`}
+                  id={`qty-${item.product.id}-${item.size ?? ""}-${item.color ?? ""}`}
                   type="number"
                   min={1}
                   max={item.product.stock}
                   value={item.qty}
                   onChange={(event) =>
-                    updateQty(item.product.id, Number(event.target.value || 1))
+                    updateQty(item.product.id, Number(event.target.value || 1), item.size, item.color)
                   }
                   className="w-16 rounded-lg border border-black/15 px-2 py-1.5 text-sm sm:w-20 sm:px-3 sm:py-2"
                 />

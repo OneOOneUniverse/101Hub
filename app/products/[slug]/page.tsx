@@ -211,6 +211,8 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
               price={product.price}
               salePrice={displayPrice}
               discount={totalDiscount}
+              sizes={product.sizes}
+              colors={product.colors}
             />
           </div>
         </div>

@@ -1079,6 +1079,53 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* Hero Background Image */}
+        <div className="space-y-3">
+          <label className="block text-sm font-semibold text-[var(--brand-deep)]">
+            Hero Background Image 🖼️
+          </label>
+          <p className="text-xs text-[var(--ink-soft)]">
+            Shown behind the hero text as a background. When a video is also set, this image is visible before the video loads. Recommended: 1920×1080px or wider.
+          </p>
+          {content.home.heroBackgroundImage ? (
+            <div className="flex items-center gap-4 rounded-xl border border-black/10 bg-[var(--surface)] p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={content.home.heroBackgroundImage} alt="Hero background preview" className="h-16 w-28 rounded-lg object-cover border border-black/10" />
+              <button
+                type="button"
+                onClick={() => setContent({ ...content, home: { ...content.home, heroBackgroundImage: undefined } })}
+                className="rounded-full bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-200"
+              >
+                Remove
+              </button>
+            </div>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            <ImageUploadButton
+              folder="hero"
+              label="Upload Background Image"
+              onUpload={(url) => setContent({ ...content, home: { ...content.home, heroBackgroundImage: url } })}
+            />
+            <div className="flex gap-2 flex-1 min-w-[200px]">
+              <input id="hero-bg-url" placeholder="Or paste image URL…" className={inputClassName()} />
+              <button
+                type="button"
+                onClick={() => {
+                  const inp = document.getElementById("hero-bg-url") as HTMLInputElement;
+                  const url = inp?.value.trim();
+                  if (url && url.startsWith("http")) {
+                    setContent({ ...content, home: { ...content.home, heroBackgroundImage: url } });
+                    inp.value = "";
+                  }
+                }}
+                className="whitespace-nowrap rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition"
+              >
+                Set
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-lg font-black text-[var(--brand-deep)]">Highlight Cards</h3>
@@ -2089,6 +2136,36 @@ export default function AdminPage() {
                     <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1"><TruckIcon size={14} /> This product ships for free</p>
                   )}
                 </div>
+                <Field label="Sizes (comma-separated, optional)">
+                  <input
+                    value={(product.sizes ?? []).join(", ")}
+                    onChange={(event) => {
+                      const products = [...content.products];
+                      const val = event.target.value.trim();
+                      const sizes = val ? val.split(",").map(s => s.trim()).filter(Boolean) : undefined;
+                      products[index] = { ...product, sizes };
+                      setContent({ ...content, products });
+                    }}
+                    placeholder="e.g. 40, 41, 42, 43 or Small, Medium, Large, XL"
+                    className={inputClassName()}
+                  />
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">Shown as selectable options on the product page. Ideal for shoes, clothing, etc.</p>
+                </Field>
+                <Field label="Colors (comma-separated, optional)">
+                  <input
+                    value={(product.colors ?? []).join(", ")}
+                    onChange={(event) => {
+                      const products = [...content.products];
+                      const val = event.target.value.trim();
+                      const colors = val ? val.split(",").map(c => c.trim()).filter(Boolean) : undefined;
+                      products[index] = { ...product, colors };
+                      setContent({ ...content, products });
+                    }}
+                    placeholder="e.g. Black, White, Navy Blue, Red"
+                    className={inputClassName()}
+                  />
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">Shown as selectable color options on the product page.</p>
+                </Field>
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
