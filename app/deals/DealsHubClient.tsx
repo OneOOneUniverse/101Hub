@@ -265,7 +265,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
       )}
 
       {/* ─── GAMES SECTIONS ─── */}
-      {hasGames && !isSignedIn && (
+      {!isSignedIn && (
         <section className="deals-section">
           <div className="deals-login-prompt">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
@@ -274,7 +274,7 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         </section>
       )}
 
-      {hasGames && (
+      {
         <section className="deals-section">
           <h2 className="deals-section-heading">
             <span className="deals-section-icon">🎮</span> Games &amp; Rewards
@@ -319,6 +319,43 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
                 </span>
               </button>
             )}
+            {/* ── Bonus Mini-Games ── */}
+            <button className="gcard gcard--dark" onClick={() => router.push("/deals/play/memory")}>
+              <div className="gcard-glow gcard-glow--pink" />
+              <div className="gcard-icon">🃏</div>
+              <h3 className="gcard-name">Memory Match</h3>
+              <p className="gcard-desc">Flip cards and match all pairs — win 75 points!</p>
+              <div className="gcard-badge">+75 pts</div>
+              <span className="gcard-cta">
+                <span className="gcard-cta-sweep" />
+                <span className="gcard-cta-text">Play Now</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+              </span>
+            </button>
+            <button className="gcard" onClick={() => router.push("/deals/play/lucky")}>
+              <div className="gcard-glow" />
+              <div className="gcard-icon">🎲</div>
+              <h3 className="gcard-name">Lucky Number</h3>
+              <p className="gcard-desc">Guess the secret number in 5 tries — win 50 points!</p>
+              <div className="gcard-badge">+50 pts</div>
+              <span className="gcard-cta">
+                <span className="gcard-cta-sweep" />
+                <span className="gcard-cta-text">Play Now</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+              </span>
+            </button>
+            <button className="gcard gcard--dark" onClick={() => router.push("/deals/play/scramble")}>
+              <div className="gcard-glow gcard-glow--purple" />
+              <div className="gcard-icon">🔤</div>
+              <h3 className="gcard-name">Word Scramble</h3>
+              <p className="gcard-desc">Unscramble the mystery word — win 60 points!</p>
+              <div className="gcard-badge">+60 pts</div>
+              <span className="gcard-cta">
+                <span className="gcard-cta-sweep" />
+                <span className="gcard-cta-text">Play Now</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+              </span>
+            </button>
           </div>
         </section>
       )}
@@ -1037,6 +1074,26 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
         }
         .gcard-glow--purple {
           background: radial-gradient(circle, rgba(124,58,237,0.15), transparent 70%);
+        }
+        .gcard-glow--pink {
+          background: radial-gradient(circle, rgba(236,72,153,0.15), transparent 70%);
+        }
+        .gcard-badge {
+          display: inline-block;
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: var(--brand, #7c3aed);
+          background: rgba(124,58,237,0.08);
+          border: 1px solid rgba(124,58,237,0.2);
+          border-radius: 100px;
+          padding: 0.18rem 0.7rem;
+          margin-bottom: 0.75rem;
+          letter-spacing: 0.03em;
+        }
+        .gcard--dark .gcard-badge {
+          color: #a78bfa;
+          background: rgba(167,139,250,0.1);
+          border-color: rgba(167,139,250,0.25);
         }
         .gcard:hover .gcard-glow {
           opacity: 1;
