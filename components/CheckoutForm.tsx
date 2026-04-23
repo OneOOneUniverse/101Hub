@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { CreditCardIcon, GiftIcon, TruckIcon } from "@/components/Icons";
 import { useStoreContent } from "@/lib/use-store-content";
@@ -222,6 +223,7 @@ function SectionCard({
 
 export default function CheckoutForm() {
   const { content, loading, error: contentError } = useStoreContent();
+  const { user } = useUser();
   const [customerName, setCustomerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -257,6 +259,13 @@ export default function CheckoutForm() {
       setItems(validItems);
     }
   }, [products, items]);
+
+  useEffect(() => {
+    if (user) {
+      const signInEmail = user.primaryEmailAddress?.emailAddress ?? "";
+      if (signInEmail) setEmail(signInEmail);
+    }
+  }, [user]);
 
   useEffect(() => {
     fetch("/api/referral/active-reward")
