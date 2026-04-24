@@ -48,7 +48,7 @@
   --surface: #0f1117;
   --surface-strong: #1a1d27;
   --ink: #e8eaf0;
-  --ink-soft: #8892a4;
+  --ink-soft: #d4a76a;
   --brand: #ff6b35;
   --brand-deep: #ff8c5a;
   --accent: #ff6b35;
@@ -247,6 +247,14 @@ body {
   border: 1px solid rgb(23 32 38 / 0.08);
   box-shadow: 0 14px 28px rgb(23 32 38 / 0.1);
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+[data-theme="dark"] .product-card {
+  background:
+    linear-gradient(165deg, rgb(30 34 46 / 0.98), rgb(22 26 36 / 0.95)),
+    var(--surface-strong);
+  border-color: rgb(255 255 255 / 0.07);
+  box-shadow: 0 14px 28px rgb(0 0 0 / 0.35);
 }
 
 .product-card__content {
