@@ -2,6 +2,7 @@ import Image from "next/image";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import ProfileAvatarPicker from "@/components/ProfileAvatarPicker";
+import ThemeToggle from "@/components/ThemeToggle";
 import { avatarOptions, getAvatarById } from "@/lib/avatar-options";
 
 export default async function ProfilePage() {
@@ -45,6 +46,10 @@ export default async function ProfilePage() {
 
       <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5">
         <ProfileAvatarPicker initialAvatarId={avatar.id} options={avatarOptions} />
+      </div>
+
+      <div className="mt-4">
+        <ThemeToggle />
       </div>
     </section>
   );

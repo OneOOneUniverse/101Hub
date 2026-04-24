@@ -7,6 +7,7 @@ import LayoutWrapper from "@/components/LayoutWrapper";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import SiteLoader from "@/components/SiteLoader";
 import ReferralTracker from "@/components/ReferralTracker";
+import ThemeProvider from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -140,12 +141,15 @@ export default async function RootLayout({
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <meta name="apple-mobile-web-app-title" content="101 Hub" />
+          {/* Anti-flash: apply saved theme before first paint */}
+          <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t||d);}catch(e){}})();` }} />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
         </head>
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
+          <ThemeProvider>
           <SiteLoader />
           <ReferralTracker />
           <NotificationProvider>
@@ -155,6 +159,7 @@ export default async function RootLayout({
               </LayoutWrapper>
             </div>
           </NotificationProvider>
+          </ThemeProvider>
           <Script
             id="sw-register"
             strategy="afterInteractive"

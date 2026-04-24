@@ -12,7 +12,11 @@ export default async function Home() {
 
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8">
-      {content.features.promoSlider ? <PromoSlider slides={content.promoSlides} /> : null}
+      {content.features.promoSlider ? (
+        <div className="pt-3">
+          <PromoSlider slides={content.promoSlides} />
+        </div>
+      ) : null}
       {content.features.blackFriday ? (
         <BlackFridayBanner content={content.blackFriday} />
       ) : null}
