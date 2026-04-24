@@ -71,7 +71,7 @@ export default function DailyTrivia({ questions }: Props) {
 
   if (limitReached || answeredIds.size >= questions.length) {
     return (
-      <div className="rounded-2xl border border-black/10 bg-white p-6 text-center space-y-3">
+      <div className="rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface-strong)] p-6 text-center space-y-3">
         <p className="text-4xl">🧠</p>
         <p className="text-lg font-bold text-[var(--brand-deep)]">All done for today!</p>
         <p className="text-sm text-[var(--ink-soft)]">
@@ -84,7 +84,7 @@ export default function DailyTrivia({ questions }: Props) {
   if (!question) return null;
 
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-6 space-y-4">
+    <div className="rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface-strong)] p-6 space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wide">
           Question {answeredIds.size + 1} of {questions.length}
@@ -99,8 +99,8 @@ export default function DailyTrivia({ questions }: Props) {
 
       <div className="grid gap-2">
         {question.options.map((option, i) => {
-          let borderColor = "border-black/10";
-          let bg = "bg-white";
+          let borderColor = "border-[var(--ink)]/10";
+          let bg = "bg-[var(--surface-strong)]";
 
           if (result) {
             if (i === result.correctIndex) {

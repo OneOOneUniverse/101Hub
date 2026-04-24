@@ -122,7 +122,7 @@ export default function WordScramble() {
           {scrambled.split("").map((ch, i) => (
             <span
               key={i}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border-2 border-[var(--brand)]/30 text-lg font-black text-[var(--brand-deep)] shadow-sm"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--surface-strong)] border-2 border-[var(--brand)]/30 text-lg font-black text-[var(--brand-deep)] shadow-sm"
             >
               {ch}
             </span>
@@ -142,7 +142,7 @@ export default function WordScramble() {
           className={`flex-1 rounded-xl border-2 px-4 py-3 text-base font-bold uppercase tracking-widest focus:outline-none transition ${
             hint === "wrong"
               ? "border-red-400 bg-red-50 text-red-700"
-              : "border-black/15 bg-white focus:border-[var(--brand)]"
+              : "border-[var(--ink)]/15 bg-[var(--surface-strong)] focus:border-[var(--brand)]"
           }`}
         />
         <button

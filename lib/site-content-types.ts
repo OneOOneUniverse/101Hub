@@ -294,6 +294,29 @@ export type DealsHubContent = {
     dailyLimit: number; // max questions per day
     maxAttempts: number; // max game sessions per day (0 = unlimited)
   };
+  memoryMatch: {
+    enabled: boolean;
+    title: string;
+    description: string;
+    pointsReward: number;
+    cooldownHours: number;
+  };
+  luckyNumber: {
+    enabled: boolean;
+    title: string;
+    description: string;
+    pointsReward: number;
+    maxTries: number;
+    cooldownHours: number;
+  };
+  wordScramble: {
+    enabled: boolean;
+    title: string;
+    description: string;
+    pointsReward: number;
+    cooldownHours: number;
+    words: string[]; // custom word list (empty = use built-in defaults)
+  };
 };
 
 export type ManualPaymentField = {

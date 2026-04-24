@@ -8,6 +8,7 @@ export const metadata = { title: "Word Scramble — Deals Hub" };
 export default async function WordScramblePage() {
   const content = await getSiteContent();
   if (!content.features.dealsHub || !content.dealsHub.enabled) redirect("/");
+  if (content.dealsHub.wordScramble?.enabled === false) redirect("/deals");
 
   return (
     <main className="min-h-screen bg-[var(--surface)] px-4 py-10">
@@ -21,7 +22,7 @@ export default async function WordScramblePage() {
           <h1 className="text-2xl font-black text-[var(--brand-deep)]">Word Scramble</h1>
           <p className="text-sm text-[var(--ink-soft)] mt-1">Unscramble the mystery word to earn 60 points!</p>
         </div>
-        <div className="rounded-2xl bg-white border border-black/10 shadow-sm p-5">
+        <div className="rounded-2xl bg-[var(--surface-strong)] border border-[var(--ink)]/10 shadow-sm p-5">
           <WordScramble />
         </div>
       </div>

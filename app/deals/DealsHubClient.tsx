@@ -320,42 +320,48 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
               </button>
             )}
             {/* ── Bonus Mini-Games ── */}
-            <button className="gcard gcard--dark" onClick={() => router.push("/deals/play/memory")}>
-              <div className="gcard-glow gcard-glow--pink" />
-              <div className="gcard-icon">🃏</div>
-              <h3 className="gcard-name">Memory Match</h3>
-              <p className="gcard-desc">Flip cards and match all pairs — win 75 points!</p>
-              <div className="gcard-badge">+75 pts</div>
-              <span className="gcard-cta">
-                <span className="gcard-cta-sweep" />
-                <span className="gcard-cta-text">Play Now</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-              </span>
-            </button>
-            <button className="gcard" onClick={() => router.push("/deals/play/lucky")}>
-              <div className="gcard-glow" />
-              <div className="gcard-icon">🎲</div>
-              <h3 className="gcard-name">Lucky Number</h3>
-              <p className="gcard-desc">Guess the secret number in 5 tries — win 50 points!</p>
-              <div className="gcard-badge">+50 pts</div>
-              <span className="gcard-cta">
-                <span className="gcard-cta-sweep" />
-                <span className="gcard-cta-text">Play Now</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-              </span>
-            </button>
-            <button className="gcard gcard--dark" onClick={() => router.push("/deals/play/scramble")}>
-              <div className="gcard-glow gcard-glow--purple" />
-              <div className="gcard-icon">🔤</div>
-              <h3 className="gcard-name">Word Scramble</h3>
-              <p className="gcard-desc">Unscramble the mystery word — win 60 points!</p>
-              <div className="gcard-badge">+60 pts</div>
-              <span className="gcard-cta">
-                <span className="gcard-cta-sweep" />
-                <span className="gcard-cta-text">Play Now</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-              </span>
-            </button>
+            {(dealsHub.memoryMatch?.enabled ?? true) && (
+              <button className="gcard gcard--dark" onClick={() => router.push("/deals/play/memory")}>
+                <div className="gcard-glow gcard-glow--pink" />
+                <div className="gcard-icon">🃏</div>
+                <h3 className="gcard-name">{dealsHub.memoryMatch?.title ?? "Memory Match"}</h3>
+                <p className="gcard-desc">{dealsHub.memoryMatch?.description ?? "Flip cards and match all pairs to win points!"}</p>
+                <div className="gcard-badge">+{dealsHub.memoryMatch?.pointsReward ?? 75} pts</div>
+                <span className="gcard-cta">
+                  <span className="gcard-cta-sweep" />
+                  <span className="gcard-cta-text">Play Now</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                </span>
+              </button>
+            )}
+            {(dealsHub.luckyNumber?.enabled ?? true) && (
+              <button className="gcard" onClick={() => router.push("/deals/play/lucky")}>
+                <div className="gcard-glow" />
+                <div className="gcard-icon">🎲</div>
+                <h3 className="gcard-name">{dealsHub.luckyNumber?.title ?? "Lucky Number"}</h3>
+                <p className="gcard-desc">{dealsHub.luckyNumber?.description ?? "Guess the secret number to win points!"}</p>
+                <div className="gcard-badge">+{dealsHub.luckyNumber?.pointsReward ?? 50} pts</div>
+                <span className="gcard-cta">
+                  <span className="gcard-cta-sweep" />
+                  <span className="gcard-cta-text">Play Now</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                </span>
+              </button>
+            )}
+            {(dealsHub.wordScramble?.enabled ?? true) && (
+              <button className="gcard gcard--dark" onClick={() => router.push("/deals/play/scramble")}>
+                <div className="gcard-glow gcard-glow--purple" />
+                <div className="gcard-icon">🔤</div>
+                <h3 className="gcard-name">{dealsHub.wordScramble?.title ?? "Word Scramble"}</h3>
+                <p className="gcard-desc">{dealsHub.wordScramble?.description ?? "Unscramble the mystery word to win points!"}</p>
+                <div className="gcard-badge">+{dealsHub.wordScramble?.pointsReward ?? 60} pts</div>
+                <span className="gcard-cta">
+                  <span className="gcard-cta-sweep" />
+                  <span className="gcard-cta-text">Play Now</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                </span>
+              </button>
+            )}
           </div>
         </section>
       }

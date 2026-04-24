@@ -498,6 +498,29 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
     dailyLimit: 5,
     maxAttempts: 0,
   },
+  memoryMatch: {
+    enabled: true,
+    title: "Memory Match",
+    description: "Flip cards and match all pairs to earn points!",
+    pointsReward: 75,
+    cooldownHours: 24,
+  },
+  luckyNumber: {
+    enabled: true,
+    title: "Lucky Number",
+    description: "Guess the secret number in 5 tries to earn points!",
+    pointsReward: 50,
+    maxTries: 5,
+    cooldownHours: 24,
+  },
+  wordScramble: {
+    enabled: true,
+    title: "Word Scramble",
+    description: "Unscramble the mystery word to earn points!",
+    pointsReward: 60,
+    cooldownHours: 24,
+    words: [],
+  },
 };
 
 function sanitizeSpecialStore(value: unknown, index: number): SpecialStore {
@@ -562,6 +585,9 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
   const spinObj = typeof c.spinWheel === "object" && c.spinWheel !== null ? c.spinWheel as Record<string, unknown> : {};
   const scratchObj = typeof c.scratchCard === "object" && c.scratchCard !== null ? c.scratchCard as Record<string, unknown> : {};
   const triviaObj = typeof c.trivia === "object" && c.trivia !== null ? c.trivia as Record<string, unknown> : {};
+  const memoryObj = typeof c.memoryMatch === "object" && c.memoryMatch !== null ? c.memoryMatch as Record<string, unknown> : {};
+  const luckyObj = typeof c.luckyNumber === "object" && c.luckyNumber !== null ? c.luckyNumber as Record<string, unknown> : {};
+  const scrambleObj = typeof c.wordScramble === "object" && c.wordScramble !== null ? c.wordScramble as Record<string, unknown> : {};
 
   return {
     enabled: toBoolean(c.enabled, fb.enabled),
@@ -593,6 +619,29 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
       questions: rawQuestions.map((item, i) => sanitizeTriviaQuestion(item, i)),
       dailyLimit: Math.max(1, Math.trunc(toNumber(triviaObj.dailyLimit as number | undefined, fb.trivia.dailyLimit))),
       maxAttempts: Math.max(0, Math.trunc(toNumber(triviaObj.maxAttempts as number | undefined, fb.trivia.maxAttempts))),
+    },
+    memoryMatch: {
+      enabled: toBoolean(memoryObj.enabled as boolean | undefined, fb.memoryMatch.enabled),
+      title: toText(memoryObj.title as string | undefined, fb.memoryMatch.title),
+      description: toText(memoryObj.description as string | undefined, fb.memoryMatch.description),
+      pointsReward: Math.max(1, Math.trunc(toNumber(memoryObj.pointsReward as number | undefined, fb.memoryMatch.pointsReward))),
+      cooldownHours: Math.max(0, toNumber(memoryObj.cooldownHours as number | undefined, fb.memoryMatch.cooldownHours)),
+    },
+    luckyNumber: {
+      enabled: toBoolean(luckyObj.enabled as boolean | undefined, fb.luckyNumber.enabled),
+      title: toText(luckyObj.title as string | undefined, fb.luckyNumber.title),
+      description: toText(luckyObj.description as string | undefined, fb.luckyNumber.description),
+      pointsReward: Math.max(1, Math.trunc(toNumber(luckyObj.pointsReward as number | undefined, fb.luckyNumber.pointsReward))),
+      maxTries: Math.max(1, Math.trunc(toNumber(luckyObj.maxTries as number | undefined, fb.luckyNumber.maxTries))),
+      cooldownHours: Math.max(0, toNumber(luckyObj.cooldownHours as number | undefined, fb.luckyNumber.cooldownHours)),
+    },
+    wordScramble: {
+      enabled: toBoolean(scrambleObj.enabled as boolean | undefined, fb.wordScramble.enabled),
+      title: toText(scrambleObj.title as string | undefined, fb.wordScramble.title),
+      description: toText(scrambleObj.description as string | undefined, fb.wordScramble.description),
+      pointsReward: Math.max(1, Math.trunc(toNumber(scrambleObj.pointsReward as number | undefined, fb.wordScramble.pointsReward))),
+      cooldownHours: Math.max(0, toNumber(scrambleObj.cooldownHours as number | undefined, fb.wordScramble.cooldownHours)),
+      words: Array.isArray(scrambleObj.words) ? (scrambleObj.words as unknown[]).map(String).filter(Boolean) : fb.wordScramble.words,
     },
   };
 }

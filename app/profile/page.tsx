@@ -28,7 +28,7 @@ export default async function ProfilePage() {
       <h1 className="mt-3 text-3xl font-black text-[var(--brand-deep)]">Your Account</h1>
       <p className="mt-2 text-[var(--ink-soft)]">Manage your profile details and choose an avatar.</p>
 
-      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-black/10 bg-white p-5 sm:flex-row sm:items-center">
+      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface-strong)] p-5 sm:flex-row sm:items-center">
         <Image
           src={avatar.src}
           alt={`${avatar.name} avatar`}
@@ -44,7 +44,7 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5">
+      <div className="mt-6 rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface-strong)] p-5">
         <ProfileAvatarPicker initialAvatarId={avatar.id} options={avatarOptions} />
       </div>
 

@@ -4748,6 +4748,177 @@ export default function AdminPage() {
               ))}
             </div>
           </div>
+
+          {/* ── Memory Match ── */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">🃏 Memory Match</h3>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={content.dealsHub.memoryMatch?.enabled ?? true}
+                  onChange={(e) =>
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, memoryMatch: { ...content.dealsHub.memoryMatch, enabled: e.target.checked } } })
+                  }
+                  className="h-4 w-4 accent-[var(--brand)]"
+                />
+                Enabled
+              </label>
+            </div>
+            <div className="grid gap-3 md:grid-cols-4">
+              <Field label="Title">
+                <input
+                  value={content.dealsHub.memoryMatch?.title ?? "Memory Match"}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, memoryMatch: { ...content.dealsHub.memoryMatch, title: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Description">
+                <input
+                  value={content.dealsHub.memoryMatch?.description ?? ""}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, memoryMatch: { ...content.dealsHub.memoryMatch, description: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Points reward">
+                <input
+                  type="number" min={1}
+                  value={content.dealsHub.memoryMatch?.pointsReward ?? 75}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, memoryMatch: { ...content.dealsHub.memoryMatch, pointsReward: Math.max(1, Number(e.target.value || 75)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Cooldown (hours, 0 = unlimited)">
+                <input
+                  type="number" min={0}
+                  value={content.dealsHub.memoryMatch?.cooldownHours ?? 24}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, memoryMatch: { ...content.dealsHub.memoryMatch, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+          </div>
+
+          {/* ── Lucky Number ── */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">🎲 Lucky Number</h3>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={content.dealsHub.luckyNumber?.enabled ?? true}
+                  onChange={(e) =>
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, luckyNumber: { ...content.dealsHub.luckyNumber, enabled: e.target.checked } } })
+                  }
+                  className="h-4 w-4 accent-[var(--brand)]"
+                />
+                Enabled
+              </label>
+            </div>
+            <div className="grid gap-3 md:grid-cols-4">
+              <Field label="Title">
+                <input
+                  value={content.dealsHub.luckyNumber?.title ?? "Lucky Number"}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, luckyNumber: { ...content.dealsHub.luckyNumber, title: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Description">
+                <input
+                  value={content.dealsHub.luckyNumber?.description ?? ""}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, luckyNumber: { ...content.dealsHub.luckyNumber, description: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Points reward">
+                <input
+                  type="number" min={1}
+                  value={content.dealsHub.luckyNumber?.pointsReward ?? 50}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, luckyNumber: { ...content.dealsHub.luckyNumber, pointsReward: Math.max(1, Number(e.target.value || 50)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Max tries per game">
+                <input
+                  type="number" min={1}
+                  value={content.dealsHub.luckyNumber?.maxTries ?? 5}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, luckyNumber: { ...content.dealsHub.luckyNumber, maxTries: Math.max(1, Number(e.target.value || 5)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Cooldown (hours, 0 = unlimited)">
+                <input
+                  type="number" min={0}
+                  value={content.dealsHub.luckyNumber?.cooldownHours ?? 24}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, luckyNumber: { ...content.dealsHub.luckyNumber, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+          </div>
+
+          {/* ── Word Scramble ── */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">🔤 Word Scramble</h3>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={content.dealsHub.wordScramble?.enabled ?? true}
+                  onChange={(e) =>
+                    setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, enabled: e.target.checked } } })
+                  }
+                  className="h-4 w-4 accent-[var(--brand)]"
+                />
+                Enabled
+              </label>
+            </div>
+            <div className="grid gap-3 md:grid-cols-4">
+              <Field label="Title">
+                <input
+                  value={content.dealsHub.wordScramble?.title ?? "Word Scramble"}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, title: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Description">
+                <input
+                  value={content.dealsHub.wordScramble?.description ?? ""}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, description: e.target.value } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Points reward">
+                <input
+                  type="number" min={1}
+                  value={content.dealsHub.wordScramble?.pointsReward ?? 60}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, pointsReward: Math.max(1, Number(e.target.value || 60)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Cooldown (hours, 0 = unlimited)">
+                <input
+                  type="number" min={0}
+                  value={content.dealsHub.wordScramble?.cooldownHours ?? 24}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+            <Field label="Custom word list (one per line, leave empty to use built-in words)">
+              <textarea
+                rows={4}
+                value={(content.dealsHub.wordScramble?.words ?? []).join("\n")}
+                onChange={(e) => {
+                  const words = e.target.value.split("\n").map((w: string) => w.trim()).filter(Boolean);
+                  setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, words } } });
+                }}
+                placeholder={"apple\nbanana\nelephant"}
+                className={inputClassName()}
+              />
+              <p className="mt-1 text-xs text-[var(--ink-soft)]">If left empty, the game will use its built-in word list.</p>
+            </Field>
+          </div>
         </Section>
       ) : null}
 

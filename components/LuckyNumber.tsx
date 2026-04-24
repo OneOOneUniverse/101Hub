@@ -157,7 +157,7 @@ export default function LuckyNumber() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && guess()}
           placeholder={`${SECRET_MIN}–${SECRET_MAX}`}
-          className="flex-1 rounded-xl border border-black/15 bg-white px-4 py-3 text-base font-bold focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/40"
+          className="flex-1 rounded-xl border border-[var(--ink)]/15 bg-[var(--surface-strong)] px-4 py-3 text-base font-bold focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/40"
         />
         <button
           onClick={guess}
