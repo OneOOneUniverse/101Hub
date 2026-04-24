@@ -93,3 +93,65 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
+// PATCH — bulk import unique customer phones from orders table
+export async function PATCH() {
+  const err = await guardAdmin();
+  if (err) return NextResponse.json({ error: err }, { status: err === "Unauthorized." ? 401 : 403 });
+
+  const { data: orders, error: ordersError } = await supabaseAdmin
+    .from("orders")
+    .select("customer_name, customer_phone")
+    .not("customer_phone", "is", null)
+    .not("customer_phone", "eq", "");
+
+  if (ordersError) {
+    console.error("[sms-contacts] PATCH orders error:", ordersError.message);
+    return NextResponse.json({ error: "Could not read orders." }, { status: 500 });
+  }
+
+  function normalisePhone(raw: string): string {
+    const p = raw.replace(/\s/g, "");
+    if (p.startsWith("0") && p.length === 10) return `+233${p.slice(1)}`;
+    if (p.startsWith("233") && !p.startsWith("+")) return `+${p}`;
+    if (!p.startsWith("+")) return `+${p}`;
+    return p;
+  }
+
+  // Deduplicate by normalised phone, preferring the first occurrence
+  const seen = new Map<string, string>(); // phone -> name
+  for (const row of orders ?? []) {
+    const raw = String(row.customer_phone ?? "").trim();
+    if (!raw) continue;
+    const phone = normalisePhone(raw);
+    if (!seen.has(phone)) {
+      seen.set(phone, String(row.customer_name ?? "").trim() || "Customer");
+    }
+  }
+
+  if (seen.size === 0) {
+    return NextResponse.json({ imported: 0, skipped: 0 });
+  }
+
+  const rows = Array.from(seen.entries()).map(([phone, name]) => ({
+    name,
+    phone,
+    note: "Imported from orders",
+  }));
+
+  // ignoreDuplicates: true means it skips rows that conflict on the phone unique constraint
+  const { data: inserted, error: upsertError } = await supabaseAdmin
+    .from("sms_contacts")
+    .upsert(rows, { onConflict: "phone", ignoreDuplicates: true })
+    .select();
+
+  if (upsertError) {
+    console.error("[sms-contacts] PATCH upsert error:", upsertError.message);
+    return NextResponse.json({ error: "Import failed." }, { status: 500 });
+  }
+
+  const imported = inserted?.length ?? 0;
+  const skipped = seen.size - imported;
+
+  return NextResponse.json({ imported, skipped, total: seen.size });
+}

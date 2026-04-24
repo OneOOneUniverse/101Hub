@@ -297,7 +297,7 @@ export default function AdminPage() {
   // Contact list state
   const [smsContacts, setSmsContacts] = useState<Array<{ id: string; name: string; phone: string; note: string; created_at: string }>>([]);
   const [smsContactsLoading, setSmsContactsLoading] = useState(false);
-  const [newContactName, setNewContactName] = useState("");
+  const [newContactName, setNewContactName] = useState("Contact");
   const [newContactPhone, setNewContactPhone] = useState("");
   const [newContactNote, setNewContactNote] = useState("");
   const [contactAddResult, setContactAddResult] = useState<{ success?: string; error?: string } | null>(null);
@@ -310,6 +310,11 @@ export default function AdminPage() {
   const [customSmsMessage, setCustomSmsMessage] = useState("");
   const [customSmsSending, setCustomSmsSending] = useState(false);
   const [customSmsResult, setCustomSmsResult] = useState<{ success?: string; error?: string } | null>(null);
+  // Import from orders state
+  const [importingContacts, setImportingContacts] = useState(false);
+  const [importResult, setImportResult] = useState<{ imported?: number; skipped?: number; error?: string } | null>(null);
+  // Contact picker in custom send tab
+  const [customContactPickerOpen, setCustomContactPickerOpen] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const [emailSending, setEmailSending] = useState(false);
@@ -357,6 +362,23 @@ export default function AdminPage() {
   useEffect(() => {
     void loadContent();
   }, []);
+
+  // Load contacts whenever the SMS section is opened
+  useEffect(() => {
+    if (activeSection === "sms") {
+      void loadSmsContacts();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection]);
+
+  // Auto-fill the contact name field with a sequential default
+  useEffect(() => {
+    const autoPattern = /^Contact(\s\d+)?$/;
+    if (!newContactName || autoPattern.test(newContactName)) {
+      setNewContactName(`Contact ${smsContacts.length + 1}`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [smsContacts.length]);
 
   async function loadContent() {
     setLoading(true);
@@ -560,11 +582,16 @@ export default function AdminPage() {
 
   async function loadSmsContacts() {
     setSmsContactsLoading(true);
+    setImportResult(null);
     try {
       const res = await fetch("/api/admin/sms-contacts", { cache: "no-store" });
       const data = (await res.json()) as { contacts?: Array<{ id: string; name: string; phone: string; note: string; created_at: string }>; error?: string };
-      if (res.ok) setSmsContacts(data.contacts ?? []);
-    } catch { /* silent */ } finally {
+      if (res.ok) {
+        setSmsContacts(data.contacts ?? []);
+      } else {
+        setImportResult({ error: data.error ?? "Could not load contacts." });
+      }
+    } catch { setImportResult({ error: "Network error loading contacts." }); } finally {
       setSmsContactsLoading(false);
     }
   }
@@ -588,7 +615,7 @@ export default function AdminPage() {
         setContactAddResult({ error: data.error ?? "Could not add contact." });
       } else {
         setContactAddResult({ success: `${name} added to contacts.` });
-        setNewContactName("");
+        setNewContactName("Contact");
         setNewContactPhone("");
         setNewContactNote("");
         if (data.contact) setSmsContacts((prev) => [data.contact!, ...prev]);
@@ -603,6 +630,25 @@ export default function AdminPage() {
     if (res.ok) {
       setSmsContacts((prev) => prev.filter((c) => c.id !== id));
       setSelectedContactIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+    }
+  }
+
+  async function importContactsFromOrders() {
+    setImportingContacts(true);
+    setImportResult(null);
+    try {
+      const res = await fetch("/api/admin/sms-contacts", { method: "PATCH" });
+      const data = (await res.json()) as { imported?: number; skipped?: number; error?: string };
+      if (!res.ok) {
+        setImportResult({ error: data.error ?? "Import failed." });
+      } else {
+        setImportResult({ imported: data.imported ?? 0, skipped: data.skipped ?? 0 });
+        void loadSmsContacts();
+      }
+    } catch {
+      setImportResult({ error: "Network error." });
+    } finally {
+      setImportingContacts(false);
     }
   }
 
@@ -3747,7 +3793,24 @@ export default function AdminPage() {
             <div className="space-y-6">
               {/* Add Contact Form */}
               <div className="rounded-xl border border-black/10 bg-[var(--base-light)] p-4 space-y-3">
-                <p className="text-sm font-bold text-[var(--brand-deep)]">Add New Contact</p>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">Add New Contact</p>
+                  <button
+                    type="button"
+                    onClick={() => void importContactsFromOrders()}
+                    disabled={importingContacts}
+                    className="rounded-full border border-[var(--brand)] px-3 py-1.5 text-xs font-bold text-[var(--brand)] hover:bg-[var(--brand)] hover:text-white disabled:opacity-60 disabled:cursor-not-allowed transition"
+                  >
+                    {importingContacts ? "Importing…" : "📥 Import from Orders"}
+                  </button>
+                </div>
+                {importResult?.imported !== undefined ? (
+                  <p className="text-xs font-semibold text-emerald-700">
+                    ✓ Imported {importResult.imported} new contact{importResult.imported !== 1 ? "s" : ""}
+                    {(importResult.skipped ?? 0) > 0 ? ` · ${importResult.skipped} already existed` : ""}
+                  </p>
+                ) : null}
+                {importResult?.error ? <p className="text-xs font-semibold text-red-600">{importResult.error}</p> : null}
                 <div className="grid gap-3 sm:grid-cols-3">
                   <input value={newContactName} onChange={(e) => setNewContactName(e.target.value)} placeholder="Full name *" className={inputClassName()} />
                   <input value={newContactPhone} onChange={(e) => setNewContactPhone(e.target.value)} placeholder="Phone (e.g. 0244…) *" className={inputClassName()} />
@@ -3826,6 +3889,53 @@ export default function AdminPage() {
           {/* ── Custom Send Tab ── */}
           {smsTab === "custom" ? (
             <div className="space-y-4">
+              {/* Contact picker */}
+              <div className="rounded-xl border border-black/10 bg-[var(--base-light)] p-3 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!customContactPickerOpen && smsContacts.length === 0) void loadSmsContacts();
+                    setCustomContactPickerOpen((o) => !o);
+                  }}
+                  className="flex w-full items-center justify-between text-sm font-semibold text-[var(--brand-deep)]"
+                >
+                  <span>👥 Add from Contacts</span>
+                  <span className="text-xs text-[var(--ink-soft)]">{customContactPickerOpen ? "▲ Hide" : "▼ Show"}</span>
+                </button>
+                {customContactPickerOpen ? (
+                  smsContactsLoading ? (
+                    <p className="text-xs text-[var(--ink-soft)]">Loading contacts…</p>
+                  ) : smsContacts.length === 0 ? (
+                    <p className="text-xs text-[var(--ink-soft)]">No contacts yet. Add some in the Contact List tab.</p>
+                  ) : (
+                    <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                      {smsContacts.map((c) => {
+                        const alreadyAdded = customPhones.split(/[\n,]+/).map((p) => p.trim()).includes(c.phone);
+                        return (
+                          <div
+                            key={c.id}
+                            onClick={() => {
+                              if (alreadyAdded) return;
+                              setCustomPhones((prev) => (prev.trim() ? `${prev.trim()}\n${c.phone}` : c.phone));
+                              setCustomSmsResult(null);
+                            }}
+                            className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm transition ${alreadyAdded ? "border-emerald-300 bg-emerald-50 cursor-default opacity-60" : "border-black/10 bg-white hover:border-[var(--brand)]/50 cursor-pointer"}`}
+                          >
+                            <span className="flex-1 font-medium text-[var(--ink)]">{c.name}</span>
+                            <span className="text-xs text-[var(--ink-soft)]">{c.phone}</span>
+                            {alreadyAdded ? (
+                              <span className="text-xs font-bold text-emerald-600">✓</span>
+                            ) : (
+                              <span className="text-xs font-bold text-[var(--brand)]">+ Add</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : null}
+              </div>
+
               <div className="space-y-1">
                 <label className="block text-sm font-semibold text-[var(--brand-deep)]">Phone Numbers</label>
                 <textarea value={customPhones} onChange={(e) => { setCustomPhones(e.target.value); setCustomSmsResult(null); }} rows={4} placeholder={"Enter numbers one per line or comma-separated:\n0244123456\n0551234567\n+233241234567"} className="min-h-28 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]" />
