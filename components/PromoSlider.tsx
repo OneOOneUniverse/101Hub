@@ -51,8 +51,8 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
   const isClickable = activeSlide?.actionUrl;
 
   return (
-    <section className="panel promo-slider slider-container relative mx-auto overflow-hidden" aria-label="Ongoing promos and offers">
-      <div className="relative h-48 sm:h-56 md:h-72 lg:h-80">
+    <section className="promo-slider slider-container relative mx-auto overflow-hidden rounded-xl" aria-label="Ongoing promos and offers">
+      <div className="relative w-full" style={{ aspectRatio: "3 / 1" }}>
         {slides.map((slide, index) => {
           const isActive = index === normalizedIndex;
 
@@ -83,15 +83,17 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
                   fill
                   priority={isActive}
                   sizes="(max-width: 900px) 100vw, 900px"
-                  quality={75}
+                  quality={80}
                   className="object-cover"
                 />
               )}
               <figcaption className="promo-slide__caption">
-                <h2 className="mt-1 text-lg font-black leading-tight text-white sm:mt-2 sm:text-2xl md:text-3xl">
-                  {slide.title}
-                </h2>
-                <p className="mt-1 max-w-md text-xs text-white/90 sm:mt-2 sm:text-sm md:text-base">{slide.subtitle}</p>
+                <div className="promo-slide__caption-inner">
+                  <h2 className="promo-slide__title">{slide.title}</h2>
+                  {slide.subtitle && (
+                    <p className="promo-slide__subtitle">{slide.subtitle}</p>
+                  )}
+                </div>
               </figcaption>
             </figure>
           );
