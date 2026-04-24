@@ -139,6 +139,41 @@ async function getOrderStats(days: number) {
   };
 }
 
+async function getTopItemViews(
+  prefix: string,
+  days: number
+): Promise<Array<{ page: string; views: number; uniqueUsers: number }>> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const { data, error } = await supabaseAdmin
+    .from("analytics_events")
+    .select("page, user_id, metadata")
+    .eq("event_type", "page_view")
+    .like("page", `${prefix}%`)
+    .gte("created_at", since.toISOString());
+
+  if (error) return [];
+
+  const counts: Record<string, { views: number; users: Set<string> }> = {};
+  for (const row of data ?? []) {
+    const p = (row.page as string) || "";
+    if (!p) continue;
+    if (!counts[p]) counts[p] = { views: 0, users: new Set() };
+    counts[p].views++;
+    const id =
+      (row.user_id as string) ||
+      ((row.metadata as Record<string, unknown>)?.visitor_id as string) ||
+      null;
+    if (id) counts[p].users.add(id);
+  }
+
+  return Object.entries(counts)
+    .map(([page, { views, users }]) => ({ page, views, uniqueUsers: users.size }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 10);
+}
+
 /** Like getDailyCounts but deduplicates by user_id so the same signup isn't counted twice
  *  (webhook + client-side fallback can both fire). */
 async function getUniqueSignupsDailyCounts(days: number): Promise<DailyCount[]> {
@@ -181,11 +216,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const days = Math.min(Math.max(Number(searchParams.get("days")) || 30, 1), 365);
 
-  const [uniqueVisitors, signups, orders, topPages] = await Promise.all([
+  const [uniqueVisitors, signups, orders, topPages, topProductViews, topServiceViews] = await Promise.all([
     getUniqueVisitorsDailyCounts(days),
     getUniqueSignupsDailyCounts(days),
     getOrderStats(days),
     getTopPages(days),
+    getTopItemViews("/products/", days),
+    getTopItemViews("/services/", days),
   ]);
 
   const totalUnique = uniqueVisitors.reduce((s, d) => s + d.count, 0);
@@ -205,5 +242,7 @@ export async function GET(request: Request) {
     orders: orders.daily,
     orderStatusBreakdown: orders.statusBreakdown,
     topPages,
+    topProductViews,
+    topServiceViews,
   });
 }

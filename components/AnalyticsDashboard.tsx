@@ -19,6 +19,8 @@ import {
 
 type DailyCount = { date: string; count: number };
 
+type ItemViewEntry = { page: string; views: number; uniqueUsers: number };
+
 type AnalyticsData = {
   days: number;
   summary: {
@@ -32,6 +34,8 @@ type AnalyticsData = {
   orders: DailyCount[];
   orderStatusBreakdown: Record<string, number>;
   topPages: Array<{ page: string; count: number }>;
+  topProductViews: ItemViewEntry[];
+  topServiceViews: ItemViewEntry[];
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -288,6 +292,77 @@ export default function AnalyticsDashboard() {
           </section>
         )}
       </div>
+
+      {/* Top Products & Services by Views */}
+      {(data.topProductViews.length > 0 || data.topServiceViews.length > 0) && (
+        <div className="grid gap-5 lg:grid-cols-2">
+          {data.topProductViews.length > 0 && (
+            <section className="panel p-5">
+              <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">🛍️ Top Products by Views</h3>
+              <div className="space-y-2">
+                {data.topProductViews.map((item, i) => {
+                  const name = item.page.replace("/products/", "");
+                  return (
+                    <div key={item.page} className="flex items-center gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-600">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="truncate font-medium" title={name}>{name}</span>
+                          <span className="ml-2 shrink-0 font-bold text-[var(--brand)]">{item.views} views</span>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-gray-400 mt-0.5">
+                          <div className="mt-1 h-1.5 flex-1 rounded-full bg-gray-100 mr-2">
+                            <div
+                              className="h-full rounded-full bg-blue-400"
+                              style={{ width: `${Math.max(5, (item.views / (data.topProductViews[0]?.views || 1)) * 100)}%` }}
+                            />
+                          </div>
+                          <span>{item.uniqueUsers} unique</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {data.topServiceViews.length > 0 && (
+            <section className="panel p-5">
+              <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">🔧 Top Services by Views</h3>
+              <div className="space-y-2">
+                {data.topServiceViews.map((item, i) => {
+                  const name = item.page.replace("/services/", "");
+                  return (
+                    <div key={item.page} className="flex items-center gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-50 text-xs font-bold text-purple-600">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="truncate font-medium" title={name}>{name}</span>
+                          <span className="ml-2 shrink-0 font-bold text-[var(--brand)]">{item.views} views</span>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-gray-400 mt-0.5">
+                          <div className="mt-1 h-1.5 flex-1 rounded-full bg-gray-100 mr-2">
+                            <div
+                              className="h-full rounded-full bg-purple-400"
+                              style={{ width: `${Math.max(5, (item.views / (data.topServiceViews[0]?.views || 1)) * 100)}%` }}
+                            />
+                          </div>
+                          <span>{item.uniqueUsers} unique</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
 
       {loading && (
         <div className="text-center text-xs text-gray-400">Refreshing…</div>

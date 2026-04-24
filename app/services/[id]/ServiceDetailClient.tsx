@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useStoreContent } from "@/lib/use-store-content";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import ServiceShareButton from "@/components/ServiceShareButton";
+import ViewCounter from "@/components/ViewCounter";
 
 export default function ServiceDetailClient() {
   const params = useParams();
@@ -106,6 +107,7 @@ export default function ServiceDetailClient() {
             <div>
               <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wide">Service Name</p>
               <h1 className="text-2xl font-black text-black">{service.name}</h1>
+              <ViewCounter page={`/services/${serviceId}`} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

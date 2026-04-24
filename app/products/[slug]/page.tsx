@@ -13,6 +13,7 @@ import ProductReviews from "@/components/ProductReviews";
 import WishlistButton from "@/components/WishlistButton";
 import ProductCardShare from "@/components/ProductCardShare";
 import ProductDetailActions from "@/components/ProductDetailActions";
+import ViewCounter from "@/components/ViewCounter";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -114,6 +115,7 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
               {product.category}
             </p>
             <h1 className="text-2xl font-black leading-tight sm:text-3xl">{product.name}</h1>
+            <ViewCounter page={`/products/${slug}`} />
             
             {/* Formatted Description */}
             <div className="prose prose-sm max-w-none text-sm text-[var(--ink-soft)] sm:prose-base">
