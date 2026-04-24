@@ -3,8 +3,23 @@ import { auth } from "@clerk/nextjs/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
+/** Normalise a raw phone number to E.164 (+233…) */
+function normalisePhone(raw: string): string {
+  const p = raw.replace(/\s/g, "");
+  if (p.startsWith("0") && p.length === 10) return `+233${p.slice(1)}`;
+  if (p.startsWith("233") && !p.startsWith("+")) return `+${p}`;
+  if (!p.startsWith("+")) return `+${p}`;
+  return p;
+}
+
 type SendSmsPayload = {
   message?: string;
+  /** "broadcast" (all order customers, default) | "contacts" (from sms_contacts table) | "custom" (ad-hoc numbers) */
+  mode?: "broadcast" | "contacts" | "custom";
+  /** For mode=contacts: array of sms_contacts row IDs */
+  contactIds?: string[];
+  /** For mode=custom: raw phone numbers */
+  phones?: string[];
 };
 
 export async function POST(request: Request) {
@@ -47,37 +62,57 @@ export async function POST(request: Request) {
     );
   }
 
-  // Pull all unique customer phone numbers from orders
-  const { data: rows, error: dbError } = await supabaseAdmin
-    .from("orders")
-    .select("customer_phone")
-    .not("customer_phone", "is", null);
-
-  if (dbError) {
-    return NextResponse.json({ error: "Could not fetch recipient list." }, { status: 500 });
-  }
-
-  // Normalise Ghana numbers to E.164 (+233XXXXXXXXX)
+  const mode = body.mode ?? "broadcast";
   const phoneSet = new Set<string>();
-  for (const row of rows ?? []) {
-    const raw = String(row.customer_phone ?? "").replace(/\s/g, "");
-    if (!raw) continue;
 
-    let normalised = raw;
-    if (raw.startsWith("0") && raw.length === 10) {
-      normalised = `+233${raw.slice(1)}`; // 0244… → +233244…
-    } else if (raw.startsWith("233") && !raw.startsWith("+")) {
-      normalised = `+${raw}`;
-    } else if (!raw.startsWith("+")) {
-      normalised = `+${raw}`;
+  if (mode === "broadcast") {
+    // Pull all unique customer phone numbers from orders
+    const { data: rows, error: dbError } = await supabaseAdmin
+      .from("orders")
+      .select("customer_phone")
+      .not("customer_phone", "is", null);
+
+    if (dbError) {
+      return NextResponse.json({ error: "Could not fetch recipient list." }, { status: 500 });
     }
-    phoneSet.add(normalised);
+
+    for (const row of rows ?? []) {
+      const raw = String(row.customer_phone ?? "").trim();
+      if (raw) phoneSet.add(normalisePhone(raw));
+    }
+  } else if (mode === "contacts") {
+    const ids = body.contactIds ?? [];
+    if (ids.length === 0) {
+      return NextResponse.json({ error: "No contact IDs provided." }, { status: 400 });
+    }
+    const { data: contacts, error: dbError } = await supabaseAdmin
+      .from("sms_contacts")
+      .select("phone")
+      .in("id", ids);
+
+    if (dbError) {
+      return NextResponse.json({ error: "Could not fetch contacts." }, { status: 500 });
+    }
+
+    for (const c of contacts ?? []) {
+      const raw = String(c.phone ?? "").trim();
+      if (raw) phoneSet.add(normalisePhone(raw));
+    }
+  } else if (mode === "custom") {
+    const phones = body.phones ?? [];
+    if (phones.length === 0) {
+      return NextResponse.json({ error: "No phone numbers provided." }, { status: 400 });
+    }
+    for (const p of phones) {
+      const raw = String(p ?? "").trim();
+      if (raw) phoneSet.add(normalisePhone(raw));
+    }
   }
 
   const recipients = Array.from(phoneSet);
 
   if (recipients.length === 0) {
-    return NextResponse.json({ error: "No phone numbers found in orders." }, { status: 404 });
+    return NextResponse.json({ error: "No valid phone numbers found." }, { status: 404 });
   }
 
   try {

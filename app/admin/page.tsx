@@ -293,6 +293,23 @@ export default function AdminPage() {
   const [smsMessage, setSmsMessage] = useState("");
   const [smsSending, setSmsSending] = useState(false);
   const [smsResult, setSmsResult] = useState<{ success?: string; error?: string } | null>(null);
+  const [smsTab, setSmsTab] = useState<"broadcast" | "contacts" | "custom">("broadcast");
+  // Contact list state
+  const [smsContacts, setSmsContacts] = useState<Array<{ id: string; name: string; phone: string; note: string; created_at: string }>>([]);
+  const [smsContactsLoading, setSmsContactsLoading] = useState(false);
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactPhone, setNewContactPhone] = useState("");
+  const [newContactNote, setNewContactNote] = useState("");
+  const [contactAddResult, setContactAddResult] = useState<{ success?: string; error?: string } | null>(null);
+  const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
+  const [contactSmsMessage, setContactSmsMessage] = useState("");
+  const [contactSmsSending, setContactSmsSending] = useState(false);
+  const [contactSmsResult, setContactSmsResult] = useState<{ success?: string; error?: string } | null>(null);
+  // Custom send state
+  const [customPhones, setCustomPhones] = useState("");
+  const [customSmsMessage, setCustomSmsMessage] = useState("");
+  const [customSmsSending, setCustomSmsSending] = useState(false);
+  const [customSmsResult, setCustomSmsResult] = useState<{ success?: string; error?: string } | null>(null);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const [emailSending, setEmailSending] = useState(false);
@@ -540,6 +557,116 @@ export default function AdminPage() {
       setSmsResult(null);
     }
   }
+
+  async function loadSmsContacts() {
+    setSmsContactsLoading(true);
+    try {
+      const res = await fetch("/api/admin/sms-contacts", { cache: "no-store" });
+      const data = (await res.json()) as { contacts?: Array<{ id: string; name: string; phone: string; note: string; created_at: string }>; error?: string };
+      if (res.ok) setSmsContacts(data.contacts ?? []);
+    } catch { /* silent */ } finally {
+      setSmsContactsLoading(false);
+    }
+  }
+
+  async function addSmsContact() {
+    const name = newContactName.trim();
+    const phone = newContactPhone.trim();
+    if (!name || !phone) {
+      setContactAddResult({ error: "Name and phone are required." });
+      return;
+    }
+    setContactAddResult(null);
+    try {
+      const res = await fetch("/api/admin/sms-contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, note: newContactNote.trim() }),
+      });
+      const data = (await res.json()) as { contact?: { id: string; name: string; phone: string; note: string; created_at: string }; error?: string };
+      if (!res.ok) {
+        setContactAddResult({ error: data.error ?? "Could not add contact." });
+      } else {
+        setContactAddResult({ success: `${name} added to contacts.` });
+        setNewContactName("");
+        setNewContactPhone("");
+        setNewContactNote("");
+        if (data.contact) setSmsContacts((prev) => [data.contact!, ...prev]);
+      }
+    } catch {
+      setContactAddResult({ error: "Network error." });
+    }
+  }
+
+  async function deleteSmsContact(id: string) {
+    const res = await fetch(`/api/admin/sms-contacts?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (res.ok) {
+      setSmsContacts((prev) => prev.filter((c) => c.id !== id));
+      setSelectedContactIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+    }
+  }
+
+  function toggleContactSelection(id: string) {
+    setSelectedContactIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function sendSmsToContacts() {
+    const msg = contactSmsMessage.trim();
+    if (!msg || selectedContactIds.size === 0) return;
+    setContactSmsSending(true);
+    setContactSmsResult(null);
+    try {
+      const res = await fetch("/api/admin/send-sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg, mode: "contacts", contactIds: Array.from(selectedContactIds) }),
+      });
+      const data = (await res.json()) as { success?: boolean; sent?: number; total?: number; failed?: number; error?: string };
+      if (!res.ok) {
+        setContactSmsResult({ error: data.error ?? "SMS failed." });
+      } else {
+        setContactSmsResult({ success: `Sent to ${data.sent ?? 0} of ${data.total ?? 0} contacts.${(data.failed ?? 0) > 0 ? ` ${data.failed} failed.` : ""}` });
+        setContactSmsMessage("");
+        setSelectedContactIds(new Set());
+      }
+    } catch {
+      setContactSmsResult({ error: "Network error." });
+    } finally {
+      setContactSmsSending(false);
+    }
+  }
+
+  async function sendCustomSms() {
+    const msg = customSmsMessage.trim();
+    const phones = customPhones.split(/[\n,]+/).map((p) => p.trim()).filter(Boolean);
+    if (!msg || phones.length === 0) return;
+    setCustomSmsSending(true);
+    setCustomSmsResult(null);
+    try {
+      const res = await fetch("/api/admin/send-sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg, mode: "custom", phones }),
+      });
+      const data = (await res.json()) as { success?: boolean; sent?: number; total?: number; failed?: number; error?: string };
+      if (!res.ok) {
+        setCustomSmsResult({ error: data.error ?? "SMS failed." });
+      } else {
+        setCustomSmsResult({ success: `Sent to ${data.sent ?? 0} of ${data.total ?? 0} numbers.${(data.failed ?? 0) > 0 ? ` ${data.failed} failed.` : ""}` });
+        setCustomSmsMessage("");
+        setCustomPhones("");
+      }
+    } catch {
+      setCustomSmsResult({ error: "Network error." });
+    } finally {
+      setCustomSmsSending(false);
+    }
+  }
+
 
   async function saveContent() {
     if (!content) {
@@ -3558,81 +3685,166 @@ export default function AdminPage() {
 
       {activeSection === "sms" ? (
         <Section
-          title="Broadcast SMS"
-          description="Send a text message to every customer who has placed an order. Uses Africa&#39;s Talking — make sure AFRICASTALKING_API_KEY is set in .env.local."
+          title="SMS Centre"
+          description="Send text messages via Africa&#39;s Talking. Broadcast to all customers, message your contact list, or send to custom numbers."
         >
-          <div className="space-y-4">
-            {(content?.smsTemplates ?? []).length > 0 ? (
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-[var(--brand-deep)]">Quick Load Template</label>
-                <select
-                  value={selectedTemplateId}
-                  onChange={(event) => {
-                    if (event.target.value) {
-                      loadTemplateIntoMessage(event.target.value);
-                    }
-                  }}
-                  className={inputClassName()}
-                >
-                  <option value="">Select a template...</option>
-                  {(content?.smsTemplates ?? []).map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-[var(--ink-soft)]">Or <a href="#" onClick={(e) => { e.preventDefault(); setActiveSection("sms-templates"); }} className="text-[var(--brand)] font-semibold">manage templates here</a>.</p>
-              </div>
-            ) : null}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="block text-sm font-semibold text-[var(--brand-deep)]">Message {selectedTemplateId ? `(from template)` : ""}</span>
-                <span
-                  className={`text-xs font-semibold ${
-                    smsMessage.length > 160 ? "text-red-600" : "text-[var(--ink-soft)]"
-                  }`}
-                >
-                  {smsMessage.length} / 160
-                </span>
-              </div>
-              <textarea
-                value={smsMessage}
-                onChange={(event) => {
-                  setSmsMessage(event.target.value);
-                  setSmsResult(null);
-                }}
-                maxLength={160}
-                rows={4}
-                placeholder="Type your SMS broadcast message here…"
-                className="min-h-28 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4">
+          {/* Tabs */}
+          <div className="flex gap-1 rounded-xl bg-[var(--base-light)] p-1 mb-6">
+            {(["broadcast", "contacts", "custom"] as const).map((tab) => (
               <button
+                key={tab}
                 type="button"
-                onClick={() => void sendSms()}
-                disabled={smsSending || smsMessage.trim().length === 0 || smsMessage.length > 160}
-                className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => {
+                  setSmsTab(tab);
+                  if (tab === "contacts") void loadSmsContacts();
+                }}
+                className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${smsTab === tab ? "bg-white text-[var(--brand-deep)] shadow-sm" : "text-[var(--ink-soft)] hover:text-[var(--ink)]"}`}
               >
-                {smsSending ? "Sending…" : "Send to All Customers"}
+                {tab === "broadcast" ? "📢 Broadcast" : tab === "contacts" ? "👥 Contact List" : "✉️ Custom Send"}
               </button>
-              <p className="text-xs text-[var(--ink-soft)]">
-                Recipients are pulled from all orders with a recorded phone number.
-              </p>
-            </div>
-
-            {smsResult?.success ? (
-              <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-                {smsResult.success}
-              </p>
-            ) : null}
-            {smsResult?.error ? (
-              <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-                {smsResult.error}
-              </p>
-            ) : null}
+            ))}
           </div>
+
+          {/* ── Broadcast Tab ── */}
+          {smsTab === "broadcast" ? (
+            <div className="space-y-4">
+              {(content?.smsTemplates ?? []).length > 0 ? (
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-[var(--brand-deep)]">Quick Load Template</label>
+                  <select
+                    value={selectedTemplateId}
+                    onChange={(event) => { if (event.target.value) loadTemplateIntoMessage(event.target.value); }}
+                    className={inputClassName()}
+                  >
+                    <option value="">Select a template…</option>
+                    {(content?.smsTemplates ?? []).map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-[var(--ink-soft)]">Or <a href="#" onClick={(e) => { e.preventDefault(); setActiveSection("sms-templates"); }} className="text-[var(--brand)] font-semibold">manage templates</a>.</p>
+                </div>
+              ) : null}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="block text-sm font-semibold text-[var(--brand-deep)]">Message</span>
+                  <span className={`text-xs font-semibold ${smsMessage.length > 160 ? "text-red-600" : "text-[var(--ink-soft)]"}`}>{smsMessage.length} / 160</span>
+                </div>
+                <textarea value={smsMessage} onChange={(e) => { setSmsMessage(e.target.value); setSmsResult(null); }} maxLength={160} rows={4} placeholder="Type your SMS broadcast message here…" className="min-h-28 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]" />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <button type="button" onClick={() => void sendSms()} disabled={smsSending || !smsMessage.trim() || smsMessage.length > 160} className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-60">
+                  {smsSending ? "Sending…" : "Send to All Customers"}
+                </button>
+                <p className="text-xs text-[var(--ink-soft)]">Recipients are pulled from all orders with a recorded phone number.</p>
+              </div>
+              {smsResult?.success ? <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{smsResult.success}</p> : null}
+              {smsResult?.error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{smsResult.error}</p> : null}
+            </div>
+          ) : null}
+
+          {/* ── Contact List Tab ── */}
+          {smsTab === "contacts" ? (
+            <div className="space-y-6">
+              {/* Add Contact Form */}
+              <div className="rounded-xl border border-black/10 bg-[var(--base-light)] p-4 space-y-3">
+                <p className="text-sm font-bold text-[var(--brand-deep)]">Add New Contact</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <input value={newContactName} onChange={(e) => setNewContactName(e.target.value)} placeholder="Full name *" className={inputClassName()} />
+                  <input value={newContactPhone} onChange={(e) => setNewContactPhone(e.target.value)} placeholder="Phone (e.g. 0244…) *" className={inputClassName()} />
+                  <input value={newContactNote} onChange={(e) => setNewContactNote(e.target.value)} placeholder="Note (optional)" className={inputClassName()} />
+                </div>
+                <button type="button" onClick={() => void addSmsContact()} disabled={!newContactName.trim() || !newContactPhone.trim()} className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-60 disabled:cursor-not-allowed">
+                  + Add Contact
+                </button>
+                {contactAddResult?.success ? <p className="text-xs font-semibold text-emerald-700">{contactAddResult.success}</p> : null}
+                {contactAddResult?.error ? <p className="text-xs font-semibold text-red-600">{contactAddResult.error}</p> : null}
+              </div>
+
+              {/* Contact List */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">
+                    Contacts ({smsContacts.length}){selectedContactIds.size > 0 ? ` · ${selectedContactIds.size} selected` : ""}
+                  </p>
+                  {smsContacts.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedContactIds.size === smsContacts.length) {
+                          setSelectedContactIds(new Set());
+                        } else {
+                          setSelectedContactIds(new Set(smsContacts.map((c) => c.id)));
+                        }
+                      }}
+                      className="text-xs font-bold text-[var(--brand)] hover:underline"
+                    >
+                      {selectedContactIds.size === smsContacts.length ? "Deselect All" : "Select All"}
+                    </button>
+                  )}
+                </div>
+                {smsContactsLoading ? (
+                  <p className="text-sm text-[var(--ink-soft)]">Loading contacts…</p>
+                ) : smsContacts.length === 0 ? (
+                  <p className="text-sm text-[var(--ink-soft)]">No contacts yet. Add one above.</p>
+                ) : (
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {smsContacts.map((c) => (
+                      <div key={c.id} className={`flex items-center gap-3 rounded-xl border px-4 py-3 bg-white transition cursor-pointer ${selectedContactIds.has(c.id) ? "border-[var(--brand)] bg-[var(--brand)]/5" : "border-black/10 hover:border-[var(--brand)]/40"}`} onClick={() => toggleContactSelection(c.id)}>
+                        <input type="checkbox" checked={selectedContactIds.has(c.id)} readOnly className="accent-[var(--brand)] h-4 w-4 shrink-0 cursor-pointer" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-[var(--ink)]">{c.name}</p>
+                          <p className="text-xs text-[var(--ink-soft)]">{c.phone}{c.note ? ` · ${c.note}` : ""}</p>
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); void deleteSmsContact(c.id); }} className="text-xs font-bold text-red-500 hover:text-red-700 shrink-0">Remove</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Send to selected contacts */}
+              {selectedContactIds.size > 0 ? (
+                <div className="rounded-xl border border-[var(--brand)]/30 bg-[var(--brand)]/5 p-4 space-y-3">
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">Send SMS to {selectedContactIds.size} selected contact{selectedContactIds.size > 1 ? "s" : ""}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-[var(--brand-deep)]">Message</span>
+                      <span className={`text-xs font-semibold ${contactSmsMessage.length > 160 ? "text-red-600" : "text-[var(--ink-soft)]"}`}>{contactSmsMessage.length} / 160</span>
+                    </div>
+                    <textarea value={contactSmsMessage} onChange={(e) => { setContactSmsMessage(e.target.value); setContactSmsResult(null); }} maxLength={160} rows={3} placeholder="Type message…" className="min-h-20 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]" />
+                  </div>
+                  <button type="button" onClick={() => void sendSmsToContacts()} disabled={contactSmsSending || !contactSmsMessage.trim() || contactSmsMessage.length > 160} className="rounded-full bg-[var(--brand)] px-5 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-60 disabled:cursor-not-allowed">
+                    {contactSmsSending ? "Sending…" : `Send to ${selectedContactIds.size} Contact${selectedContactIds.size > 1 ? "s" : ""}`}
+                  </button>
+                  {contactSmsResult?.success ? <p className="text-xs font-semibold text-emerald-700">{contactSmsResult.success}</p> : null}
+                  {contactSmsResult?.error ? <p className="text-xs font-semibold text-red-600">{contactSmsResult.error}</p> : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* ── Custom Send Tab ── */}
+          {smsTab === "custom" ? (
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-sm font-semibold text-[var(--brand-deep)]">Phone Numbers</label>
+                <textarea value={customPhones} onChange={(e) => { setCustomPhones(e.target.value); setCustomSmsResult(null); }} rows={4} placeholder={"Enter numbers one per line or comma-separated:\n0244123456\n0551234567\n+233241234567"} className="min-h-28 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]" />
+                <p className="text-xs text-[var(--ink-soft)]">{customPhones.split(/[\n,]+/).map((p) => p.trim()).filter(Boolean).length} number{customPhones.split(/[\n,]+/).map((p) => p.trim()).filter(Boolean).length !== 1 ? "s" : ""} entered</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-semibold text-[var(--brand-deep)]">Message</label>
+                  <span className={`text-xs font-semibold ${customSmsMessage.length > 160 ? "text-red-600" : "text-[var(--ink-soft)]"}`}>{customSmsMessage.length} / 160</span>
+                </div>
+                <textarea value={customSmsMessage} onChange={(e) => { setCustomSmsMessage(e.target.value); setCustomSmsResult(null); }} maxLength={160} rows={4} placeholder="Type your message here…" className="min-h-28 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]" />
+              </div>
+              <button type="button" onClick={() => void sendCustomSms()} disabled={customSmsSending || !customSmsMessage.trim() || customSmsMessage.length > 160 || customPhones.split(/[\n,]+/).map((p) => p.trim()).filter(Boolean).length === 0} className="rounded-full bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-60 disabled:cursor-not-allowed">
+                {customSmsSending ? "Sending…" : "Send SMS"}
+              </button>
+              {customSmsResult?.success ? <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{customSmsResult.success}</p> : null}
+              {customSmsResult?.error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{customSmsResult.error}</p> : null}
+            </div>
+          ) : null}
         </Section>
       ) : null}
 
