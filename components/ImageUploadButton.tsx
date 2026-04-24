@@ -66,7 +66,7 @@ export default function ImageUploadButton({
         body.append("folder", sig.folder);
 
         const cloudResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${sig.cloudName}/${resourceType}/upload`,
+          `https://api.cloudinary.com/v1_1/${sig.cloudName}/auto/upload`,
           { method: "POST", body }
         );
 
