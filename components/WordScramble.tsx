@@ -19,6 +19,35 @@ export default function WordScramble() {
   const [playsLeft, setPlaysLeft] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
+  const startNewGame = useCallback(() => {
+    setPhase("loading");
+    setInput("");
+    setTries(0);
+    setWrongHint(false);
+    setMsg("");
+    setSessionId(null);
+    setScrambledWord("");
+    setWordLength(0);
+    fetch("/api/deals/game-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameType: "scramble" }),
+    })
+      .then((r) => r.json())
+      .then((d: { sessionId?: string; scrambledWord?: string; wordLength?: number; error?: string; limitReached?: boolean }) => {
+        if (d.limitReached || !d.sessionId) {
+          setPhase("limit");
+        } else {
+          setSessionId(d.sessionId);
+          setScrambledWord(d.scrambledWord ?? "");
+          setWordLength(d.wordLength ?? 0);
+          sessionStartRef.current = Date.now();
+          setPhase("playing");
+        }
+      })
+      .catch(() => setPhase("playing"));
+  }, []);
+
   useEffect(() => {
     startNewGame();
     if (isSignedIn) {
