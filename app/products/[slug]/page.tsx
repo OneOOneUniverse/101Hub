@@ -215,6 +215,7 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
               discount={totalDiscount}
               sizes={product.sizes}
               colors={product.colors}
+              variants={product.variants}
             />
           </div>
         </div>

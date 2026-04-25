@@ -19,6 +19,7 @@ import {
   type PaymentSettings,
   type PaymentWalkthroughStep,
   type Product,
+  type ProductVariant,
   defaultProductCategories,
   type PromoSlide,
   type ServicePackage,
@@ -145,6 +146,23 @@ function sanitizeProduct(product: unknown, index: number, fallback?: Product, cu
     ...(noDeliveryFee && { noDeliveryFee }),
     ...(Array.isArray(candidate.sizes) && candidate.sizes.length > 0 && { sizes: candidate.sizes.filter((s): s is string => typeof s === "string" && s.trim().length > 0).map(s => s.trim()) }),
     ...(Array.isArray(candidate.colors) && candidate.colors.length > 0 && { colors: candidate.colors.filter((c): c is string => typeof c === "string" && c.trim().length > 0).map(c => c.trim()) }),
+    videos: toOptionalTextArray(candidate.videos) ?? fallback?.videos,
+    variants: Array.isArray(candidate.variants) && candidate.variants.length > 0
+      ? candidate.variants.map((v, i) => sanitizeProductVariant(v, i))
+      : (fallback?.variants ?? undefined),
+  };
+}
+
+function sanitizeProductVariant(variant: unknown, index: number): ProductVariant {
+  const c = typeof variant === "object" && variant !== null ? variant as Partial<ProductVariant> : {};
+  const priceOverride = c.priceOverride !== undefined ? toNumber(c.priceOverride) : undefined;
+  const priceAdjustment = c.priceAdjustment !== undefined ? toNumber(c.priceAdjustment) : undefined;
+  return {
+    id: toText(c.id, `variant-${index + 1}`),
+    label: toText(c.label, `Option ${index + 1}`),
+    attribute: toOptionalText(c.attribute),
+    ...(priceOverride !== undefined && Number.isFinite(priceOverride) && priceOverride >= 0 && { priceOverride }),
+    ...(priceAdjustment !== undefined && Number.isFinite(priceAdjustment) && { priceAdjustment }),
   };
 }
 
@@ -360,6 +378,7 @@ function sanitizeLocationFee(value: unknown, index: number): LocationDeliveryFee
     id: toText(candidate.id, `loc-${index + 1}`),
     name: toText(candidate.name, `Location ${index + 1}`),
     fee: Math.max(0, toNumber(candidate.fee, 0)),
+    region: toOptionalText(candidate.region),
   };
 }
 

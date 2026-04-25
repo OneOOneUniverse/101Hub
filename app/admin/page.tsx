@@ -15,6 +15,7 @@ import {
   type ManualPaymentField,
   type ProviderPaymentDetails,
   type PaymentSettings,  type Product,
+  type ProductVariant,
   type PromoSlide,
   type ServicePackage,
   type SiteContent,
@@ -37,6 +38,25 @@ import AdminSupportChats from "@/components/AdminSupportChats";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 
 import type { AdminRole } from "@/lib/auth";
+
+const GHANA_REGIONS: Record<string, string[]> = {
+  "Greater Accra": ["Accra Central", "East Legon", "Cantonments", "Osu", "Labone", "Airport Residential", "Madina", "Adenta", "Achimota", "Dome", "Dansoman", "Kaneshie", "Lapaz", "Darkuman", "Tema", "Tema New Town", "Ashaiman", "Nungua", "Teshie", "Labadi", "Kasoa", "Weija", "Spintex", "Sakumono", "Lashibi", "Tsaddo", "Batsonaa", "Kpone", "Prampram"],
+  "Ashanti": ["Kumasi", "Obuasi", "Ejisu", "Konongo", "Mampong", "Bekwai", "Offinso", "Suame", "Tafo", "Asokwa", "Adum", "Bantama", "Krofrom", "Atonsu", "Ahinsan", "Abrepo", "Kwadaso", "Nhyiaeso", "Oforikrom"],
+  "Western": ["Takoradi", "Sekondi", "Tarkwa", "Axim", "Prestea", "Bogoso", "Essikado", "Agona Nkwanta", "Half Assini", "Elubo"],
+  "Central": ["Cape Coast", "Winneba", "Kasoa", "Mankessim", "Saltpond", "Dunkwa-on-Offin", "Assin Fosu", "Swedru", "Agona Swedru", "Elmina", "Anomabu"],
+  "Eastern": ["Koforidua", "Nkawkaw", "Nsawam", "Akim Oda", "Suhum", "Akosombo", "Asamankese", "Kade", "Mpraeso", "Abetifi", "Begoro", "Kibi", "Donkorkrom"],
+  "Volta": ["Ho", "Keta", "Kpando", "Hohoe", "Aflao", "Akatsi", "Sogakope", "Anloga", "Denu", "Dzodze"],
+  "Northern": ["Tamale", "Yendi", "Damongo", "Bimbilla", "Salaga", "Savelugu", "Walewale", "Zabzugu", "Tolon", "Kumbungu"],
+  "Upper East": ["Bolgatanga", "Navrongo", "Bawku", "Paga", "Zebilla", "Sandema", "Tongo", "Pusiga"],
+  "Upper West": ["Wa", "Tumu", "Lawra", "Jirapa", "Nandom", "Nadowli", "Lambussie", "Gwollu"],
+  "Bono": ["Sunyani", "Berekum", "Dormaa Ahenkro", "Wenchi", "Techiman", "Nkoranza", "Atebubu", "Kintampo"],
+  "Bono East": ["Techiman", "Atebubu", "Kintampo", "Nkoranza", "Kwame Danso", "Yeji", "Prang"],
+  "Ahafo": ["Goaso", "Bechem", "Duayaw Nkwanta", "Kukuom", "Kenyasi", "Hwidiem", "Acherensua"],
+  "Savannah": ["Damongo", "Bole", "Salaga", "Sawla", "Buipe", "Tolon"],
+  "North East": ["Nalerigu", "Gambaga", "Walewale", "Chereponi", "Bunkpurugu", "Yunyoo"],
+  "Western North": ["Sefwi Wiawso", "Bibiani", "Enchi", "Juaboso", "Sefwi Bekwai", "Akontombra", "Bodi", "Dadieso"],
+  "Oti": ["Dambai", "Nkwanta", "Kadjebi", "Jasikan", "Krachi", "Kete Krachi"],
+};
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -320,6 +340,11 @@ export default function AdminPage() {
   const [emailSending, setEmailSending] = useState(false);
   const [emailResult, setEmailResult] = useState<{ success?: string; error?: string } | null>(null);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [expandedFAQs, setExpandedFAQs] = useState<Set<string>>(new Set());
+  const [expandedPromoSlides, setExpandedPromoSlides] = useState<Set<string>>(new Set());
+  const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
+  const [expandedDeliveryRegions, setExpandedDeliveryRegions] = useState<Set<string>>(new Set());
   const [productSizesRaw, setProductSizesRaw] = useState<Record<string, string>>({});
   const [productColorsRaw, setProductColorsRaw] = useState<Record<string, string>>({});
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -330,13 +355,24 @@ export default function AdminPage() {
   function toggleProduct(id: string) {
     setExpandedProducts((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
+  }
+  function toggleCategory(id: string) {
+    setExpandedCategories((prev) => { const next = new Set(prev); if (next.has(id)) { next.delete(id); } else { next.add(id); } return next; });
+  }
+  function toggleFAQ(id: string) {
+    setExpandedFAQs((prev) => { const next = new Set(prev); if (next.has(id)) { next.delete(id); } else { next.add(id); } return next; });
+  }
+  function togglePromoSlide(id: string) {
+    setExpandedPromoSlides((prev) => { const next = new Set(prev); if (next.has(id)) { next.delete(id); } else { next.add(id); } return next; });
+  }
+  function toggleService(id: string) {
+    setExpandedServices((prev) => { const next = new Set(prev); if (next.has(id)) { next.delete(id); } else { next.add(id); } return next; });
+  }
+  function toggleDeliveryRegion(region: string) {
+    setExpandedDeliveryRegions((prev) => { const next = new Set(prev); if (next.has(region)) { next.delete(region); } else { next.add(region); } return next; });
   }
 
   const filteredProducts = useMemo(() => {
@@ -1385,10 +1421,26 @@ export default function AdminPage() {
         </div>
 
         <div className="space-y-3">
-          {content.promoSlides.map((slide, index) => (
-            <article key={`${slide.id}-${index}`} className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Field label="Slide id">
+          {content.promoSlides.map((slide, index) => {
+            const isSlideExpanded = expandedPromoSlides.has(slide.id);
+            return (
+            <article key={`${slide.id}-${index}`} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+              <button
+                type="button"
+                onClick={() => togglePromoSlide(slide.id)}
+                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-[var(--brand)]/5 transition-colors"
+              >
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-bold text-[var(--brand-deep)] truncate">{slide.title || slide.alt || slide.id || <em className="font-normal text-[var(--ink-soft)]">Untitled slide</em>}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${slide.mediaType === "video" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{slide.mediaType === "video" ? "Video" : "Image"}</span>
+                  {slide.eventName && <span className="rounded-full border border-black/10 px-2 py-0.5 text-xs text-[var(--ink-soft)]">{slide.eventName}</span>}
+                </div>
+                <span className="shrink-0 text-[var(--brand-deep)]" aria-hidden>{isSlideExpanded ? "▲" : "▼"}</span>
+              </button>
+              {isSlideExpanded && (
+              <div className="border-t border-black/10 p-4">
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Field label="Slide id">
                   <input
                     value={slide.id}
                     onChange={(event) => {
@@ -1608,8 +1660,11 @@ export default function AdminPage() {
                   </Field>
                 </div>
               </div>
+              </div>
+              )}
             </article>
-          ))}
+            );
+          })}
         </div>
         </Section>
       ) : null}
@@ -2349,6 +2404,124 @@ export default function AdminPage() {
                   />
                   <p className="mt-1 text-xs text-[var(--ink-soft)]">Shown as selectable color options on the product page.</p>
                 </Field>
+
+                {/* Price Variants */}
+                <div className="lg:col-span-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <label className="block text-sm font-semibold text-[var(--brand-deep)]">Price Variants (Optional) 💰</label>
+                        <p className="text-xs text-[var(--ink-soft)] mt-0.5">Add size/length/weight options with different prices. Shown as selectable buttons on the product page.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newVariant: ProductVariant = {
+                            id: createId("variant"),
+                            label: "",
+                            attribute: (product.variants?.[0]?.attribute) ?? "Size",
+                          };
+                          const products = [...content.products];
+                          products[index] = { ...product, variants: [...(product.variants ?? []), newVariant] };
+                          setContent({ ...content, products });
+                        }}
+                        className="rounded-full border border-[var(--brand)] px-3 py-1.5 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 whitespace-nowrap"
+                      >
+                        + Add Variant
+                      </button>
+                    </div>
+                    {(product.variants ?? []).length > 0 && (
+                      <div className="space-y-2">
+                        {/* Shared attribute name */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-semibold text-[var(--ink-soft)] whitespace-nowrap">Attribute name:</span>
+                          <input
+                            value={product.variants![0]?.attribute ?? "Size"}
+                            onChange={(event) => {
+                              const products = [...content.products];
+                              products[index] = {
+                                ...product,
+                                variants: (product.variants ?? []).map((v) => ({ ...v, attribute: event.target.value })),
+                              };
+                              setContent({ ...content, products });
+                            }}
+                            placeholder="e.g. Size, Length, Weight"
+                            className={`${inputClassName()} max-w-[160px]`}
+                          />
+                        </div>
+                        {product.variants!.map((variant, vIdx) => (
+                          <div key={variant.id} className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 rounded-xl border border-black/10 bg-white p-3 shadow-sm">
+                            <Field label="Label">
+                              <input
+                                value={variant.label}
+                                onChange={(event) => {
+                                  const products = [...content.products];
+                                  const variants = [...(product.variants ?? [])];
+                                  variants[vIdx] = { ...variant, label: event.target.value };
+                                  products[index] = { ...product, variants };
+                                  setContent({ ...content, products });
+                                }}
+                                placeholder="e.g. Small, 30cm, 1kg"
+                                className={inputClassName()}
+                              />
+                            </Field>
+                            <Field label="Price override (GHS)">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={variant.priceOverride ?? ""}
+                                placeholder="Override full price"
+                                onChange={(event) => {
+                                  const products = [...content.products];
+                                  const variants = [...(product.variants ?? [])];
+                                  variants[vIdx] = { ...variant, priceOverride: event.target.value ? Number(event.target.value) : undefined, priceAdjustment: undefined };
+                                  products[index] = { ...product, variants };
+                                  setContent({ ...content, products });
+                                }}
+                                className={inputClassName()}
+                              />
+                            </Field>
+                            <Field label="Price adj. (GHS ±)">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={variant.priceAdjustment ?? ""}
+                                placeholder="e.g. +10 or -5"
+                                disabled={variant.priceOverride !== undefined}
+                                onChange={(event) => {
+                                  const products = [...content.products];
+                                  const variants = [...(product.variants ?? [])];
+                                  variants[vIdx] = { ...variant, priceAdjustment: event.target.value ? Number(event.target.value) : undefined };
+                                  products[index] = { ...product, variants };
+                                  setContent({ ...content, products });
+                                }}
+                                className={`${inputClassName()} disabled:opacity-50`}
+                              />
+                            </Field>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const products = [...content.products];
+                                const variants = (product.variants ?? []).filter((_, i) => i !== vIdx);
+                                products[index] = { ...product, variants: variants.length ? variants : undefined };
+                                setContent({ ...content, products });
+                              }}
+                              className="self-end rounded-full border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                        {product.variants && product.variants.length > 0 && (
+                          <p className="text-xs text-[var(--ink-soft)]">
+                            Price range: GHS {Math.min(...product.variants.map(v => v.priceOverride ?? product.price + (v.priceAdjustment ?? 0))).toFixed(2)} – GHS {Math.max(...product.variants.map(v => v.priceOverride ?? product.price + (v.priceAdjustment ?? 0))).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
@@ -2533,8 +2706,27 @@ export default function AdminPage() {
         </div>
 
         <div className="space-y-4">
-          {content.services.map((service, index) => (
-            <article key={`${service.id}-${index}`} className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+          {content.services.map((service, index) => {
+            const isSvcExpanded = expandedServices.has(service.id);
+            return (
+            <article key={`${service.id}-${index}`} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+              <button
+                type="button"
+                onClick={() => toggleService(service.id)}
+                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-[var(--brand)]/5 transition-colors"
+              >
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-bold text-[var(--brand-deep)] truncate">{service.name || <em className="font-normal text-[var(--ink-soft)]">Unnamed service</em>}</span>
+                  <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">GHS {service.price.toFixed(2)}</span>
+                  {service.turnaround && <span className="text-xs text-[var(--ink-soft)]">{service.turnaround}</span>}
+                  {(service.subServices ?? []).length > 0 && (
+                    <span className="rounded-full border border-black/10 px-2 py-0.5 text-xs text-[var(--ink-soft)]">{service.subServices!.length} sub-services</span>
+                  )}
+                </div>
+                <span className="shrink-0 text-[var(--brand-deep)]" aria-hidden>{isSvcExpanded ? "▲" : "▼"}</span>
+              </button>
+              {isSvcExpanded && (
+              <div className="border-t border-black/10 p-4">
               <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
                 <Field label="Service id">
                   <input
@@ -2819,8 +3011,11 @@ export default function AdminPage() {
                   </Field>
                 </div>
               </div>
+              </div>
+              )}
             </article>
-          ))}
+            );
+          })}
         </div>
         </Section>
       ) : null}
@@ -3032,9 +3227,26 @@ export default function AdminPage() {
           </div>
 
           <div className="mt-6 space-y-3">
-            {content.categories.map((category, categoryIndex) => (
+            {content.categories.map((category, categoryIndex) => {
+              const isCatExpanded = expandedCategories.has(category.id);
+              return (
               <article key={`${category.id}-${categoryIndex}`} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
-                <div className="p-4">
+                <button
+                  type="button"
+                  onClick={() => toggleCategory(category.id)}
+                  className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-[var(--brand)]/5 transition-colors"
+                >
+                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-bold text-[var(--brand-deep)] truncate">{category.name || <em className="font-normal text-[var(--ink-soft)]">Unnamed category</em>}</span>
+                    <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">{category.features.length} feature{category.features.length !== 1 ? "s" : ""}</span>
+                    {(category.subCategories ?? []).length > 0 && (
+                      <span className="rounded-full border border-black/10 px-2 py-0.5 text-xs text-[var(--ink-soft)]">{category.subCategories!.length} sub</span>
+                    )}
+                  </div>
+                  <span className="shrink-0 text-[var(--brand-deep)]" aria-hidden>{isCatExpanded ? "▲" : "▼"}</span>
+                </button>
+                {isCatExpanded && (
+                <div className="border-t border-black/10 p-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Category Name">
                       <input
@@ -3221,8 +3433,10 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+                )}
               </article>
-            ))}
+              );
+            })}
             {content.categories.length === 0 && (
               <p className="rounded-2xl border border-black/10 bg-white p-4 text-sm italic text-[var(--ink-soft)]">No categories yet. Click "Add Category" to get started.</p>
             )}
@@ -3273,76 +3487,186 @@ export default function AdminPage() {
             </Field>
           </div>
 
+          {/* Location-Based Delivery Fees — grouped by region */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-lg font-black text-[var(--brand-deep)]">Location-Based Delivery Fees</h3>
-              <button
-                type="button"
-                onClick={() => {
-                  const newLoc: LocationDeliveryFee = {
-                    id: `loc-${Math.random().toString(36).slice(2, 8)}`,
-                    name: "",
-                    fee: 0,
-                  };
-                  setContent({
-                    ...content,
-                    deliverySettings: {
-                      ...content.deliverySettings,
-                      locationFees: [...content.deliverySettings.locationFees, newLoc],
-                    },
-                  });
-                }}
-                className="rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
-              >
-                Add Location
-              </button>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-black text-[var(--brand-deep)]">Location-Based Delivery Fees</h3>
+                <p className="text-xs text-[var(--ink-soft)] mt-0.5">Set a delivery fee for each town/location. Expand a region to manage its locations. Fees are auto-applied in checkout based on customer&apos;s region &amp; town.</p>
+              </div>
             </div>
 
-            {content.deliverySettings.locationFees.length === 0 && (
-              <p className="text-sm text-[var(--ink-soft)]">No locations configured yet. Delivery will use the default fee.</p>
-            )}
+            {/* Region sub-tabs */}
+            {Object.keys(GHANA_REGIONS).map((regionName) => {
+              const regionLocs = content.deliverySettings.locationFees.filter((l) => l.region === regionName);
+              const isExpanded = expandedDeliveryRegions.has(regionName);
+              return (
+                <div key={regionName} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => toggleDeliveryRegion(regionName)}
+                    className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-[var(--brand)]/5 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-[var(--brand-deep)]">{regionName}</span>
+                      <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">
+                        {regionLocs.length} location{regionLocs.length !== 1 ? "s" : ""}
+                      </span>
+                      {regionLocs.length > 0 && (
+                        <span className="text-xs text-[var(--ink-soft)]">
+                          GHS {Math.min(...regionLocs.map(l => l.fee)).toFixed(2)}
+                          {Math.min(...regionLocs.map(l => l.fee)) !== Math.max(...regionLocs.map(l => l.fee))
+                            ? ` – ${Math.max(...regionLocs.map(l => l.fee)).toFixed(2)}`
+                            : ""}
+                        </span>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-[var(--brand-deep)]" aria-hidden>{isExpanded ? "▲" : "▼"}</span>
+                  </button>
+                  {isExpanded && (
+                    <div className="border-t border-black/10 p-4 space-y-3">
+                      {regionLocs.length === 0 && (
+                        <p className="text-xs text-[var(--ink-soft)] italic">No locations configured for {regionName}. Use the town dropdown below to add one.</p>
+                      )}
+                      {regionLocs.map((loc) => {
+                        const locIndex = content.deliverySettings.locationFees.findIndex((l) => l.id === loc.id);
+                        return (
+                          <div key={loc.id} className="grid grid-cols-[1fr_auto_auto] items-end gap-2">
+                            <Field label="Town / Location name">
+                              <select
+                                value={loc.name}
+                                onChange={(event) => {
+                                  const locationFees = [...content.deliverySettings.locationFees];
+                                  locationFees[locIndex] = { ...loc, name: event.target.value };
+                                  setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                                }}
+                                className={inputClassName()}
+                              >
+                                <option value="">— Select town —</option>
+                                {GHANA_REGIONS[regionName].map((town) => (
+                                  <option key={town} value={town}>{town}</option>
+                                ))}
+                                <option value={loc.name || "Custom"}>{loc.name || "Custom"}</option>
+                              </select>
+                            </Field>
+                            <Field label="Fee (GHS)">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={loc.fee}
+                                onChange={(event) => {
+                                  const locationFees = [...content.deliverySettings.locationFees];
+                                  locationFees[locIndex] = { ...loc, fee: Number(event.target.value || 0) };
+                                  setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                                }}
+                                className={`${inputClassName()} w-28`}
+                              />
+                            </Field>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const locationFees = content.deliverySettings.locationFees.filter((l) => l.id !== loc.id);
+                                setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                              }}
+                              className="self-end rounded-full border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        );
+                      })}
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLoc: LocationDeliveryFee = {
+                              id: `loc-${Math.random().toString(36).slice(2, 8)}`,
+                              name: "",
+                              fee: content.deliverySettings.defaultFee,
+                              region: regionName,
+                            };
+                            setContent({
+                              ...content,
+                              deliverySettings: {
+                                ...content.deliverySettings,
+                                locationFees: [...content.deliverySettings.locationFees, newLoc],
+                              },
+                            });
+                          }}
+                          className="rounded-full border border-[var(--brand)] px-3 py-1.5 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                        >
+                          + Add Location to {regionName}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
-            {content.deliverySettings.locationFees.map((loc, locIndex) => (
-              <article key={loc.id} className="grid grid-cols-[1fr_auto_auto] items-end gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
-                <Field label="Location name">
-                  <input
-                    value={loc.name}
-                    onChange={(event) => {
-                      const locationFees = [...content.deliverySettings.locationFees];
-                      locationFees[locIndex] = { ...loc, name: event.target.value };
-                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
-                    }}
-                    placeholder="e.g. Accra Central"
-                    className={inputClassName()}
-                  />
-                </Field>
-                <Field label="Fee (GHS)">
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={loc.fee}
-                    onChange={(event) => {
-                      const locationFees = [...content.deliverySettings.locationFees];
-                      locationFees[locIndex] = { ...loc, fee: Number(event.target.value || 0) };
-                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
-                    }}
-                    className={`${inputClassName()} w-28`}
-                  />
-                </Field>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const locationFees = [...content.deliverySettings.locationFees];
-                    locationFees.splice(locIndex, 1);
-                    setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
-                  }}
-                  className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
-                >
-                  Remove
-                </button>
-              </article>
-            ))}
+            {/* Unassigned locations (no region) */}
+            {content.deliverySettings.locationFees.filter((l) => !l.region).length > 0 && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 shadow-sm overflow-hidden">
+                <div className="px-4 py-3">
+                  <p className="text-sm font-bold text-amber-900">⚠️ Unassigned Locations</p>
+                  <p className="text-xs text-amber-700 mt-0.5">These locations have no region assigned. Edit them to assign a region or remove them.</p>
+                </div>
+                <div className="border-t border-amber-200 p-4 space-y-2">
+                  {content.deliverySettings.locationFees.filter((l) => !l.region).map((loc) => {
+                    const locIndex = content.deliverySettings.locationFees.findIndex((l) => l.id === loc.id);
+                    return (
+                      <div key={loc.id} className="grid grid-cols-[1fr_1fr_auto_auto] items-end gap-2">
+                        <Field label="Name">
+                          <input
+                            value={loc.name}
+                            onChange={(event) => {
+                              const locationFees = [...content.deliverySettings.locationFees];
+                              locationFees[locIndex] = { ...loc, name: event.target.value };
+                              setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Region">
+                          <select
+                            value={loc.region ?? ""}
+                            onChange={(event) => {
+                              const locationFees = [...content.deliverySettings.locationFees];
+                              locationFees[locIndex] = { ...loc, region: event.target.value || undefined };
+                              setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                            }}
+                            className={inputClassName()}
+                          >
+                            <option value="">— No region —</option>
+                            {Object.keys(GHANA_REGIONS).map((r) => <option key={r} value={r}>{r}</option>)}
+                          </select>
+                        </Field>
+                        <Field label="Fee (GHS)">
+                          <input
+                            type="number" min={0} step="0.01" value={loc.fee}
+                            onChange={(event) => {
+                              const locationFees = [...content.deliverySettings.locationFees];
+                              locationFees[locIndex] = { ...loc, fee: Number(event.target.value || 0) };
+                              setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                            }}
+                            className={`${inputClassName()} w-24`}
+                          />
+                        </Field>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const locationFees = content.deliverySettings.locationFees.filter((l) => l.id !== loc.id);
+                            setContent({ ...content, deliverySettings: { ...content.deliverySettings, locationFees } });
+                          }}
+                          className="self-end rounded-full border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                        >✕</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Processing Fee */}
@@ -4291,12 +4615,23 @@ export default function AdminPage() {
                 <p className="text-sm text-[var(--ink-soft)]">No FAQs yet. Add one to get started!</p>
               ) : (
                 <div className="space-y-3">
-                  {(content?.faqs ?? []).map((faq, index) => (
-                    <div
-                      key={faq.id}
-                      className="rounded-xl border border-black/10 bg-white p-4 space-y-3"
-                    >
-                      <div className="space-y-2">
+                  {(content?.faqs ?? []).map((faq, index) => {
+                    const isFaqExpanded = expandedFAQs.has(faq.id);
+                    return (
+                    <div key={faq.id} className="rounded-xl border border-black/10 bg-white overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleFAQ(faq.id)}
+                        className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-[var(--brand)]/5 transition-colors"
+                      >
+                        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                          <span className="font-semibold text-[var(--brand-deep)] truncate">{faq.question || <em className="font-normal text-[var(--ink-soft)]">No question</em>}</span>
+                          {faq.category && <span className="rounded-full border border-black/10 px-2 py-0.5 text-xs text-[var(--ink-soft)]">{faq.category}</span>}
+                        </div>
+                        <span className="shrink-0 text-[var(--brand-deep)]" aria-hidden>{isFaqExpanded ? "▲" : "▼"}</span>
+                      </button>
+                      {isFaqExpanded && (
+                      <div className="border-t border-black/10 p-4 space-y-3">
                         <Field label="Question">
                           <input
                             type="text"
@@ -4374,7 +4709,6 @@ export default function AdminPage() {
                             className={inputClassName()}
                           />
                         </Field>
-                      </div>
                       <button
                         type="button"
                         onClick={() => {
@@ -4387,12 +4721,15 @@ export default function AdminPage() {
                           });
                           setMessage("FAQ deleted successfully!");
                         }}
-                        className="text-xs font-bold text-red-600 hover:underline"
+                        className="mt-2 text-xs font-bold text-red-600 hover:underline"
                       >
                         Delete FAQ
                       </button>
+                      </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

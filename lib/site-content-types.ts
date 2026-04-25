@@ -26,6 +26,18 @@ export function getProductCategories(categories: Category[]): string[] {
 
 export type ProductCategory = string;
 
+export type ProductVariant = {
+  id: string;
+  /** Label shown to customer, e.g. "Small", "30cm", "1kg" */
+  label: string;
+  /** Attribute name, e.g. "Size", "Length", "Weight" */
+  attribute?: string;
+  /** If set, overrides the product base price entirely */
+  priceOverride?: number;
+  /** If set, adds/subtracts from base price (can be negative) */
+  priceAdjustment?: number;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -46,6 +58,7 @@ export type Product = {
   noDeliveryFee?: boolean; // Optional flag for no delivery fee
   sizes?: string[]; // Available sizes e.g. ["41", "42", "Large", "XL"]
   colors?: string[]; // Available color options e.g. ["Black", "White", "Navy"]
+  variants?: ProductVariant[]; // Price variants (e.g. by size/length/weight)
 };
 
 export type SubService = {
@@ -158,6 +171,8 @@ export type LocationDeliveryFee = {
   id: string;
   name: string;
   fee: number;
+  /** Optional region this location belongs to, e.g. "Greater Accra" */
+  region?: string;
 };
 
 export type DeliveryType = {
