@@ -780,6 +780,7 @@ body {
     -6px 3px 6px rgba(0,0,0,0.12);
   transition: all 0.3s ease;
   background: #fff;
+  color: #172026;
 }
 .form-styled:hover {
   box-shadow:
@@ -803,6 +804,7 @@ body {
   border-radius: 1em;
   padding: 1.25rem;
   background: #fff;
+  color: #172026;
   transition: all 0.35s ease;
   overflow: hidden;
 }
@@ -854,6 +856,7 @@ body {
   transition: all 0.35s ease;
   box-shadow: 0 3px 8px -3px rgba(0,0,0,0.1);
   background: #fff;
+  color: #172026;
 }
 .input-styled:focus {
   border-color: var(--brand);
@@ -902,6 +905,7 @@ body {
   align-items: center;
   justify-content: center;
   background: #fff;
+  color: #172026;
   transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 .site-loader-overlay.loaded {
@@ -993,5 +997,25 @@ body {
 @keyframes loader-pulse {
   0%,100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+/* ── Dark‑mode: force dark text on explicitly white‑background elements ───── */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] [class*="bg-white"] {
+  color: #172026;
+}
+
+[data-theme="dark"] .form-styled,
+[data-theme="dark"] .form-section,
+[data-theme="dark"] .input-styled,
+[data-theme="dark"] .site-loader-overlay {
+  color: #172026;
+}
+
+/* Ensure inputs with explicit white background stay readable in dark mode */
+[data-theme="dark"] input[style*="background: white"],
+[data-theme="dark"] input[style*="background:#fff"],
+[data-theme="dark"] input[style*="background: #fff"] {
+  color: #172026;
 }
 

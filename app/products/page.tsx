@@ -38,7 +38,7 @@ function addToCart(productId: string) {
 
 type SortOption = "newest" | "oldest" | "price-asc" | "price-desc" | "name-asc" | "brand-asc";
 
-const PRODUCTS_PER_PAGE = 25;
+const PRODUCTS_PER_PAGE = 28;
 
 function ProductsPageContent() {
   const searchParams = useSearchParams();
