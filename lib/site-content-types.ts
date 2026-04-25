@@ -300,6 +300,7 @@ export type DealsHubContent = {
     description: string;
     pointsReward: number;
     cooldownHours: number;
+    dailyLimit: number;
   };
   luckyNumber: {
     enabled: boolean;
@@ -308,6 +309,7 @@ export type DealsHubContent = {
     pointsReward: number;
     maxTries: number;
     cooldownHours: number;
+    dailyLimit: number;
   };
   wordScramble: {
     enabled: boolean;
@@ -315,6 +317,7 @@ export type DealsHubContent = {
     description: string;
     pointsReward: number;
     cooldownHours: number;
+    dailyLimit: number;
     words: string[]; // custom word list (empty = use built-in defaults)
   };
 };

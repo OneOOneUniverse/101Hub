@@ -1,80 +1,101 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
-
-const WORD_LIST = [
-  "GADGET", "DEALS", "POINTS", "REWARD", "LUCKY", "FLASH", "STORE",
-  "PHONE", "TABLET", "LAPTOP", "GAMING", "STYLE", "OFFER", "BONUS",
-];
-
-function scramble(word: string): string {
-  const arr = word.split("");
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  // Ensure scrambled !== original
-  const result = arr.join("");
-  return result === word ? scramble(word) : result;
-}
 
 export default function WordScramble() {
   const { isSignedIn } = useUser();
-  const word = useMemo(() => WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)], []);
-  const scrambled = useMemo(() => scramble(word), [word]);
+  // Session state — word lives on the server, never in the browser
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [scrambledWord, setScrambledWord] = useState<string>("");
+  const [wordLength, setWordLength] = useState<number>(0);
+  const sessionStartRef = useRef<number>(0);
+
   const [input, setInput] = useState("");
   const [tries, setTries] = useState(0);
-  const [hint, setHint] = useState<"wrong" | null>(null);
-  const [phase, setPhase] = useState<"playing" | "won" | "claiming" | "claimed" | "limit">("playing");
+  const [wrongHint, setWrongHint] = useState(false);
+  const [phase, setPhase] = useState<"loading" | "playing" | "submitting" | "claimed" | "limit">("loading");
   const [pointsEarned, setPointsEarned] = useState(0);
   const [playsLeft, setPlaysLeft] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    if (!isSignedIn) return;
-    fetch("/api/deals/minigame?game=scramble")
+    // Create session server-side — word is chosen and stored in DB, not in browser state
+    fetch("/api/deals/game-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameType: "scramble" }),
+    })
       .then((r) => r.json())
-      .then((d: { playsLeft?: number }) => {
-        if (typeof d.playsLeft === "number") {
-          setPlaysLeft(d.playsLeft);
-          if (d.playsLeft === 0) setPhase("limit");
+      .then((d: { sessionId?: string; scrambledWord?: string; wordLength?: number; error?: string; limitReached?: boolean }) => {
+        if (d.limitReached || !d.sessionId) {
+          setPhase("limit");
+        } else {
+          setSessionId(d.sessionId);
+          setScrambledWord(d.scrambledWord ?? "");
+          setWordLength(d.wordLength ?? 0);
+          sessionStartRef.current = Date.now();
+          setPhase("playing");
         }
       })
-      .catch(() => {});
-  }, [isSignedIn]);
+      .catch(() => setPhase("playing")); // graceful degradation
 
-  const claimPoints = useCallback(async () => {
-    if (!isSignedIn) { setMsg("Sign in to save your points!"); return; }
-    setPhase("claiming");
-    try {
-      const res = await fetch("/api/deals/minigame", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameType: "scramble" }),
-      });
-      const data = (await res.json()) as { pointsEarned?: number; error?: string; limitReached?: boolean };
-      if (data.limitReached) { setPhase("limit"); return; }
-      if (!res.ok) { setMsg(data.error ?? "Error"); setPhase("won"); return; }
-      setPointsEarned(data.pointsEarned ?? 0);
-      setPhase("claimed");
-    } catch {
-      setMsg("Network error — try again");
-      setPhase("won");
+    if (isSignedIn) {
+      fetch("/api/deals/minigame?game=scramble")
+        .then((r) => r.json())
+        .then((d: { playsLeft?: number }) => {
+          if (typeof d.playsLeft === "number") setPlaysLeft(d.playsLeft);
+        })
+        .catch(() => {});
     }
   }, [isSignedIn]);
 
   const submit = useCallback(() => {
-    if (!input.trim()) return;
+    const attempt = input.trim().toUpperCase();
+    if (!attempt || !sessionId) return;
     setTries((t) => t + 1);
-    if (input.trim().toUpperCase() === word) {
-      setPhase("won");
-    } else {
-      setHint("wrong");
-      setInput("");
-      setTimeout(() => setHint(null), 800);
-    }
-  }, [input, word]);
+    setPhase("submitting");
+    const elapsedSeconds = Math.floor((Date.now() - sessionStartRef.current) / 1000);
+
+    // Server verifies the answer against the stored word and awards points if correct
+    fetch("/api/deals/minigame", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameType: "scramble", sessionId, answer: attempt, elapsedSeconds }),
+    })
+      .then((r) => r.json())
+      .then((d: { pointsEarned?: number; error?: string; limitReached?: boolean }) => {
+        if (d.pointsEarned !== undefined) {
+          // Server confirmed correct answer and awarded points
+          setPointsEarned(d.pointsEarned);
+          setPhase("claimed");
+        } else if (d.limitReached) {
+          setPhase("limit");
+        } else {
+          // Wrong answer or other error
+          setPhase("playing");
+          setWrongHint(true);
+          setInput("");
+          setTimeout(() => setWrongHint(null as unknown as boolean), 800);
+          if (d.error && d.error !== "Incorrect answer.") setMsg(d.error);
+        }
+      })
+      .catch(() => {
+        setPhase("playing");
+        setWrongHint(true);
+        setInput("");
+        setTimeout(() => setWrongHint(null as unknown as boolean), 800);
+      });
+  }, [input, sessionId]);
+
+  if (phase === "loading") {
+    return (
+      <div className="text-center py-10 space-y-3">
+        <p className="text-4xl animate-pulse">🔤</p>
+        <p className="text-sm text-[var(--ink-soft)]">Loading word…</p>
+      </div>
+    );
+  }
 
   if (phase === "limit") {
     return (
@@ -97,29 +118,12 @@ export default function WordScramble() {
     );
   }
 
-  if (phase === "won") {
-    return (
-      <div className="text-center py-8 space-y-4">
-        <p className="text-5xl">🏅</p>
-        <p className="text-xl font-black text-[var(--brand-deep)]">Correct! The word was {word}!</p>
-        <p className="text-sm text-[var(--ink-soft)]">Solved in {tries} tr{tries !== 1 ? "ies" : "y"}!</p>
-        {msg && <p className="text-sm text-red-500">{msg}</p>}
-        <button
-          onClick={claimPoints}
-          className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
-        >
-          Claim 60 Points 🎁
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-5">
       <div className="rounded-xl bg-[var(--brand)]/5 border border-[var(--brand)]/15 p-5 text-center">
         <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-widest mb-2">Unscramble this word</p>
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
-          {scrambled.split("").map((ch, i) => (
+          {scrambledWord.split("").map((ch, i) => (
             <span
               key={i}
               className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--surface-strong)] border-2 border-[var(--brand)]/30 text-lg font-black text-[var(--brand-deep)] shadow-sm"
@@ -128,8 +132,10 @@ export default function WordScramble() {
             </span>
           ))}
         </div>
-        <p className="text-xs text-[var(--ink-soft)] mt-3">{word.length} letters · Tries: {tries}</p>
+        <p className="text-xs text-[var(--ink-soft)] mt-3">{wordLength} letters · Tries: {tries}</p>
       </div>
+
+      {msg && <p className="text-sm text-center text-red-500">{msg}</p>}
 
       <div className="flex flex-col sm:flex-row gap-2">
         <input
@@ -137,24 +143,25 @@ export default function WordScramble() {
           value={input}
           onChange={(e) => setInput(e.target.value.toUpperCase())}
           onKeyDown={(e) => e.key === "Enter" && submit()}
-          maxLength={word.length}
+          maxLength={wordLength || 20}
           placeholder="Type your answer..."
+          disabled={phase === "submitting"}
           className={`flex-1 rounded-xl border-2 px-4 py-3 text-base font-bold uppercase tracking-widest focus:outline-none transition ${
-            hint === "wrong"
+            wrongHint
               ? "border-red-400 bg-red-50 text-red-700"
               : "border-[var(--ink)]/15 bg-[var(--surface-strong)] focus:border-[var(--brand)]"
           }`}
         />
         <button
           onClick={submit}
-          disabled={!input.trim()}
+          disabled={!input.trim() || phase === "submitting"}
           className="rounded-xl bg-[var(--brand)] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-40 w-full sm:w-auto"
         >
-          Check!
+          {phase === "submitting" ? "Checking…" : "Check!"}
         </button>
       </div>
 
-      {hint === "wrong" && (
+      {wrongHint && (
         <p className="text-sm text-center text-red-500 font-semibold">❌ Not quite — try again!</p>
       )}
 

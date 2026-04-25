@@ -504,6 +504,7 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
     description: "Flip cards and match all pairs to earn points!",
     pointsReward: 75,
     cooldownHours: 24,
+    dailyLimit: 3,
   },
   luckyNumber: {
     enabled: true,
@@ -512,6 +513,7 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
     pointsReward: 50,
     maxTries: 5,
     cooldownHours: 24,
+    dailyLimit: 5,
   },
   wordScramble: {
     enabled: true,
@@ -519,6 +521,7 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
     description: "Unscramble the mystery word to earn points!",
     pointsReward: 60,
     cooldownHours: 24,
+    dailyLimit: 3,
     words: [],
   },
 };
@@ -626,6 +629,7 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
       description: toText(memoryObj.description as string | undefined, fb.memoryMatch.description),
       pointsReward: Math.max(1, Math.trunc(toNumber(memoryObj.pointsReward as number | undefined, fb.memoryMatch.pointsReward))),
       cooldownHours: Math.max(0, toNumber(memoryObj.cooldownHours as number | undefined, fb.memoryMatch.cooldownHours)),
+      dailyLimit: Math.max(1, Math.trunc(toNumber(memoryObj.dailyLimit as number | undefined, fb.memoryMatch.dailyLimit))),
     },
     luckyNumber: {
       enabled: toBoolean(luckyObj.enabled as boolean | undefined, fb.luckyNumber.enabled),
@@ -634,6 +638,7 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
       pointsReward: Math.max(1, Math.trunc(toNumber(luckyObj.pointsReward as number | undefined, fb.luckyNumber.pointsReward))),
       maxTries: Math.max(1, Math.trunc(toNumber(luckyObj.maxTries as number | undefined, fb.luckyNumber.maxTries))),
       cooldownHours: Math.max(0, toNumber(luckyObj.cooldownHours as number | undefined, fb.luckyNumber.cooldownHours)),
+      dailyLimit: Math.max(1, Math.trunc(toNumber(luckyObj.dailyLimit as number | undefined, fb.luckyNumber.dailyLimit))),
     },
     wordScramble: {
       enabled: toBoolean(scrambleObj.enabled as boolean | undefined, fb.wordScramble.enabled),
@@ -641,6 +646,7 @@ function sanitizeDealsHub(value: unknown): DealsHubContent {
       description: toText(scrambleObj.description as string | undefined, fb.wordScramble.description),
       pointsReward: Math.max(1, Math.trunc(toNumber(scrambleObj.pointsReward as number | undefined, fb.wordScramble.pointsReward))),
       cooldownHours: Math.max(0, toNumber(scrambleObj.cooldownHours as number | undefined, fb.wordScramble.cooldownHours)),
+      dailyLimit: Math.max(1, Math.trunc(toNumber(scrambleObj.dailyLimit as number | undefined, fb.wordScramble.dailyLimit))),
       words: Array.isArray(scrambleObj.words) ? (scrambleObj.words as unknown[]).map(String).filter(Boolean) : fb.wordScramble.words,
     },
   };

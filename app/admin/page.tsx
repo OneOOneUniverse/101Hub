@@ -5118,6 +5118,14 @@ export default function AdminPage() {
                   className={inputClassName()}
                 />
               </Field>
+              <Field label="Plays per day (daily limit)">
+                <input
+                  type="number" min={1}
+                  value={content.dealsHub.memoryMatch?.dailyLimit ?? 3}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, memoryMatch: { ...content.dealsHub.memoryMatch, dailyLimit: Math.max(1, Number(e.target.value || 1)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
             </div>
           </div>
 
@@ -5176,6 +5184,14 @@ export default function AdminPage() {
                   className={inputClassName()}
                 />
               </Field>
+              <Field label="Plays per day (daily limit)">
+                <input
+                  type="number" min={1}
+                  value={content.dealsHub.luckyNumber?.dailyLimit ?? 5}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, luckyNumber: { ...content.dealsHub.luckyNumber, dailyLimit: Math.max(1, Number(e.target.value || 1)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
             </div>
           </div>
 
@@ -5223,6 +5239,14 @@ export default function AdminPage() {
                   type="number" min={0}
                   value={content.dealsHub.wordScramble?.cooldownHours ?? 24}
                   onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, cooldownHours: Math.max(0, Number(e.target.value || 0)) } } })}
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Plays per day (daily limit)">
+                <input
+                  type="number" min={1}
+                  value={content.dealsHub.wordScramble?.dailyLimit ?? 3}
+                  onChange={(e) => setContent({ ...content, dealsHub: { ...content.dealsHub, wordScramble: { ...content.dealsHub.wordScramble, dailyLimit: Math.max(1, Number(e.target.value || 1)) } } })}
                   className={inputClassName()}
                 />
               </Field>

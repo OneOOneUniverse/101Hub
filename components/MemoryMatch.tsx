@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 
 const EMOJI_PAIRS = ["🍎", "🍊", "🍋", "🍇", "🍓", "🎮", "🎯", "🏆"];
@@ -21,32 +21,52 @@ export default function MemoryMatch() {
   const [cards, setCards] = useState<Card[]>(buildDeck);
   const [selected, setSelected] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
-  const [phase, setPhase] = useState<"playing" | "won" | "claiming" | "claimed" | "limit">("playing");
+  const [phase, setPhase] = useState<"loading" | "playing" | "won" | "claiming" | "claimed" | "limit">("loading");
   const [pointsEarned, setPointsEarned] = useState(0);
   const [playsLeft, setPlaysLeft] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
+  // Server-side session state (prevents console forging)
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const sessionStartRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!isSignedIn) return;
+    if (!isSignedIn) { setPhase("playing"); return; }
+    // Create a server-side session; this also checks the daily limit
+    fetch("/api/deals/game-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameType: "memory" }),
+    })
+      .then((r) => r.json())
+      .then((d: { sessionId?: string; error?: string; limitReached?: boolean }) => {
+        if (d.limitReached || !d.sessionId) {
+          setPhase("limit");
+        } else {
+          setSessionId(d.sessionId);
+          sessionStartRef.current = Date.now();
+          setPhase("playing");
+        }
+      })
+      .catch(() => setPhase("playing")); // graceful degradation if network fails
+
     fetch("/api/deals/minigame?game=memory")
       .then((r) => r.json())
       .then((d: { playsLeft?: number }) => {
-        if (typeof d.playsLeft === "number") {
-          setPlaysLeft(d.playsLeft);
-          if (d.playsLeft === 0) setPhase("limit");
-        }
+        if (typeof d.playsLeft === "number") setPlaysLeft(d.playsLeft);
       })
       .catch(() => {});
   }, [isSignedIn]);
 
   const claimPoints = useCallback(async () => {
     if (!isSignedIn) { setMsg("Sign in to save your points!"); return; }
+    if (!sessionId) { setMsg("Session error — please refresh and try again."); return; }
     setPhase("claiming");
+    const elapsedSeconds = Math.floor((Date.now() - sessionStartRef.current) / 1000);
     try {
       const res = await fetch("/api/deals/minigame", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameType: "memory" }),
+        body: JSON.stringify({ gameType: "memory", sessionId, moves, elapsedSeconds }),
       });
       const data = (await res.json()) as { pointsEarned?: number; error?: string; limitReached?: boolean };
       if (data.limitReached) { setPhase("limit"); return; }
@@ -57,7 +77,7 @@ export default function MemoryMatch() {
       setMsg("Network error — try again");
       setPhase("won");
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, sessionId, moves]);
 
   const flip = useCallback((id: number) => {
     if (phase !== "playing") return;
@@ -99,12 +119,46 @@ export default function MemoryMatch() {
   }, [cards]);
 
   const reset = () => {
+    if (!isSignedIn) {
+      setCards(buildDeck());
+      setSelected([]);
+      setMoves(0);
+      setMsg("");
+      setPhase("playing");
+      return;
+    }
+    setPhase("loading");
     setCards(buildDeck());
     setSelected([]);
     setMoves(0);
     setMsg("");
-    setPhase(playsLeft === 0 ? "limit" : "playing");
+    // Create a fresh session for the new game
+    fetch("/api/deals/game-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameType: "memory" }),
+    })
+      .then((r) => r.json())
+      .then((d: { sessionId?: string; error?: string; limitReached?: boolean }) => {
+        if (d.limitReached || !d.sessionId) {
+          setPhase("limit");
+        } else {
+          setSessionId(d.sessionId);
+          sessionStartRef.current = Date.now();
+          setPhase("playing");
+        }
+      })
+      .catch(() => setPhase("playing"));
   };
+
+  if (phase === "loading") {
+    return (
+      <div className="text-center py-10 space-y-3">
+        <p className="text-4xl animate-pulse">🃏</p>
+        <p className="text-sm text-[var(--ink-soft)]">Starting game…</p>
+      </div>
+    );
+  }
 
   if (phase === "limit") {
     return (
