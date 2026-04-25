@@ -102,6 +102,7 @@ export default function CheckoutForm() {
   const [rewardApplied, setRewardApplied] = useState(false);
   const [dealsReward, setDealsReward] = useState<DealsReward | null>(null);
   const [dealsRewardApplied, setDealsRewardApplied] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<"mtn" | "telecel" | "at" | "bank" | null>(null);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
 
   // Validate cart items on mount and when products change
@@ -742,19 +743,67 @@ export default function CheckoutForm() {
               <p className="text-xs text-amber-700">Full payment required</p>
             </div>
 
-            {/* Copyable Payment Details Card */}
-            <PaymentDetailsCard
-              title="Payment Account Details"
-              fields={
-                content?.manualPaymentDetails && content.manualPaymentDetails.length > 0
-                  ? content.manualPaymentDetails.filter((f) => f.value)
-                  : [
-                      { label: "Transaction/Phone Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
-                      { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
-                      { label: "Bank Name", value: "MTN Mobile Money", icon: "🏦" },
-                    ]
+            {/* Provider Selection + Copyable Payment Details Card */}
+            {(() => {
+              const providerDefs = [
+                { id: "mtn" as const, name: "MTN MoMo", emoji: "🟡" },
+                { id: "telecel" as const, name: "Telecel", emoji: "🔴" },
+                { id: "at" as const, name: "AT Money", emoji: "🔵" },
+                { id: "bank" as const, name: "Bank", emoji: "🏛️" },
+              ];
+              const activeProviders = providerDefs.filter(
+                (p) => content.providerPaymentDetails?.[p.id]?.some((f) => f.value)
+              );
+              if (activeProviders.length > 0) {
+                const currentProviderId = selectedProvider ?? activeProviders[0].id;
+                const fields = (content.providerPaymentDetails?.[currentProviderId] ?? []).filter((f) => f.value);
+                return (
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-[var(--ink)]">Select Payment Provider</p>
+                    <div className="flex flex-wrap gap-2">
+                      {activeProviders.map((p) => {
+                        const isSelected = currentProviderId === p.id;
+                        const logo = content.providerLogos?.[p.id];
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => setSelectedProvider(p.id)}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition-all ${
+                              isSelected
+                                ? "border-[var(--brand)] bg-[var(--brand)]/10 text-[var(--brand-deep)]"
+                                : "border-black/15 bg-white text-[var(--ink)] hover:border-[var(--brand)]/50"
+                            }`}
+                          >
+                            {logo ? (
+                              <img src={logo} alt={p.name} className="w-5 h-5 object-contain rounded" />
+                            ) : (
+                              <span>{p.emoji}</span>
+                            )}
+                            {p.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <PaymentDetailsCard title="Payment Account Details" fields={fields} />
+                  </div>
+                );
               }
-            />
+              return (
+                <PaymentDetailsCard
+                  title="Payment Account Details"
+                  fields={
+                    content?.manualPaymentDetails && content.manualPaymentDetails.length > 0
+                      ? content.manualPaymentDetails.filter((f) => f.value)
+                      : [
+                          { label: "Transaction/Phone Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+                          { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                          { label: "Bank Name", value: "MTN Mobile Money", icon: "🏦" },
+                        ]
+                  }
+                />
+              );
+            })()}
 
             {/* Step-by-step Walkthrough */}
             <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
