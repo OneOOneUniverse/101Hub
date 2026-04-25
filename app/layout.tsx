@@ -8,6 +8,7 @@ import { NotificationProvider } from "@/components/NotificationProvider";
 import SiteLoader from "@/components/SiteLoader";
 import ReferralTracker from "@/components/ReferralTracker";
 import ThemeProvider from "@/components/ThemeProvider";
+import PWAInstallBanner from "@/components/PWAInstallBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -151,6 +152,7 @@ export default async function RootLayout({
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
           <ThemeProvider>
           <SiteLoader />
+          <PWAInstallBanner />
           <ReferralTracker />
           <NotificationProvider>
             <div className="relative flex min-h-screen flex-col overflow-x-hidden">

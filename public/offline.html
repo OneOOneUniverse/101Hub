@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline — 101 Hub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8f8f8;
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+    }
+    .icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    h1 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+    p { font-size: 15px; color: #666; line-height: 1.6; margin-bottom: 24px; }
+    a {
+      display: inline-block;
+      background: #111;
+      color: #fff;
+      border-radius: 999px;
+      padding: 12px 32px;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+    }
+    a:hover { background: #333; }
+    .logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="/img/log.png" alt="101 Hub" class="logo" />
+    <span class="icon">📡</span>
+    <h1>You&rsquo;re Offline</h1>
+    <p>
+      No internet connection detected. Check your connection and try again.
+      Previously visited pages may still be available.
+    </p>
+    <a href="/">Try Again</a>
+  </div>
+</body>
+</html>

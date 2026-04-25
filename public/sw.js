@@ -1,11 +1,14 @@
-const CACHE_NAME = 'gadget-hub-v2';
+const CACHE_NAME = 'gadget-hub-v3';
 const urlsToCache = [
   '/',
   '/products',
   '/services',
   '/faqs',
   '/cart',
-  '/checkout'
+  '/checkout',
+  '/offline.html',
+  '/img/log.png',
+  '/manifest.json'
 ];
 
 // Install event
@@ -104,13 +107,12 @@ self.addEventListener('fetch', (event) => {
       .catch(() => {
         // Fall back to cache
         return caches.match(event.request).then((response) => {
-          return response || new Response('Offline - page not available', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({
-              'Content-Type': 'text/plain'
-            })
-          });
+          if (response) return response;
+          // For navigation requests, show the offline page
+          if (event.request.mode === 'navigate') {
+            return caches.match('/offline.html');
+          }
+          return new Response('', { status: 408, statusText: 'Offline' });
         });
       })
   );
