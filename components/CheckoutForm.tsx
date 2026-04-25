@@ -204,7 +204,7 @@ export default function CheckoutForm() {
     const total = Math.max(0, subtotal - rewardDiscount - dealsDiscount + effectiveDelivery + processingFee);
 
     return { subtotal, delivery, processingFee, total, rewardDiscount, dealsDiscount, effectiveDelivery };
-  }, [items, products, location, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward]);
+  }, [items, products, location, region, town, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward]);
 
   // Payment amount is the full total
   const paymentAmount = totals.total;
