@@ -35,14 +35,14 @@ export default async function SpecialStorePage({ params }: Props) {
         style={
           store.backgroundImage
             ? { backgroundImage: `url('${store.backgroundImage}')`, backgroundSize: "cover", backgroundPosition: "center" }
-            : { backgroundColor: "var(--brand-deep)" }
+            : { background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }
         }
       >
         {/* Dark overlay for text legibility when image is set */}
         {store.backgroundImage && (
           <div className="absolute inset-0 bg-black/50 rounded-3xl" />
         )}
-        <div className="relative z-10 space-y-3" style={{ color: store.backgroundImage ? "#ffffff" : store.textColor }}>
+        <div className="relative z-10 space-y-3" style={{ color: store.backgroundImage ? "#ffffff" : (store.textColor || "#ffffff") }}>
         <Link
           href="/deals"
           className="inline-flex items-center gap-1 text-sm font-bold opacity-80 hover:opacity-100 transition"

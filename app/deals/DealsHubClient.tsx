@@ -212,16 +212,21 @@ export default function DealsHubClient({ dealsHub, products }: Props) {
                         {hasImg ? (
                           <img src={store.backgroundImage} alt="" className="deals-card-img" />
                         ) : null}
-                        <div
-                          className="deals-card-gradient"
-                          style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }}
-                        />
+                        {hasImg ? (
+                          /* Dark overlay — same pattern as the store detail page */
+                          <div className="absolute inset-0 bg-black/50 rounded-[inherit]" />
+                        ) : (
+                          <div
+                            className="deals-card-gradient"
+                            style={{ background: `linear-gradient(135deg, ${store.bgColor}, ${store.bgColor}cc)` }}
+                          />
+                        )}
                         <div className="deals-card-hover-overlay" />
                         <div className="deals-card-pulse" />
                         <div className="deals-card-dots">
                           <span /><span /><span />
                         </div>
-                        <div className="deals-card-body" style={{ color: store.textColor }}>
+                        <div className="deals-card-body" style={{ color: hasImg ? "#ffffff" : store.textColor }}>
                           <span className="deals-card-emoji">{store.emoji}</span>
                           <h3 className="deals-card-name">{store.name}</h3>
                           <p className="deals-card-desc">{store.description}</p>
