@@ -746,62 +746,83 @@ export default function CheckoutForm() {
             {/* Provider Selection + Copyable Payment Details Card */}
             {(() => {
               const providerDefs = [
-                { id: "mtn" as const, name: "MTN MoMo", emoji: "🟡" },
-                { id: "telecel" as const, name: "Telecel", emoji: "🔴" },
-                { id: "at" as const, name: "AT Money", emoji: "🔵" },
-                { id: "bank" as const, name: "Bank", emoji: "🏛️" },
+                {
+                  id: "mtn" as const,
+                  name: "MTN MoMo",
+                  emoji: "🟡",
+                  defaults: [
+                    { label: "MoMo Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                    { label: "Network", value: "MTN Mobile Money", icon: "🏦" },
+                  ],
+                },
+                {
+                  id: "telecel" as const,
+                  name: "Telecel",
+                  emoji: "🔴",
+                  defaults: [
+                    { label: "Telecel Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                    { label: "Network", value: "Telecel Cash", icon: "🏦" },
+                  ],
+                },
+                {
+                  id: "at" as const,
+                  name: "AT Money",
+                  emoji: "🔵",
+                  defaults: [
+                    { label: "AT Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                    { label: "Network", value: "AT Money (AirtelTigo)", icon: "🏦" },
+                  ],
+                },
+                {
+                  id: "bank" as const,
+                  name: "Bank",
+                  emoji: "🏛️",
+                  defaults: [
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                  ],
+                },
               ];
-              const activeProviders = providerDefs.filter(
-                (p) => content.providerPaymentDetails?.[p.id]?.some((f) => f.value)
-              );
-              if (activeProviders.length > 0) {
-                const currentProviderId = selectedProvider ?? activeProviders[0].id;
-                const fields = (content.providerPaymentDetails?.[currentProviderId] ?? []).filter((f) => f.value);
-                return (
-                  <div className="space-y-3">
-                    <p className="text-sm font-semibold text-[var(--ink)]">Select Payment Provider</p>
-                    <div className="flex flex-wrap gap-2">
-                      {activeProviders.map((p) => {
-                        const isSelected = currentProviderId === p.id;
-                        const logo = content.providerLogos?.[p.id];
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => setSelectedProvider(p.id)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition-all ${
-                              isSelected
-                                ? "border-[var(--brand)] bg-[var(--brand)]/10 text-[var(--brand-deep)]"
-                                : "border-black/15 bg-white text-[var(--ink)] hover:border-[var(--brand)]/50"
-                            }`}
-                          >
-                            {logo ? (
-                              <img src={logo} alt={p.name} className="w-5 h-5 object-contain rounded" />
-                            ) : (
-                              <span>{p.emoji}</span>
-                            )}
-                            {p.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <PaymentDetailsCard title="Payment Account Details" fields={fields} />
-                  </div>
-                );
-              }
+
+              const currentProviderId = selectedProvider ?? "mtn";
+              const currentDef = providerDefs.find((p) => p.id === currentProviderId)!;
+              const savedFields = content.providerPaymentDetails?.[currentProviderId];
+              const fields = savedFields && savedFields.some((f) => f.value)
+                ? savedFields.filter((f) => f.value)
+                : currentDef.defaults.filter((f) => f.value);
+
               return (
-                <PaymentDetailsCard
-                  title="Payment Account Details"
-                  fields={
-                    content?.manualPaymentDetails && content.manualPaymentDetails.length > 0
-                      ? content.manualPaymentDetails.filter((f) => f.value)
-                      : [
-                          { label: "Transaction/Phone Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
-                          { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
-                          { label: "Bank Name", value: "MTN Mobile Money", icon: "🏦" },
-                        ]
-                  }
-                />
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-[var(--ink)]">Select Payment Provider</p>
+                  <div className="flex flex-wrap gap-2">
+                    {providerDefs.map((p) => {
+                      const isSelected = currentProviderId === p.id;
+                      const logo = content.providerLogos?.[p.id];
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedProvider(p.id)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition-all ${
+                            isSelected
+                              ? "border-[var(--brand)] bg-[var(--brand)]/10 text-[var(--brand-deep)]"
+                              : "border-black/15 bg-white text-[var(--ink)] hover:border-[var(--brand)]/50"
+                          }`}
+                        >
+                          {logo ? (
+                            <img src={logo} alt={p.name} className="w-5 h-5 object-contain rounded" />
+                          ) : (
+                            <span>{p.emoji}</span>
+                          )}
+                          {p.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <PaymentDetailsCard title="Payment Account Details" fields={fields} />
+                </div>
               );
             })()}
 
