@@ -4592,33 +4592,9 @@ export default function AdminPage() {
                 </Field>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <Field label="Background color">
-                    <input
-                      type="color"
-                      value={store.bgColor}
-                      onChange={(e) => {
-                        const stores = [...content.dealsHub.specialStores];
-                        stores[si] = { ...stores[si], bgColor: e.target.value };
-                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
-                      }}
-                      className="h-10 w-full cursor-pointer rounded-xl border border-black/10"
-                    />
-                  </Field>
-                  <Field label="Text color">
-                    <input
-                      type="color"
-                      value={store.textColor}
-                      onChange={(e) => {
-                        const stores = [...content.dealsHub.specialStores];
-                        stores[si] = { ...stores[si], textColor: e.target.value };
-                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
-                      }}
-                      className="h-10 w-full cursor-pointer rounded-xl border border-black/10"
-                    />
-                  </Field>
                 </div>
 
-                <Field label="Background Image (optional — overrides gradient)">
+                <Field label="Store Banner Image">
                   <div className="flex flex-wrap gap-2 mb-2">
                     <ImageUploadButton
                       folder="deals"

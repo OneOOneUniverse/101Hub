@@ -32,14 +32,17 @@ export default async function SpecialStorePage({ params }: Props) {
       {/* Header */}
       <section
         className="rounded-3xl p-6 sm:p-10 text-center space-y-3 relative overflow-hidden"
-        style={{
-          backgroundColor: store.bgColor,
-          color: store.textColor,
-          ...(store.backgroundImage
+        style={
+          store.backgroundImage
             ? { backgroundImage: `url('${store.backgroundImage}')`, backgroundSize: "cover", backgroundPosition: "center" }
-            : {}),
-        }}
+            : { backgroundColor: "var(--brand-deep)" }
+        }
       >
+        {/* Dark overlay for text legibility when image is set */}
+        {store.backgroundImage && (
+          <div className="absolute inset-0 bg-black/50 rounded-3xl" />
+        )}
+        <div className="relative z-10 space-y-3" style={{ color: store.backgroundImage ? "#ffffff" : store.textColor }}>
         <Link
           href="/deals"
           className="inline-flex items-center gap-1 text-sm font-bold opacity-80 hover:opacity-100 transition"
@@ -52,6 +55,7 @@ export default async function SpecialStorePage({ params }: Props) {
         <p className="text-xs font-bold opacity-60">
           {storeProducts.length} product{storeProducts.length !== 1 ? "s" : ""}
         </p>
+        </div>
       </section>
 
       {/* Products grid */}
