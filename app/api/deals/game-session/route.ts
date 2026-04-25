@@ -165,7 +165,8 @@ export async function PUT(request: Request) {
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
-  if (session.is_complete) {
+  // Block guesses once won (pending claim) OR once complete
+  if ((session.is_complete as boolean) || (session.is_won as boolean)) {
     return NextResponse.json({ error: "Session already complete" }, { status: 400 });
   }
   if (new Date(session.expires_at as string) < new Date()) {
@@ -181,7 +182,12 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: `Guess must be between 1 and ${rangeMax}` }, { status: 400 });
   }
 
-  const newGuessCount = ((session.guess_count as number) ?? 0) + 1;
+  const currentGuessCount = (session.guess_count as number) ?? 0;
+  // Hard ceiling — defence against race conditions / extra requests
+  if (currentGuessCount >= maxTries) {
+    return NextResponse.json({ error: "No guesses remaining for this session" }, { status: 400 });
+  }
+  const newGuessCount = currentGuessCount + 1;
 
   if (guess === secret) {
     // User won — mark is_won=true but NOT is_complete (they still need to claim points)

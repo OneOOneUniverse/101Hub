@@ -34,6 +34,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid game type" }, { status: 400 });
   }
 
+  // Sanitize answer length to prevent DoS via huge strings
+  if (typeof answer === "string" && answer.length > 100) {
+    return NextResponse.json({ error: "Invalid answer." }, { status: 400 });
+  }
+
+  // Anti-cheat: reject implausibly large elapsed times (session expires in 15 min = 900s)
+  if (typeof elapsedSeconds === "number" && elapsedSeconds > 1800) {
+    return NextResponse.json({ error: "Session timing invalid." }, { status: 400 });
+  }
+
   // Session ID is required — no session means no proof of play
   if (!sessionId) {
     return NextResponse.json({ error: "Missing session ID. Start a new game first." }, { status: 400 });

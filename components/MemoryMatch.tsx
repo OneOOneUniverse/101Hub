@@ -72,6 +72,14 @@ export default function MemoryMatch() {
       if (data.limitReached) { setPhase("limit"); return; }
       if (!res.ok) { setMsg(data.error ?? "Error"); setPhase("won"); return; }
       setPointsEarned(data.pointsEarned ?? 0);
+      // Optimistically decrement then re-fetch to confirm
+      setPlaysLeft((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      if (isSignedIn) {
+        fetch("/api/deals/minigame?game=memory")
+          .then((r) => r.json())
+          .then((d: { playsLeft?: number }) => { if (typeof d.playsLeft === "number") setPlaysLeft(d.playsLeft); })
+          .catch(() => {});
+      }
       setPhase("claimed");
     } catch {
       setMsg("Network error — try again");
@@ -176,10 +184,14 @@ export default function MemoryMatch() {
         <p className="text-5xl">🏆</p>
         <p className="text-xl font-black text-[var(--brand-deep)]">You won!</p>
         <p className="text-2xl font-bold text-[var(--brand)]">+{pointsEarned} Points</p>
-        <p className="text-sm text-[var(--ink-soft)]">Points added to your balance. Play again tomorrow!</p>
-        <button onClick={reset} className="mt-2 rounded-full bg-[var(--brand)] px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90">
-          Play Again
-        </button>
+        <p className="text-sm text-[var(--ink-soft)]">
+          {playsLeft !== null && playsLeft > 0 ? "Ready for another round?" : "Points added to your balance. Come back tomorrow!"}
+        </p>
+        {(playsLeft === null || playsLeft > 0) && (
+          <button onClick={reset} className="mt-2 rounded-full bg-[var(--brand)] px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90">
+            Play Again
+          </button>
+        )}
       </div>
     );
   }
@@ -194,7 +206,7 @@ export default function MemoryMatch() {
           onClick={claimPoints}
           className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
         >
-          Claim 75 Points 🎁
+          Claim Points 🎁
         </button>
         {!isSignedIn && <p className="text-xs text-[var(--ink-soft)]">Sign in to save points</p>}
       </div>

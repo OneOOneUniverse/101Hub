@@ -20,8 +20,13 @@ export default function LuckyNumber() {
   // The revealed secret (shown after loss only, from server response)
   const [revealedSecret, setRevealedSecret] = useState<number | null>(null);
 
-  useEffect(() => {
-    // Create server-side session on mount — this stores the random number in the DB
+  const startNewGame = useCallback(() => {
+    setPhase("loading");
+    setGuesses([]);
+    setInput("");
+    setMsg("");
+    setRevealedSecret(null);
+    setSessionId(null);
     fetch("/api/deals/game-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -38,8 +43,11 @@ export default function LuckyNumber() {
           setPhase("playing");
         }
       })
-      .catch(() => setPhase("playing")); // graceful degradation
+      .catch(() => setPhase("playing"));
+  }, []);
 
+  useEffect(() => {
+    startNewGame();
     if (isSignedIn) {
       fetch("/api/deals/minigame?game=lucky")
         .then((r) => r.json())
@@ -48,7 +56,7 @@ export default function LuckyNumber() {
         })
         .catch(() => {});
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, startNewGame]);
 
   const claimPoints = useCallback(async () => {
     if (!isSignedIn) { setMsg("Sign in to save your points!"); return; }
@@ -64,6 +72,14 @@ export default function LuckyNumber() {
       if (data.limitReached) { setPhase("limit"); return; }
       if (!res.ok) { setMsg(data.error ?? "Error"); return; }
       setPointsEarned(data.pointsEarned ?? 0);
+      // Optimistically decrement then re-fetch to confirm
+      setPlaysLeft((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      if (isSignedIn) {
+        fetch("/api/deals/minigame?game=lucky")
+          .then((r) => r.json())
+          .then((d: { playsLeft?: number }) => { if (typeof d.playsLeft === "number") setPlaysLeft(d.playsLeft); })
+          .catch(() => {});
+      }
       setPhase("claimed");
     } catch {
       setMsg("Network error — try again");
@@ -140,7 +156,14 @@ export default function LuckyNumber() {
         <p className="text-5xl">🎊</p>
         <p className="text-xl font-black text-[var(--brand-deep)]">Points Claimed!</p>
         <p className="text-2xl font-bold text-[var(--brand)]">+{pointsEarned} Points</p>
-        <p className="text-sm text-[var(--ink-soft)]">Points added to your balance. Play again tomorrow!</p>
+        <p className="text-sm text-[var(--ink-soft)]">
+          {playsLeft !== null && playsLeft > 0 ? "Great job! Ready for another round?" : "Points added to your balance. Come back tomorrow!"}
+        </p>
+        {(playsLeft === null || playsLeft > 0) && (
+          <button onClick={startNewGame} className="rounded-full border border-[var(--brand)] px-6 py-2.5 text-sm font-bold text-[var(--brand)] transition hover:bg-[var(--brand)]/10">
+            Play Again 🎲
+          </button>
+        )}
       </div>
     );
   }
@@ -171,6 +194,12 @@ export default function LuckyNumber() {
           Out of guesses!{revealedSecret !== null ? ` It was ${revealedSecret}.` : ""}
         </p>
         <p className="text-sm text-[var(--ink-soft)]">Better luck next time!</p>
+        <button
+          onClick={startNewGame}
+          className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
+        >
+          Try Again 🎲
+        </button>
       </div>
     );
   }

@@ -20,26 +20,7 @@ export default function WordScramble() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    // Create session server-side — word is chosen and stored in DB, not in browser state
-    fetch("/api/deals/game-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gameType: "scramble" }),
-    })
-      .then((r) => r.json())
-      .then((d: { sessionId?: string; scrambledWord?: string; wordLength?: number; error?: string; limitReached?: boolean }) => {
-        if (d.limitReached || !d.sessionId) {
-          setPhase("limit");
-        } else {
-          setSessionId(d.sessionId);
-          setScrambledWord(d.scrambledWord ?? "");
-          setWordLength(d.wordLength ?? 0);
-          sessionStartRef.current = Date.now();
-          setPhase("playing");
-        }
-      })
-      .catch(() => setPhase("playing")); // graceful degradation
-
+    startNewGame();
     if (isSignedIn) {
       fetch("/api/deals/minigame?game=scramble")
         .then((r) => r.json())
@@ -48,7 +29,7 @@ export default function WordScramble() {
         })
         .catch(() => {});
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, startNewGame]);
 
   const submit = useCallback(() => {
     const attempt = input.trim().toUpperCase();
@@ -68,6 +49,14 @@ export default function WordScramble() {
         if (d.pointsEarned !== undefined) {
           // Server confirmed correct answer and awarded points
           setPointsEarned(d.pointsEarned);
+          // Optimistically decrement then re-fetch to confirm
+          setPlaysLeft((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+          if (isSignedIn) {
+            fetch("/api/deals/minigame?game=scramble")
+              .then((r) => r.json())
+              .then((p: { playsLeft?: number }) => { if (typeof p.playsLeft === "number") setPlaysLeft(p.playsLeft); })
+              .catch(() => {});
+          }
           setPhase("claimed");
         } else if (d.limitReached) {
           setPhase("limit");
@@ -86,7 +75,7 @@ export default function WordScramble() {
         setInput("");
         setTimeout(() => setWrongHint(null as unknown as boolean), 800);
       });
-  }, [input, sessionId]);
+  }, [input, sessionId, isSignedIn]);
 
   if (phase === "loading") {
     return (
@@ -113,7 +102,17 @@ export default function WordScramble() {
         <p className="text-5xl">🎉</p>
         <p className="text-xl font-black text-[var(--brand-deep)]">Points Claimed!</p>
         <p className="text-2xl font-bold text-[var(--brand)]">+{pointsEarned} Points</p>
-        <p className="text-sm text-[var(--ink-soft)]">Points added to your balance. Play again tomorrow!</p>
+        <p className="text-sm text-[var(--ink-soft)]">
+          {playsLeft !== null && playsLeft > 0 ? "Ready for another word?" : "Points added to your balance. Come back tomorrow!"}
+        </p>
+        {(playsLeft === null || playsLeft > 0) && (
+          <button
+            onClick={startNewGame}
+            className="rounded-full border border-[var(--brand)] px-6 py-2.5 text-sm font-bold text-[var(--brand)] transition hover:bg-[var(--brand)]/10"
+          >
+            Play Again 🔤
+          </button>
+        )}
       </div>
     );
   }
