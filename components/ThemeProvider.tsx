@@ -16,11 +16,10 @@ export function useTheme() {
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
 
-  // On mount, read saved preference or system preference
+  // On mount, read saved preference; default to light regardless of OS setting
   useEffect(() => {
     const saved = localStorage.getItem("theme") as Theme | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const resolved: Theme = saved ?? (prefersDark ? "dark" : "light");
+    const resolved: Theme = saved ?? "light";
     setTheme(resolved);
     document.documentElement.setAttribute("data-theme", resolved);
   }, []);
