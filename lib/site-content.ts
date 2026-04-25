@@ -456,8 +456,8 @@ const DEFAULT_DEALS_HUB: DealsHubContent = {
   pointsPerCedi: 100,
   minRedeemPoints: 500,
   specialStores: [
-    { id: "store-50", name: "50 Cedis Store", slug: "50-cedis-store", description: "Everything at GHS 50 or less", emoji: "🏷️", bgColor: "#2563eb", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
-    { id: "store-10", name: "10 Cedis Store", slug: "10-cedis-store", description: "Unbeatable deals at GHS 10 or less", emoji: "🔥", bgColor: "#dc2626", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
+    { id: "store-50", name: "50 Cedis Store", slug: "50-cedis-store", description: "Everything at GHS 50 or less", emoji: "🏷️", bgColor: "#2563eb", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], storePrice: 50, enabled: false },
+    { id: "store-10", name: "10 Cedis Store", slug: "10-cedis-store", description: "Unbeatable deals at GHS 10 or less", emoji: "🔥", bgColor: "#dc2626", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], storePrice: 10, enabled: false },
     { id: "store-thrift", name: "Thrift Store", slug: "thrift-store", description: "Pre-loved and budget-friendly finds", emoji: "♻️", bgColor: "#059669", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
     { id: "store-event", name: "Christmas Store", slug: "christmas-store", description: "Festive specials and holiday deals", emoji: "🎄", bgColor: "#b91c1c", textColor: "#ffffff", backgroundImage: "", featuredProductIds: [], enabled: false },
   ],
@@ -541,6 +541,9 @@ function sanitizeSpecialStore(value: unknown, index: number): SpecialStore {
     featuredProductIds: Array.isArray(c.featuredProductIds)
       ? c.featuredProductIds.filter((i): i is string => typeof i === "string")
       : defaults.featuredProductIds,
+    storePrice: typeof (c as Record<string, unknown>).storePrice === "number" && (c as Record<string, unknown>).storePrice as number > 0
+      ? (c as Record<string, unknown>).storePrice as number
+      : defaults.storePrice,
     enabled: toBoolean(c.enabled, defaults.enabled),
   };
 }

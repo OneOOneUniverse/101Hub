@@ -4574,6 +4574,23 @@ export default function AdminPage() {
                   />
                 </Field>
 
+                <Field label="Fixed Store Price (GHS) — optional. Products in this store show this price instead of their original price.">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={store.storePrice ?? ""}
+                    placeholder="Leave blank to use each product's own price"
+                    onChange={(e) => {
+                      const stores = [...content.dealsHub.specialStores];
+                      const val = parseFloat(e.target.value);
+                      stores[si] = { ...stores[si], storePrice: isNaN(val) || val <= 0 ? undefined : val };
+                      setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                    }}
+                    className={inputClassName()}
+                  />
+                </Field>
+
                 <div className="grid gap-3 md:grid-cols-2">
                   <Field label="Background color">
                     <input

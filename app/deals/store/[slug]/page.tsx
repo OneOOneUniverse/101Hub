@@ -31,8 +31,14 @@ export default async function SpecialStorePage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       {/* Header */}
       <section
-        className="rounded-3xl p-6 sm:p-10 text-center space-y-3"
-        style={{ backgroundColor: store.bgColor, color: store.textColor }}
+        className="rounded-3xl p-6 sm:p-10 text-center space-y-3 relative overflow-hidden"
+        style={{
+          backgroundColor: store.bgColor,
+          color: store.textColor,
+          ...(store.backgroundImage
+            ? { backgroundImage: `url('${store.backgroundImage}')`, backgroundSize: "cover", backgroundPosition: "center" }
+            : {}),
+        }}
       >
         <Link
           href="/deals"
@@ -65,16 +71,13 @@ export default async function SpecialStorePage({ params }: Props) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {storeProducts.map((product) => {
-            const hasDiscount = product.discount && product.discount > 0;
-            const discountPercent = hasDiscount ? product.discount! : 0;
-            const salePrice = discountPercent
-              ? Number(
-                  (
-                    product.price *
-                    ((100 - discountPercent) / 100)
-                  ).toFixed(2)
-                )
-              : product.price;
+            // If the store has a fixed price, use it; otherwise fall back to product discount
+            const displayPrice = store.storePrice
+              ? store.storePrice
+              : product.discount && product.discount > 0
+                ? Number((product.price * ((100 - product.discount) / 100)).toFixed(2))
+                : product.price;
+            const isStorePriced = !!store.storePrice && store.storePrice < product.price;
             const reviewStats = content.features.reviews
               ? getReviewStats(product.id, product.rating)
               : { average: product.rating, count: 0 };
@@ -140,15 +143,20 @@ export default async function SpecialStorePage({ params }: Props) {
                   {/* Price */}
                   <div className="flex items-center gap-2">
                     <span className="text-base font-black text-[var(--brand-deep)]">
-                      GHS {salePrice.toFixed(2)}
+                      GHS {displayPrice.toFixed(2)}
                     </span>
-                    {discountPercent > 0 && (
+                    {isStorePriced && (
+                      <span className="text-xs text-[var(--ink-soft)] line-through">
+                        GHS {product.price.toFixed(2)}
+                      </span>
+                    )}
+                    {!isStorePriced && product.discount && product.discount > 0 && (
                       <>
                         <span className="text-xs text-[var(--ink-soft)] line-through">
                           GHS {product.price.toFixed(2)}
                         </span>
                         <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">
-                          -{discountPercent}%
+                          -{product.discount}%
                         </span>
                       </>
                     )}

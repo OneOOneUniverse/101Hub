@@ -243,6 +243,7 @@ export type SpecialStore = {
   textColor: string;
   backgroundImage: string;
   featuredProductIds: string[];
+  storePrice?: number;   // fixed price shown inside this store (e.g. 50 for "50 Cedis Store")
   enabled: boolean;
 };
 
