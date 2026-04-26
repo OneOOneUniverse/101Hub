@@ -266,21 +266,36 @@ const fromAddress = () => `"${STORE_NAME}" <${process.env.SMTP_USER}>`;
 /** Send order confirmation emails to both customer and store owner */
 export async function sendOrderEmails(data: OrderEmailData) {
   const html = orderConfirmationHtml(data);
-  const storeEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
+
+  // Primary store email
+  const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
+
+  // Extra recipients from .env.local — ADMIN_NOTIFICATION_EMAILS=email1@x.com,email2@x.com
+  const extraEmails = (process.env.ADMIN_NOTIFICATION_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim())
+    .filter(Boolean);
+
+  // Combine without duplicates
+  const adminRecipients = [...new Set([primaryEmail, ...extraEmails])];
 
   await Promise.allSettled([
+    // Customer confirmation
     safeSend({
       from: fromAddress(),
       to: data.customerEmail,
       subject: `Your ${STORE_NAME} order ${data.orderRef} is confirmed!`,
       html,
     }),
-    safeSend({
-      from: `"${STORE_NAME} Orders" <${process.env.SMTP_USER}>`,
-      to: storeEmail,
-      subject: `New Order ${data.orderRef} — ${data.customerName}`,
-      html,
-    }),
+    // All admin / supervisor recipients
+    ...adminRecipients.map((recipient) =>
+      safeSend({
+        from: `"${STORE_NAME} Orders" <${process.env.SMTP_USER}>`,
+        to: recipient,
+        subject: `New Order ${data.orderRef} — ${data.customerName}`,
+        html,
+      }),
+    ),
   ]);
 }
 
