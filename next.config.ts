@@ -4,12 +4,12 @@ const nextConfig: NextConfig = {
   compress: true,
   reactStrictMode: true,
   poweredByHeader: false,
-  // Extend the client-side router cache for dynamic routes so navigating back
-  // to a previously visited page is instant (default is 0s for dynamic routes).
+  // Tree-shake heavy packages — only the components actually imported are bundled.
   experimental: {
+    optimizePackageImports: ["recharts"],
     staleTimes: {
-      dynamic: 30,  // cache dynamic page RSC payloads for 30s on the client
-      static: 300,  // keep static page RSC payloads for 5min (up from default)
+      dynamic: 60,   // cache dynamic RSC payloads for 60s on the client
+      static: 600,   // keep static RSC payloads for 10 min
     },
   },
   images: {

@@ -9,8 +9,12 @@ import { getAvatarById } from "@/lib/avatar-options";
 
 export default function GenNavbar({
   onSidebarToggle,
+  logoUrl: logoUrlProp,
+  storeName: storeNameProp,
 }: {
   onSidebarToggle?: () => void;
+  logoUrl?: string;
+  storeName?: string;
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -22,31 +26,8 @@ export default function GenNavbar({
   const avatarId = typeof metadata.avatarId === "string" ? metadata.avatarId : undefined;
   const avatar = getAvatarById(avatarId);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [logoUrl, setLogoUrl] = useState("");
-  const [storeName, setStoreName] = useState("101Hub");
-
-  useEffect(() => {
-    let isActive = true;
-
-    async function loadBranding() {
-      try {
-        const response = await fetch("/api/store", { cache: "default" });
-        const data = (await response.json()) as {
-          logoUrl?: string;
-          storeName?: string;
-        };
-        if (isActive) {
-          if (data.logoUrl) setLogoUrl(data.logoUrl);
-          if (data.storeName) setStoreName(data.storeName);
-        }
-      } catch {
-        // keep defaults
-      }
-    }
-
-    void loadBranding();
-    return () => { isActive = false; };
-  }, []);
+  const logoUrl = logoUrlProp ?? "";
+  const storeName = storeNameProp ?? "101Hub";
 
   useEffect(() => {
     if (!userId) {

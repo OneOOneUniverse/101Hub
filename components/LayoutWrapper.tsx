@@ -17,6 +17,7 @@ import type { FooterContent } from "@/lib/site-content-types";
 type StoreData = {
   features?: { cart?: boolean };
   storeName?: string;
+  logoUrl?: string;
   footerText?: string;
   footer?: FooterContent;
   marquee?: { enabled: boolean; text: string; bgColor?: string; textColor?: string; speed?: number };
@@ -46,7 +47,7 @@ export default function LayoutWrapper({
     let isActive = true;
     async function loadFeatures() {
       try {
-        const response = await fetch("/api/store", { cache: "no-store" });
+        const response = await fetch("/api/store", { cache: "default" });
         const data = (await response.json()) as StoreData;
         if (isActive) {
           if (data.features) {
@@ -84,7 +85,11 @@ export default function LayoutWrapper({
         />
       ) : null}
       <header className="sticky top-0 z-20 bg-transparent">
-        <GenNavbar onSidebarToggle={() => setSidebarOpen((v) => !v)} />
+        <GenNavbar
+          onSidebarToggle={() => setSidebarOpen((v) => !v)}
+          logoUrl={storeData?.logoUrl}
+          storeName={storeData?.storeName}
+        />
         <div className="mt-2 max-w-6xl mx-auto px-3 sm:px-4 md:px-5">
           <NavSearch />
         </div>

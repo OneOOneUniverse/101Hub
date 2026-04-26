@@ -135,6 +135,11 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
         <head>
+          {/* Resource hints — establish connections before they're needed */}
+          <link rel="preconnect" href="https://res.cloudinary.com" />
+          <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+          <link rel="preconnect" href="https://clerk.101hub.shop" crossOrigin="anonymous" />
+          <link rel="dns-prefetch" href="https://accounts.clerk.dev" />
           <link rel="manifest" href="/manifest.json" />
           <link rel="apple-touch-icon" href="/img/log.png" />
           <meta name="theme-color" content="#000000" />

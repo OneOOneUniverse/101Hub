@@ -14,8 +14,8 @@ export default function SiteLoader() {
     }
     const onLoad = () => setLoaded(true);
     window.addEventListener("load", onLoad, { once: true });
-    // Safety net: never block the UI longer than 1.5 s
-    const fallback = setTimeout(() => setLoaded(true), 1500);
+    // Safety net: never block the UI longer than 800 ms
+    const fallback = setTimeout(() => setLoaded(true), 800);
     return () => {
       window.removeEventListener("load", onLoad);
       clearTimeout(fallback);
