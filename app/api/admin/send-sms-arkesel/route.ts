@@ -153,15 +153,20 @@ export async function POST(request: Request) {
     }
 
     const recipientResults = result.data ?? [];
-    const sent = recipientResults.filter((r) => r.status === "success").length;
-    const failed = recipientResults.length - sent;
+    // Arkesel v2 per-recipient status is "sent" (not "success")
+    const sent = recipientResults.filter(
+      (r) => r.status === "sent" || r.status === "success"
+    ).length;
+    // If no per-recipient data, treat the whole batch as sent (top-level status was ok)
+    const effectiveSent = recipientResults.length === 0 ? recipients.length : sent;
+    const failed = recipients.length - effectiveSent;
 
-    console.log(`[send-sms-arkesel] Sent: ${sent}/${recipientResults.length}`);
+    console.log(`[send-sms-arkesel] Sent: ${effectiveSent}/${recipients.length}`);
 
     return NextResponse.json({
       success: true,
       total: recipients.length,
-      sent,
+      sent: effectiveSent,
       failed,
     });
   } catch (err) {
