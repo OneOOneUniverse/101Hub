@@ -389,6 +389,7 @@ function sanitizeDeliveryType(value: unknown, index: number): DeliveryType {
     name: toText(candidate.name, `Delivery Type ${index + 1}`),
     fee: Math.max(0, toNumber(candidate.fee, 0)),
     description: toOptionalText(candidate.description),
+    requiresLocation: candidate.requiresLocation === true ? true : undefined,
   };
 }
 
