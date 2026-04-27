@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import {
   AreaChart,
   Area,
@@ -93,8 +92,6 @@ export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
-  // null = connecting, number = live count from Supabase Realtime Presence
-  const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
 
   const fetchData = useCallback(async (d: number) => {
     setLoading(true);
@@ -112,30 +109,10 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     void fetchData(days);
-    // Auto-refresh every 60 seconds for historical stats (signups, orders, revenue)
-    const interval = setInterval(() => void fetchData(days), 60_000);
+    // Auto-refresh every 30 seconds so active-visitors count stays current
+    const interval = setInterval(() => void fetchData(days), 30_000);
     return () => clearInterval(interval);
   }, [days, fetchData]);
-
-  // ── Supabase Realtime Presence — truly live visitor count ──────────────────
-  // This subscribes to the same channel that VisitorTracker publishes to.
-  // Presence is WebSocket-based: count updates the instant someone opens
-  // or closes any page. No polling needed.
-  useEffect(() => {
-    const channel = supabase.channel("101hub-visitor-presence");
-
-    channel
-      .on("presence", { event: "sync" }, () => {
-        // presenceState() keys are unique visitor IDs, so same visitor
-        // with multiple tabs still counts as one.
-        setLiveVisitors(Object.keys(channel.presenceState()).length);
-      })
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, []);
 
   const chartData =
     data?.uniqueVisitors.map((uv, i) => ({
@@ -207,19 +184,12 @@ export default function AnalyticsDashboard() {
           <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
         </span>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-black text-emerald-700">
-            {liveVisitors ?? data.activeVisitors ?? 0}
-          </span>
+          <span className="text-2xl font-black text-emerald-700">{data.activeVisitors ?? 0}</span>
           <span className="text-sm font-semibold text-emerald-600">
-            {(() => {
-              const n = liveVisitors ?? data.activeVisitors ?? 0;
-              return `visitor${n !== 1 ? "s" : ""} online now`;
-            })()}
+            visitor{(data.activeVisitors ?? 0) !== 1 ? "s" : ""} active now
           </span>
         </div>
-        <span className="ml-auto text-xs text-emerald-500/70">
-          {liveVisitors !== null ? "real-time · WebSocket" : "connecting…"}
-        </span>
+        <span className="ml-auto text-xs text-emerald-500/70">last 15 min · auto-refreshes</span>
       </div>
 
       {/* Summary cards */}
