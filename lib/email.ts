@@ -132,6 +132,15 @@ export interface OrderEmailData {
   total: number;
   paymentMethod: string;
   paymentStatus: string;
+  // Extended admin-only fields
+  deliveryTypeName?: string;
+  locationName?: string;
+  gpsCoords?: { lat: number; lng: number };
+  rewardDiscount?: number;
+  rewardTierName?: string;
+  dealsDiscount?: number;
+  dealsRewardLabel?: string;
+  hasPaymentProof?: boolean;
 }
 
 /** New order confirmation — sent to customer */
@@ -177,6 +186,98 @@ function orderConfirmationHtml(data: OrderEmailData): string {
     </div>` : ''}
 
     <p style="margin:16px 0 0;font-size:13px;color:#555">We'll keep you updated as your order progresses.</p>
+  `);
+}
+
+/** Detailed order summary — sent to admin/supervisors only */
+function adminOrderHtml(data: OrderEmailData): string {
+  const paymentMethodLabel = data.paymentMethod === 'paystack' ? 'Paystack (Online)' : 'Manual Transfer';
+  const mapsUrl = data.gpsCoords
+    ? `https://maps.google.com/?q=${data.gpsCoords.lat},${data.gpsCoords.lng}`
+    : null;
+
+  const infoRow = (label: string, value: string) =>
+    `<tr>
+      <td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap;vertical-align:top">${label}</td>
+      <td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${value}</td>
+    </tr>`;
+
+  const discountRows = [
+    data.rewardDiscount && data.rewardDiscount > 0
+      ? `<tr><td style="padding:4px 8px;font-size:14px;color:#16a34a">Referral discount (${data.rewardTierName ?? ''})</td><td style="padding:4px 8px;text-align:right;font-size:14px;color:#16a34a">− GHS ${data.rewardDiscount.toFixed(2)}</td></tr>`
+      : '',
+    data.dealsDiscount && data.dealsDiscount > 0
+      ? `<tr><td style="padding:4px 8px;font-size:14px;color:#16a34a">Deals reward (${data.dealsRewardLabel ?? ''})</td><td style="padding:4px 8px;text-align:right;font-size:14px;color:#16a34a">− GHS ${data.dealsDiscount.toFixed(2)}</td></tr>`
+      : '',
+  ].join('');
+
+  const totalsHtml = `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:300px;margin-left:auto">
+    <tr><td style="padding:4px 8px;font-size:14px;color:#555">Subtotal</td><td style="padding:4px 8px;text-align:right;font-size:14px">GHS ${data.subtotal.toFixed(2)}</td></tr>
+    <tr><td style="padding:4px 8px;font-size:14px;color:#555">Delivery</td><td style="padding:4px 8px;text-align:right;font-size:14px">${data.delivery === 0 ? 'Free' : `GHS ${data.delivery.toFixed(2)}`}</td></tr>
+    ${data.processingFee > 0 ? `<tr><td style="padding:4px 8px;font-size:14px;color:#555">Processing fee</td><td style="padding:4px 8px;text-align:right;font-size:14px">GHS ${data.processingFee.toFixed(2)}</td></tr>` : ''}
+    ${discountRows}
+    <tr style="font-weight:700;font-size:16px"><td style="padding:10px 8px;border-top:2px solid ${BRAND_COLOR}">Total</td><td style="padding:10px 8px;text-align:right;border-top:2px solid ${BRAND_COLOR}">GHS ${data.total.toFixed(2)}</td></tr>
+  </table>`;
+
+  return wrapLayout(`
+    <!-- Alert banner -->
+    <div style="background:#fff7ed;border:2px solid ${BRAND_COLOR};border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">📦</span>
+      <div>
+        <p style="margin:0;font-size:16px;font-weight:700;color:#c2410c">New Order Received — Action Required</p>
+        <p style="margin:2px 0 0;font-size:13px;color:#9a3412">Review &amp; verify payment proof in the Admin Panel</p>
+      </div>
+    </div>
+
+    <!-- Order ref -->
+    <div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin-bottom:20px;text-align:center">
+      <p style="margin:0 0 2px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.05em">Order Reference</p>
+      <p style="margin:0;font-size:22px;font-weight:800;color:${BRAND_COLOR}">${data.orderRef}</p>
+    </div>
+
+    <!-- Customer details -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.05em">👤 Customer</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      ${infoRow('Name', data.customerName)}
+      ${infoRow('Email', `<a href="mailto:${data.customerEmail}" style="color:${BRAND_COLOR}">${data.customerEmail}</a>`)}
+      ${infoRow('Phone', `<a href="tel:${data.phone}" style="color:${BRAND_COLOR}">${data.phone}</a>`)}
+    </table>
+
+    <!-- Delivery details -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.05em">🚚 Delivery</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      ${infoRow('Address', data.address)}
+      ${data.deliveryTypeName ? infoRow('Method', data.deliveryTypeName) : ''}
+      ${data.locationName ? infoRow('Zone', data.locationName) : ''}
+      ${mapsUrl ? infoRow('GPS Location',
+        `${data.gpsCoords!.lat.toFixed(6)}, ${data.gpsCoords!.lng.toFixed(6)}<br/>
+         <a href="${mapsUrl}" style="color:${BRAND_COLOR};font-weight:600;font-size:12px">📍 Open in Google Maps →</a>`
+      ) : infoRow('GPS Location', '<span style="color:#aaa">Not provided</span>')}
+      ${data.note ? infoRow('Note', `<em>${data.note}</em>`) : ''}
+    </table>
+
+    <!-- Order items -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.05em">🛒 Items Ordered</p>
+    ${orderTable(data.lines)}
+    ${totalsHtml}
+
+    <!-- Payment -->
+    <div style="background:#fef3c7;border:1px solid #fcd34d;padding:14px 16px;border-radius:8px;margin:20px 0">
+      <p style="margin:0 0 8px;font-weight:700;color:#78350f;font-size:14px">💳 Payment</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+        ${infoRow('Method', paymentMethodLabel)}
+        ${infoRow('Status', data.paymentStatus)}
+        ${infoRow('Proof uploaded', data.hasPaymentProof ? '✅ Yes' : '❌ No — follow up with customer')}
+      </table>
+    </div>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin:24px 0 8px">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop'}/admin"
+         style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+        Open Admin Panel →
+      </a>
+    </div>
   `);
 }
 
@@ -279,6 +380,8 @@ export async function sendOrderEmails(data: OrderEmailData) {
   // Combine without duplicates
   const adminRecipients = [...new Set([primaryEmail, ...extraEmails])];
 
+  const adminHtml = adminOrderHtml(data);
+
   await Promise.allSettled([
     // Customer confirmation
     safeSend({
@@ -287,13 +390,13 @@ export async function sendOrderEmails(data: OrderEmailData) {
       subject: `Your ${STORE_NAME} order ${data.orderRef} is confirmed!`,
       html,
     }),
-    // All admin / supervisor recipients
+    // All admin / supervisor recipients — detailed admin template
     ...adminRecipients.map((recipient) =>
       safeSend({
         from: `"${STORE_NAME} Orders" <${process.env.SMTP_USER}>`,
         to: recipient,
-        subject: `New Order ${data.orderRef} — ${data.customerName}`,
-        html,
+        subject: `📦 New Order ${data.orderRef} — ${data.customerName} (GHS ${data.total.toFixed(2)})`,
+        html: adminHtml,
       }),
     ),
   ]);

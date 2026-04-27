@@ -35,6 +35,7 @@ type CheckoutPayload = {
   address?: string;
   location?: string;
   deliveryType?: string;
+  gpsCoords?: { lat: number; lng: number };
   note?: string;
   items?: Array<{ productId: string; qty: number }>;
   paymentMethod?: "manual";
@@ -211,6 +212,13 @@ export async function POST(request: Request) {
   }
 
   // Send confirmation emails — now that the order is confirmed in the DB
+  const resolvedDeliveryType = body.deliveryType
+    ? deliverySettings.deliveryTypes?.find((t) => t.id === body.deliveryType)
+    : undefined;
+  const resolvedLocation = body.location
+    ? deliverySettings.locationFees?.find((l) => l.id === body.location)
+    : undefined;
+
   await sendOrderEmails({
     orderRef,
     customerName: body.customerName,
@@ -225,6 +233,14 @@ export async function POST(request: Request) {
     total,
     paymentMethod,
     paymentStatus,
+    deliveryTypeName: resolvedDeliveryType?.name,
+    locationName: resolvedLocation?.name,
+    gpsCoords: body.gpsCoords,
+    rewardDiscount: rewardDiscount > 0 ? rewardDiscount : undefined,
+    rewardTierName: rewardTierName || undefined,
+    dealsDiscount: dealsDiscount > 0 ? dealsDiscount : undefined,
+    dealsRewardLabel: dealsRewardLabel || undefined,
+    hasPaymentProof: Boolean(body.paymentProof),
   });
 
   // Track order in analytics
