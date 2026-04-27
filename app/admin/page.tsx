@@ -3778,6 +3778,23 @@ export default function AdminPage() {
                 >
                   Remove
                 </button>
+                {/* Requires location toggle — spans all columns */}
+                <label className="col-span-4 flex items-center gap-2.5 cursor-pointer select-none rounded-xl border border-blue-200 bg-blue-50/60 px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    checked={dt.requiresLocation ?? false}
+                    onChange={(event) => {
+                      const deliveryTypes = [...(content.deliverySettings.deliveryTypes ?? [])];
+                      deliveryTypes[dtIndex] = { ...dt, requiresLocation: event.target.checked };
+                      setContent({ ...content, deliverySettings: { ...content.deliverySettings, deliveryTypes } });
+                    }}
+                    className="h-4 w-4 accent-blue-600"
+                  />
+                  <div>
+                    <p className="text-xs font-bold text-blue-800">Require real-time GPS location</p>
+                    <p className="text-[10px] text-blue-600/70">When enabled, checkout will request the customer&apos;s live GPS coordinates for this delivery method</p>
+                  </div>
+                </label>
               </article>
             ))}
           </div>

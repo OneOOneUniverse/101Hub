@@ -180,6 +180,8 @@ export type DeliveryType = {
   name: string;
   fee: number;
   description?: string;
+  /** When true, checkout will request the user's real-time GPS coordinates */
+  requiresLocation?: boolean;
 };
 
 export type DeliverySettings = {

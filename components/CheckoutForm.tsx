@@ -89,6 +89,9 @@ export default function CheckoutForm() {
   const [location, setLocation] = useState("");
   const [deliveryType, setDeliveryType] = useState("");
   const [note, setNote] = useState("");
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsError, setGpsError] = useState("");
   const [items, setItems] = useState<CartLine[]>(() => loadLines());
   const [submitting, setSubmitting] = useState(false);
   const [showPaymentAnimation, setShowPaymentAnimation] = useState(false);
@@ -253,6 +256,14 @@ export default function CheckoutForm() {
         return;
       }
 
+      // Validate GPS coords when selected delivery type requires location
+      const selectedDeliveryType = content?.deliverySettings?.deliveryTypes?.find((t) => t.id === deliveryType);
+      if (selectedDeliveryType?.requiresLocation && !gpsCoords) {
+        setError("Please share your location before placing the order — it is required for this delivery method.");
+        setSubmitting(false);
+        return;
+      }
+
       // Show animation only after validation passes
       setShowPaymentAnimation(true);
 
@@ -279,6 +290,7 @@ export default function CheckoutForm() {
           address: fullAddress,
           location,
           deliveryType,
+          gpsCoords: gpsCoords ?? undefined,
           note,
           items,
           paymentMethod,
@@ -677,7 +689,32 @@ export default function CheckoutForm() {
               id="delivery-type"
               required
               value={deliveryType}
-              onChange={(event) => setDeliveryType(event.target.value)}
+              onChange={(event) => {
+                const newType = event.target.value;
+                setDeliveryType(newType);
+                setGpsCoords(null);
+                setGpsError("");
+                // Trigger GPS request automatically if the selected type requires it
+                const dt = content.deliverySettings.deliveryTypes.find((t) => t.id === newType);
+                if (dt?.requiresLocation) {
+                  setGpsLoading(true);
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                      setGpsLoading(false);
+                    },
+                    (err) => {
+                      setGpsError(
+                        err.code === 1
+                          ? "Location access denied. Please allow location in your browser and try again."
+                          : "Could not get your location. Please try again."
+                      );
+                      setGpsLoading(false);
+                    },
+                    { enableHighAccuracy: true, timeout: 15000 }
+                  );
+                }
+              }}
               className="input-styled"
             >
               <option value="">— Choose delivery method —</option>
@@ -690,10 +727,89 @@ export default function CheckoutForm() {
             {deliveryType && (() => {
               const selected = content.deliverySettings.deliveryTypes.find((t) => t.id === deliveryType);
               return selected ? (
-                <p className="mt-1 text-xs text-[var(--ink-soft)] flex items-center gap-1">
-                  <TruckIcon size={13} /> {selected.description || selected.name}
-                  {selected.fee > 0 ? ` — GHS ${selected.fee.toFixed(2)}` : " — Free"}
-                </p>
+                <>
+                  <p className="mt-1 text-xs text-[var(--ink-soft)] flex items-center gap-1">
+                    <TruckIcon size={13} /> {selected.description || selected.name}
+                    {selected.fee > 0 ? ` — GHS ${selected.fee.toFixed(2)}` : " — Free"}
+                  </p>
+                  {/* GPS Location capture */}
+                  {selected.requiresLocation && (
+                    <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3.5 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <p className="text-xs font-bold text-blue-800">Real-time location required for this delivery method</p>
+                      </div>
+                      {gpsLoading && (
+                        <div className="flex items-center gap-2 text-xs text-blue-700">
+                          <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Detecting your location…
+                        </div>
+                      )}
+                      {gpsCoords && !gpsLoading && (
+                        <div className="flex items-center gap-2 text-xs text-emerald-700 font-semibold">
+                          <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Location captured ({gpsCoords.lat.toFixed(5)}, {gpsCoords.lng.toFixed(5)})
+                          <a
+                            href={`https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-1 underline text-blue-600 hover:text-blue-800"
+                          >
+                            View on map
+                          </a>
+                        </div>
+                      )}
+                      {gpsError && !gpsLoading && (
+                        <div className="space-y-1.5">
+                          <p className="text-xs text-red-600 font-semibold">{gpsError}</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setGpsError("");
+                              setGpsLoading(true);
+                              navigator.geolocation.getCurrentPosition(
+                                (pos) => { setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setGpsLoading(false); },
+                                (err) => { setGpsError(err.code === 1 ? "Location access denied. Please allow location in your browser." : "Could not get your location."); setGpsLoading(false); },
+                                { enableHighAccuracy: true, timeout: 15000 }
+                              );
+                            }}
+                            className="rounded-full border border-blue-300 bg-white px-3 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50 transition-colors"
+                          >
+                            Try Again
+                          </button>
+                        </div>
+                      )}
+                      {!gpsCoords && !gpsLoading && !gpsError && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setGpsLoading(true);
+                            navigator.geolocation.getCurrentPosition(
+                              (pos) => { setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setGpsLoading(false); },
+                              (err) => { setGpsError(err.code === 1 ? "Location access denied. Please allow location in your browser." : "Could not get your location."); setGpsLoading(false); },
+                              { enableHighAccuracy: true, timeout: 15000 }
+                            );
+                          }}
+                          className="flex items-center gap-1.5 rounded-full border border-blue-300 bg-white px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-50 transition-colors"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Share My Location
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               ) : null;
             })()}
           </div>
