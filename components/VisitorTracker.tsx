@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { supabase } from "@/lib/supabase";
 
 function getVisitorId(): string {
   const key = "101hub_vid";
@@ -30,8 +31,12 @@ export default function VisitorTracker({ userId }: { userId?: string | null }) {
   // In-memory ref — survives StrictMode remount so the second invocation is a no-op,
   // but resets when the user navigates so every page change is recorded.
   const lastTracked = useRef<string | null>(null);
+  // Supabase Realtime Presence channel
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const presenceReadyRef = useRef(false);
   const { user } = useUser();
 
+  // ── Page-view analytics (historical record) ──────────────────────────────
   useEffect(() => {
     // Only block StrictMode double-invocation (same pathname in same render cycle).
     // Different pathnames are always tracked, including revisiting a page.
@@ -53,6 +58,47 @@ export default function VisitorTracker({ userId }: { userId?: string | null }) {
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
+
+  // ── Realtime Presence (live "who's on site now") ──────────────────────────
+  // Create the channel once on mount. The presence key is the persistent
+  // visitor ID so multiple tabs by the same visitor count as one.
+  useEffect(() => {
+    const visitorId = getVisitorId();
+    const channel = supabase.channel("101hub-visitor-presence", {
+      config: { presence: { key: visitorId } },
+    });
+    channelRef.current = channel;
+    presenceReadyRef.current = false;
+
+    channel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        presenceReadyRef.current = true;
+        await channel.track({
+          visitor_id: visitorId,
+          page: pathname,
+          user_id: userId ?? null,
+        });
+      }
+    });
+
+    return () => {
+      presenceReadyRef.current = false;
+      channelRef.current = null;
+      void supabase.removeChannel(channel);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally run once
+
+  // Update tracked presence data on every navigation
+  useEffect(() => {
+    if (!channelRef.current || !presenceReadyRef.current) return;
+    const visitorId = getVisitorId();
+    void channelRef.current.track({
+      visitor_id: visitorId,
+      page: pathname,
+      user_id: userId ?? null,
+    });
+  }, [pathname, userId]);
 
   // Client-side signup tracking fallback — fires once per user
   useEffect(() => {
