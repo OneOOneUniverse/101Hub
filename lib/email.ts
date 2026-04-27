@@ -352,9 +352,16 @@ async function safeSend(mailOptions: nodemailer.SendMailOptions) {
     console.warn('[email] Skipped: SMTP not configured');
     return;
   }
+  // Skip if recipient is missing
+  const to = mailOptions.to;
+  if (!to || (typeof to === 'string' && !to.trim())) {
+    console.warn('[email] Skipped: no recipient address');
+    return;
+  }
   try {
     const transporter = getTransporter();
     await transporter.sendMail(mailOptions);
+    console.log('[email] Sent to:', to);
   } catch (err) {
     console.error('[email] Send failed:', err);
   }
@@ -366,7 +373,8 @@ const fromAddress = () => `"${STORE_NAME}" <${process.env.SMTP_USER}>`;
 
 /** Send order confirmation emails to both customer and store owner */
 export async function sendOrderEmails(data: OrderEmailData) {
-  const html = orderConfirmationHtml(data);
+  const customerHtml = orderConfirmationHtml(data);
+  const adminHtml = adminOrderHtml(data);
 
   // Primary store email
   const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
@@ -380,26 +388,23 @@ export async function sendOrderEmails(data: OrderEmailData) {
   // Combine without duplicates
   const adminRecipients = [...new Set([primaryEmail, ...extraEmails])];
 
-  const adminHtml = adminOrderHtml(data);
+  // Send customer confirmation first, then admin emails
+  // Sequential to avoid Gmail rate-limiting parallel sends
+  await safeSend({
+    from: fromAddress(),
+    to: data.customerEmail,
+    subject: `Your ${STORE_NAME} order ${data.orderRef} is confirmed!`,
+    html: customerHtml,
+  });
 
-  await Promise.allSettled([
-    // Customer confirmation
-    safeSend({
-      from: fromAddress(),
-      to: data.customerEmail,
-      subject: `Your ${STORE_NAME} order ${data.orderRef} is confirmed!`,
-      html,
-    }),
-    // All admin / supervisor recipients — detailed admin template
-    ...adminRecipients.map((recipient) =>
-      safeSend({
-        from: `"${STORE_NAME} Orders" <${process.env.SMTP_USER}>`,
-        to: recipient,
-        subject: `📦 New Order ${data.orderRef} — ${data.customerName} (GHS ${data.total.toFixed(2)})`,
-        html: adminHtml,
-      }),
-    ),
-  ]);
+  for (const recipient of adminRecipients) {
+    await safeSend({
+      from: `"${STORE_NAME} Orders" <${process.env.SMTP_USER}>`,
+      to: recipient,
+      subject: `📦 New Order ${data.orderRef} — ${data.customerName} (GHS ${data.total.toFixed(2)})`,
+      html: adminHtml,
+    });
+  }
 }
 
 /** Send payment verified email to customer */
