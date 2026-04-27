@@ -23,6 +23,7 @@ type ItemViewEntry = { page: string; views: number; uniqueUsers: number };
 
 type AnalyticsData = {
   days: number;
+  activeVisitors: number;
   summary: {
     totalUniqueVisitors: number;
     totalSignups: number;
@@ -108,6 +109,9 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     void fetchData(days);
+    // Auto-refresh every 30 seconds so active-visitors count stays current
+    const interval = setInterval(() => void fetchData(days), 30_000);
+    return () => clearInterval(interval);
   }, [days, fetchData]);
 
   const chartData =
@@ -172,6 +176,21 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Live active visitors banner */}
+      <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 px-5 py-3.5 shadow-sm">
+        <span className="relative flex h-3 w-3 shrink-0">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+        </span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl font-black text-emerald-700">{data.activeVisitors ?? 0}</span>
+          <span className="text-sm font-semibold text-emerald-600">
+            visitor{(data.activeVisitors ?? 0) !== 1 ? "s" : ""} active now
+          </span>
+        </div>
+        <span className="ml-auto text-xs text-emerald-500/70">last 15 min · auto-refreshes</span>
+      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">

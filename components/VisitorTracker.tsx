@@ -14,17 +14,6 @@ function getVisitorId(): string {
   return id;
 }
 
-/** Returns true if this page was already tracked this browser session. */
-function alreadyTracked(page: string): boolean {
-  const key = "101hub_tracked";
-  const raw = sessionStorage.getItem(key);
-  const set: string[] = raw ? (JSON.parse(raw) as string[]) : [];
-  if (set.includes(page)) return true;
-  set.push(page);
-  sessionStorage.setItem(key, JSON.stringify(set));
-  return false;
-}
-
 /** Track signup once per user (localStorage flag). */
 function shouldTrackSignup(userId: string): boolean {
   const key = "101hub_signup_tracked";
@@ -38,42 +27,32 @@ function shouldTrackSignup(userId: string): boolean {
 
 export default function VisitorTracker({ userId }: { userId?: string | null }) {
   const pathname = usePathname();
-  const sent = useRef(false);
+  // In-memory ref — survives StrictMode remount so the second invocation is a no-op,
+  // but resets when the user navigates so every page change is recorded.
+  const lastTracked = useRef<string | null>(null);
   const { user } = useUser();
 
   useEffect(() => {
-    // Reset ref when pathname changes so new pages still get tracked
-    sent.current = false;
+    // Only block StrictMode double-invocation (same pathname in same render cycle).
+    // Different pathnames are always tracked, including revisiting a page.
+    if (lastTracked.current === pathname) return;
+    lastTracked.current = pathname;
+
+    const visitorId = getVisitorId();
+    void fetch("/api/analytics/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_type: "page_view",
+        page: pathname,
+        user_id: userId ?? null,
+        metadata: { visitor_id: visitorId },
+      }),
+    }).catch(() => {
+      // silently fail — never block UI for analytics
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
-
-  useEffect(() => {
-    // Guard: StrictMode double-mount protection
-    if (sent.current) return;
-    sent.current = true;
-
-    // Guard: don't re-track if same page was already tracked this session
-    if (alreadyTracked(pathname)) return;
-
-    const track = async () => {
-      try {
-        const visitorId = getVisitorId();
-        await fetch("/api/analytics/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event_type: "page_view",
-            page: pathname,
-            user_id: userId ?? null,
-            metadata: { visitor_id: visitorId },
-          }),
-        });
-      } catch {
-        // silently fail — never block UI for analytics
-      }
-    };
-
-    void track();
-  }, [pathname, userId]);
 
   // Client-side signup tracking fallback — fires once per user
   useEffect(() => {

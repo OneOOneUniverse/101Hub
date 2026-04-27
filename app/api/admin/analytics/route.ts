@@ -212,17 +212,39 @@ async function getUniqueSignupsDailyCounts(days: number): Promise<DailyCount[]> 
   return Object.entries(buckets).map(([date, set]) => ({ date, count: set.size }));
 }
 
+async function getActiveVisitors(minutes = 15): Promise<number> {
+  const since = new Date(Date.now() - minutes * 60 * 1000);
+  const { data, error } = await supabaseAdmin
+    .from("analytics_events")
+    .select("user_id, metadata")
+    .eq("event_type", "page_view")
+    .gte("created_at", since.toISOString());
+
+  if (error) return 0;
+
+  const unique = new Set<string>();
+  for (const row of data ?? []) {
+    const id =
+      (row.user_id as string) ||
+      ((row.metadata as Record<string, unknown>)?.visitor_id as string) ||
+      null;
+    if (id) unique.add(id);
+  }
+  return unique.size;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const days = Math.min(Math.max(Number(searchParams.get("days")) || 30, 1), 365);
 
-  const [uniqueVisitors, signups, orders, topPages, topProductViews, topServiceViews] = await Promise.all([
+  const [uniqueVisitors, signups, orders, topPages, topProductViews, topServiceViews, activeVisitors] = await Promise.all([
     getUniqueVisitorsDailyCounts(days),
     getUniqueSignupsDailyCounts(days),
     getOrderStats(days),
     getTopPages(days),
     getTopItemViews("/products/", days),
     getTopItemViews("/services/", days),
+    getActiveVisitors(15),
   ]);
 
   const totalUnique = uniqueVisitors.reduce((s, d) => s + d.count, 0);
@@ -231,6 +253,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     days,
+    activeVisitors,
     summary: {
       totalUniqueVisitors: totalUnique,
       totalSignups,
