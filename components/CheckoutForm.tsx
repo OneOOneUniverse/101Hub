@@ -26,6 +26,7 @@ type DealsReward = {
 const STORAGE_KEY = "101hub-cart";
 const REWARD_APPLIED_KEY = "101hub-reward-applied";
 const DEALS_REWARD_APPLIED_KEY = "101hub-deals-reward-applied";
+const CHECKOUT_AUTOSAVE_KEY = "101hub-checkout-draft";
 const MANUAL_PAYMENT_NUMBER = "+233 548656980";
 
 const GHANA_REGIONS: Record<string, string[]> = {
@@ -106,6 +107,9 @@ export default function CheckoutForm() {
   const [dealsReward, setDealsReward] = useState<DealsReward | null>(null);
   const [dealsRewardApplied, setDealsRewardApplied] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<"mtn" | "telecel" | "at" | "bank" | null>(null);
+  const [isWaitingForPayment, setIsWaitingForPayment] = useState(false);
+  const [paymentWaitingReturned, setPaymentWaitingReturned] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
 
   // Validate cart items on mount and when products change
@@ -151,6 +155,65 @@ export default function CheckoutForm() {
       })
       .catch(() => {});
   }, []);
+
+  // ── Restore draft on mount ──────────────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CHECKOUT_AUTOSAVE_KEY);
+      if (!saved) return;
+      const d = JSON.parse(saved) as Record<string, string>;
+      if (d.customerName) setCustomerName(d.customerName);
+      if (d.email) setEmail(d.email);
+      if (d.phone) setPhone(d.phone);
+      if (d.address) setAddress(d.address);
+      if (d.region) setRegion(d.region);
+      if (d.town) setTown(d.town);
+      if (d.location) setLocation(d.location);
+      if (d.deliveryType) setDeliveryType(d.deliveryType);
+      if (d.note) setNote(d.note);
+      if (d.selectedProvider) setSelectedProvider(d.selectedProvider as "mtn" | "telecel" | "at" | "bank");
+      // If user was in the middle of paying, restore that state too
+      if (d.wasWaiting === "true") {
+        setIsWaitingForPayment(true);
+        setPaymentWaitingReturned(true); // came back to page = already returned
+      }
+      setDraftRestored(true);
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Autosave form fields on every change ───────────────────────────────────
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        CHECKOUT_AUTOSAVE_KEY,
+        JSON.stringify({
+          customerName,
+          email,
+          phone,
+          address,
+          region,
+          town,
+          location,
+          deliveryType,
+          note,
+          selectedProvider,
+          wasWaiting: isWaitingForPayment ? "true" : "false",
+        })
+      );
+    } catch {}
+  }, [customerName, email, phone, address, region, town, location, deliveryType, note, selectedProvider, isWaitingForPayment]);
+
+  // ── Detect when user switches back from banking app ────────────────────────
+  useEffect(() => {
+    if (!isWaitingForPayment) return;
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        setPaymentWaitingReturned(true);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [isWaitingForPayment]);
 
   const totals = useMemo(() => {
     const deliverySettings = content?.deliverySettings;
@@ -322,6 +385,7 @@ export default function CheckoutForm() {
           setShowPaymentAnimation(false);
           localStorage.removeItem(STORAGE_KEY);
           localStorage.removeItem(REWARD_APPLIED_KEY);
+          localStorage.removeItem(CHECKOUT_AUTOSAVE_KEY);
           // Emit event so cart badge updates
           window.dispatchEvent(new Event("101hub:cart-updated"));
           saveOrderToLocal({
@@ -486,6 +550,128 @@ export default function CheckoutForm() {
         paymentMethod={paymentMethod}
         onClose={() => setShowPaymentAnimation(false)}
       />
+
+      {/* ── Waiting-for-payment overlay ─────────────────────────────────── */}
+      {isWaitingForPayment && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-6">
+          {!paymentWaitingReturned ? (
+            /* ── Waiting state: user is in their banking app ── */
+            <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-2xl space-y-5">
+              {/* Pulsing phone icon */}
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-30 animate-ping" />
+                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl">
+                  📲
+                </span>
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900">Waiting for you…</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Switch to your <span className="font-semibold text-emerald-700">MoMo or banking app</span>, send{" "}
+                  <span className="font-black text-gray-900">GHS {totals.total.toFixed(2)}</span>,
+                  and take a screenshot of the confirmation.
+                </p>
+              </div>
+              {/* Animated progress dots */}
+              <div className="flex justify-center gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-gray-400">
+                This page will update automatically when you return
+              </p>
+              {/* Amount reminder */}
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+                <p className="text-xs text-emerald-700 font-semibold">Amount to send</p>
+                <p className="text-2xl font-black text-emerald-800">GHS {totals.total.toFixed(2)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsWaitingForPayment(false);
+                  setPaymentWaitingReturned(false);
+                }}
+                className="text-xs text-gray-400 underline hover:text-gray-600"
+              >
+                Cancel — go back to form
+              </button>
+            </div>
+          ) : (
+            /* ── Returned state: user came back ── */
+            <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-2xl space-y-5">
+              {/* Success animation */}
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl">
+                  🎉
+                </span>
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900">Welcome back!</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Great — now upload your payment screenshot below and submit your order.
+                  <br />
+                  <span className="text-xs text-gray-400 mt-1 block">
+                    Your form details were saved while you were away.
+                  </span>
+                </p>
+              </div>
+              <div className="rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-left space-y-1">
+                <p className="text-xs font-bold text-blue-900">Checklist before submitting:</p>
+                <ul className="text-xs text-blue-800 space-y-1 ml-3 list-disc">
+                  <li>Screenshot shows <span className="font-semibold">GHS {totals.total.toFixed(2)}</span></li>
+                  <li>Recipient number is visible</li>
+                  <li>Transaction status / reference visible</li>
+                </ul>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWaitingForPayment(false)}
+                className="w-full rounded-full bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 transition-colors active:scale-95"
+              >
+                📸 Upload Screenshot Now
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsWaitingForPayment(false);
+                  setPaymentWaitingReturned(false);
+                }}
+                className="text-xs text-gray-400 underline hover:text-gray-600"
+              >
+                Not done yet — go back to form
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Draft-restored banner ───────────────────────────────────────── */}
+      {draftRestored && !isWaitingForPayment && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-xs text-amber-800 font-semibold">
+            💾 Your form was restored from where you left off.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(CHECKOUT_AUTOSAVE_KEY);
+              setDraftRestored(false);
+              setCustomerName(""); setEmail(""); setPhone(""); setAddress("");
+              setRegion(""); setTown(""); setLocation(""); setDeliveryType(""); setNote("");
+              setSelectedProvider(null);
+            }}
+            className="shrink-0 text-xs text-amber-700 underline hover:text-amber-900"
+          >
+            Clear & start over
+          </button>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] items-start">
       <form onSubmit={handleSubmit} className="form-styled space-y-5 p-5 sm:p-6 lg:order-1">
         <h1 className="text-2xl font-black">Checkout</h1>
@@ -1038,6 +1224,25 @@ export default function CheckoutForm() {
                   </>
                 )}
               </div>
+            </div>
+
+            {/* Go Pay Now CTA */}
+            <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-4 text-white shadow-md">
+              <p className="text-sm font-bold mb-1">Ready to pay? 💸</p>
+              <p className="text-xs text-emerald-100 mb-3">
+                Open your banking / MoMo app, send{" "}
+                <span className="font-black">GHS {totals.total.toFixed(2)}</span>, take a screenshot, then come back here to upload it.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsWaitingForPayment(true);
+                  setPaymentWaitingReturned(false);
+                }}
+                className="w-full rounded-full bg-white text-emerald-700 font-black text-sm py-2.5 hover:bg-emerald-50 transition-colors active:scale-95"
+              >
+                🚀 Go Pay Now — I'll come back with screenshot
+              </button>
             </div>
 
             {/* Payment Proof Upload - With Clear Requirements */}
