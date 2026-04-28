@@ -220,7 +220,7 @@ export default function ServiceDetailClient() {
           {/* CTA + Share */}
           <div className="flex gap-3">
             <a
-              href={`/services?contact=${serviceId}`}
+              href={`/services/${serviceId}/book`}
               className="flex-1 rounded-lg border-2 border-[var(--brand-deep)] bg-[var(--brand-deep)] px-4 py-3 text-center text-sm font-bold text-white hover:bg-[var(--brand)] transition-colors"
             >
               Request This Service
