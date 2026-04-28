@@ -10,6 +10,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
   }
 
+  const customerName  = req.nextUrl.searchParams.get("customerName")  ?? null;
+  const customerEmail = req.nextUrl.searchParams.get("customerEmail") ?? null;
+  const customerPhone = req.nextUrl.searchParams.get("customerPhone") ?? null;
+
   // Find or create the chat
   let { data: chat } = await supabaseAdmin
     .from("support_chats")
@@ -24,11 +28,24 @@ export async function GET(req: NextRequest) {
       .insert({
         session_id: sessionId,
         user_id: user?.id ?? null,
+        user_name: customerName ?? (user ? (user.firstName ?? user.username ?? null) : null),
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
         status: "open",
       })
       .select("id")
       .single();
     chat = newChat;
+  } else if (customerName || customerEmail || customerPhone) {
+    // Update existing chat with new user info if provided
+    await supabaseAdmin
+      .from("support_chats")
+      .update({
+        ...(customerName  ? { user_name: customerName }       : {}),
+        ...(customerEmail ? { customer_email: customerEmail } : {}),
+        ...(customerPhone ? { customer_phone: customerPhone } : {}),
+      })
+      .eq("session_id", sessionId);
   }
 
   if (!chat) {

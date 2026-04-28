@@ -506,3 +506,110 @@ export async function sendOrderMessageEmail(customerEmail: string, customerName:
     html: orderMessageHtml(customerName, orderRef, message),
   });
 }
+
+// ─── Service request emails ──────────────────────────────────────
+
+export interface ServiceRequestEmailData {
+  ticketRef: string;
+  packageName: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  issue: string;
+  preferredTime?: string;
+  requestedDate?: string;
+}
+
+function serviceRequestCustomerHtml(d: ServiceRequestEmailData): string {
+  return wrapLayout(`
+    <h2 style="margin:0 0 16px;color:#111;font-size:20px">Service Request Received ✅</h2>
+    <p style="margin:0 0 6px;font-size:14px;color:#333">Hi <strong>${d.customerName}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">We've received your service request and our team will be in touch within 24 hours.</p>
+
+    <div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin-bottom:16px">
+      <p style="margin:0 0 2px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.05em">Ticket Reference</p>
+      <p style="margin:0;font-size:20px;font-weight:700;color:${BRAND_COLOR}">${d.ticketRef}</p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Service</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${d.packageName}</td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Date</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${d.requestedDate ?? 'Not specified'}</td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Time</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${d.preferredTime ?? 'Not specified'}</td></tr>
+    </table>
+
+    <div style="background:#f3f4f6;padding:14px;border-radius:8px;border-left:4px solid ${BRAND_COLOR};margin-bottom:16px">
+      <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase">Your Request</p>
+      <p style="margin:0;font-size:13px;color:#333;line-height:1.6">${d.issue}</p>
+    </div>
+
+    <p style="font-size:13px;color:#555;margin:0">Keep this ticket number handy — you can use it to track the status of your request.</p>
+  `);
+}
+
+function serviceRequestAdminHtml(d: ServiceRequestEmailData): string {
+  return wrapLayout(`
+    <div style="background:#fff7ed;border:2px solid ${BRAND_COLOR};border-radius:10px;padding:14px 18px;margin-bottom:20px">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#c2410c">🔧 New Service Request — Action Required</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#9a3412">Review the request and contact the customer within 24 hours.</p>
+    </div>
+
+    <div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin-bottom:20px;text-align:center">
+      <p style="margin:0 0 2px;font-size:12px;color:#888;text-transform:uppercase">Ticket Reference</p>
+      <p style="margin:0;font-size:22px;font-weight:800;color:${BRAND_COLOR}">${d.ticketRef}</p>
+    </div>
+
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.05em">👤 Customer</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Name</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${d.customerName}</td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Email</td><td style="padding:8px 12px;font-size:13px;font-weight:600"><a href="mailto:${d.customerEmail}" style="color:${BRAND_COLOR}">${d.customerEmail}</a></td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Phone</td><td style="padding:8px 12px;font-size:13px;font-weight:600"><a href="tel:${d.customerPhone}" style="color:${BRAND_COLOR}">${d.customerPhone}</a></td></tr>
+    </table>
+
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.05em">📦 Service Details</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Package</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${d.packageName}</td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Date</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${d.requestedDate ?? 'Not specified'}</td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Time</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${d.preferredTime ?? 'Not specified'}</td></tr>
+    </table>
+
+    <div style="background:#f3f4f6;padding:14px;border-radius:8px;border-left:4px solid ${BRAND_COLOR};margin-bottom:20px">
+      <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase">Customer Notes</p>
+      <p style="margin:0;font-size:13px;color:#333;line-height:1.6">${d.issue}</p>
+    </div>
+
+    <div style="text-align:center;margin:24px 0 8px">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop'}/admin"
+         style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+        Open Admin Panel →
+      </a>
+    </div>
+  `);
+}
+
+/** Send service request confirmation to customer and notification to admin */
+export async function sendServiceRequestEmails(data: ServiceRequestEmailData) {
+  const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
+  const extraEmails = (process.env.ADMIN_NOTIFICATION_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim())
+    .filter(Boolean);
+  const adminRecipients = [...new Set([primaryEmail, ...extraEmails])];
+
+  // Customer confirmation
+  await safeSend({
+    from: fromAddress(),
+    to: data.customerEmail,
+    subject: `Your ${STORE_NAME} service request ${data.ticketRef} is received!`,
+    html: serviceRequestCustomerHtml(data),
+  });
+
+  // Admin notifications
+  for (const recipient of adminRecipients) {
+    await safeSend({
+      from: `"${STORE_NAME} Services" <${process.env.SMTP_USER}>`,
+      to: recipient,
+      subject: `🔧 New Service Request ${data.ticketRef} — ${data.customerName}`,
+      html: serviceRequestAdminHtml(data),
+    });
+  }
+}

@@ -11,6 +11,7 @@ type ServiceRequest = {
   issue: string;
   preferred_time: string | null;
   requested_date: string | null;
+  payment_proof: string | null;
   status: string;
   created_at: string;
 };
@@ -46,6 +47,7 @@ export default function ServiceRequestsDashboard() {
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | StatusKey>("all");
+  const [proofModal, setProofModal] = useState<string | null>(null);
 
   useEffect(() => { void load(); }, []);
 
@@ -93,6 +95,28 @@ export default function ServiceRequestsDashboard() {
 
   return (
     <section className="space-y-5">
+      {/* Payment Proof Modal */}
+      {proofModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setProofModal(null)}
+        >
+          <div className="relative max-h-[90vh] max-w-2xl" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={proofModal}
+              alt="Payment proof"
+              className="max-h-[80vh] w-auto rounded-lg object-contain shadow-2xl"
+            />
+            <button
+              onClick={() => setProofModal(null)}
+              className="absolute -right-3 -top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-800 shadow hover:bg-gray-100"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="panel p-5 sm:p-6">
         <h2 className="text-2xl font-black text-[var(--brand-deep)]">🔧 Service Requests</h2>
@@ -210,6 +234,30 @@ export default function ServiceRequestsDashboard() {
                   <p className="text-xs font-semibold text-[var(--ink-soft)] mb-1">Customer Notes</p>
                   <p className="text-sm text-[var(--ink)]">{req.issue}</p>
                 </div>
+
+                {/* Payment Proof */}
+                {req.payment_proof ? (
+                  <div className="mb-3 flex items-center gap-3">
+                    <img
+                      src={req.payment_proof}
+                      alt="Payment proof thumbnail"
+                      className="h-14 w-14 rounded-lg border border-[var(--border)] object-cover cursor-pointer"
+                      onClick={() => setProofModal(req.payment_proof!)}
+                    />
+                    <div>
+                      <p className="text-xs font-semibold text-green-700">✅ Payment proof attached</p>
+                      <button
+                        type="button"
+                        onClick={() => setProofModal(req.payment_proof!)}
+                        className="mt-0.5 text-xs font-bold text-blue-600 hover:underline"
+                      >
+                        View Full Screenshot →
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mb-3 text-xs font-semibold text-red-600">⚠️ No payment proof uploaded</p>
+                )}
 
                 {/* Timestamp */}
                 <p className="text-xs text-[var(--ink-soft)] mb-3">

@@ -15,6 +15,18 @@ ALTER TABLE service_requests
 ALTER TABLE service_requests
   ADD COLUMN IF NOT EXISTS payment_proof TEXT DEFAULT NULL;
 
+-- Add customer_email column for service request notifications
+ALTER TABLE service_requests
+  ADD COLUMN IF NOT EXISTS customer_email TEXT DEFAULT NULL;
+
+-- Add user_name, customer_email, customer_phone to support_chats for pre-chat identity
+ALTER TABLE support_chats
+  ADD COLUMN IF NOT EXISTS user_name     TEXT DEFAULT NULL;
+ALTER TABLE support_chats
+  ADD COLUMN IF NOT EXISTS customer_email TEXT DEFAULT NULL;
+ALTER TABLE support_chats
+  ADD COLUMN IF NOT EXISTS customer_phone TEXT DEFAULT NULL;
+
 -- Update status constraint: pending → approved/declined → completed
 -- (Drop any existing constraint first, then add new one)
 -- Note: If no constraint exists, this is safe — DO NOTHING on error

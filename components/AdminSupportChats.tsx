@@ -6,6 +6,8 @@ type Chat = {
   id: number;
   user_id: string | null;
   user_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
   session_id: string;
   status: string;
   page_url: string | null;
@@ -158,10 +160,11 @@ export default function AdminSupportChats() {
                 }`}
               >
                 <p className="text-sm font-semibold text-[var(--ink)] truncate">
-                  {chat.user_id
-                    ? chat.user_name ?? `User: ${chat.user_id.slice(0, 12)}...`
-                    : `Guest: ${chat.session_id.slice(0, 8)}...`}
+                  {chat.user_name ?? (chat.user_id ? `User: ${chat.user_id.slice(0, 12)}...` : `Visitor: ${chat.session_id.slice(0, 8)}...`)}
                 </p>
+                {chat.customer_email && (
+                  <p className="text-[10px] text-[var(--ink-soft)] truncate">{chat.customer_email}</p>
+                )}
                 <p className="text-[10px] text-[var(--ink-soft)] mt-0.5">
                   {new Date(chat.updated_at).toLocaleString()}
                 </p>
@@ -180,14 +183,34 @@ export default function AdminSupportChats() {
         ) : (
           <>
             {/* Header */}
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[var(--ink)]">Conversation</h3>
-              <button
-                onClick={() => loadMessages(selectedChat)}
-                className="text-xs text-[var(--brand)] font-medium hover:underline"
-              >
-                Refresh
-              </button>
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0">
+                  {(() => {
+                    const c = chats.find((x) => x.id === selectedChat);
+                    return c ? (
+                      <>
+                        <h3 className="text-sm font-bold text-[var(--ink)] truncate">
+                          {c.user_name ?? "Unknown"}
+                        </h3>
+                        {(c.customer_email || c.customer_phone) && (
+                          <p className="text-[10px] text-[var(--ink-soft)] truncate">
+                            {[c.customer_email, c.customer_phone].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <h3 className="text-sm font-bold text-[var(--ink)]">Conversation</h3>
+                    );
+                  })()}
+                </div>
+                <button
+                  onClick={() => loadMessages(selectedChat)}
+                  className="text-xs text-[var(--brand)] font-medium hover:underline shrink-0 ml-2"
+                >
+                  Refresh
+                </button>
+              </div>
             </div>
 
             {/* Messages */}

@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import { getSiteContent } from "@/lib/site-content";
 import { supabaseAdmin } from "@/lib/supabase";
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const AfricasTalking = require("africastalking") as (opts: { apiKey: string; username: string }) => {
-  SMS: {
-    send: (opts: { to: string[]; message: string; from?: string }) => Promise<{
-      SMSMessageData: { Recipients: Array<{ status: string; number: string }> };
-    }>;
-  };
-};
+import { sendServiceRequestEmails } from "@/lib/email";
 
 type ServiceRequestPayload = {
   packageId?: string;
   customerName?: string;
+  customerEmail?: string;
   phone?: string;
   issue?: string;
   preferredTime?: string;
@@ -56,100 +48,11 @@ function normalizePhoneNumber(phone: string): string | null {
   return normalized;
 }
 
-function buildTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? "smtp.gmail.com",
-    port: Number(process.env.SMTP_PORT ?? 465),
-    secure: true,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: (process.env.SMTP_PASS ?? "").replace(/\s/g, ""),
-    },
-  });
-}
-
 /** Generate Ticket Ref guaranteed to be unique via database constraint */
 function generateTicketRef(): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `SV-${timestamp}-${random}`;
-}
-
-/** Send email notification to admin and SMS to customer */
-async function sendNotifications(opts: {
-  ticketRef: string;
-  packageName: string;
-  customerName: string;
-  customerPhone: string;
-  issue: string;
-  preferredTime?: string;
-  tierLabel?: string;
-  confirmedAmount?: number;
-}) {
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const storeEmail = process.env.STORE_EMAIL ?? "joeboye247@gmail.com";
-  const storePhone = process.env.STORE_PHONE ?? "+233 548656980";
-  const apiKey = process.env.AFRICASTALKING_API_KEY;
-  const atUsername = process.env.AFRICASTALKING_USERNAME;
-
-  // Send email to admin (awaited to ensure it completes)
-  if (smtpUser && smtpPass && smtpPass !== "YOUR_GMAIL_APP_PASSWORD_HERE") {
-    try {
-      const transporter = buildTransporter();
-      await transporter.verify();
-
-      const html = `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"/></head>
-<body style="font-family:sans-serif;color:#111;max-width:600px;margin:auto;padding:24px">
-  <h2 style="color:#e11d48">🔧 New Service Request — Ticket ${opts.ticketRef}</h2>
-  
-  <div style="background:#f0f9ff;border:1px solid #7dd3fc;padding:16px;border-radius:8px;margin-bottom:16px">
-    <p style="margin:0 0 8px 0;font-weight:bold">📦 Service Package</p>
-    <p style="margin:0;font-size:1.1em;color:#075985">${opts.packageName}${opts.tierLabel ? ` — ${opts.tierLabel}` : ""}</p>
-    ${opts.confirmedAmount != null ? `<p style="margin:4px 0 0 0;font-size:0.9em;color:#075985">💰 Amount: GHS ${opts.confirmedAmount.toFixed(2)}</p>` : ""}
-  </div>
-
-  <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:16px">
-    <tr>
-      <td style="padding:8px;font-weight:bold;background:#f4f4f5;border-radius:4px 0 0 0">Customer</td>
-      <td style="padding:8px;border-radius:0 4px 0 0">${opts.customerName}</td>
-    </tr>
-    <tr>
-      <td style="padding:8px;font-weight:bold;background:#f4f4f5">Phone</td>
-      <td style="padding:8px">${opts.customerPhone}</td>
-    </tr>
-    <tr>
-      <td style="padding:8px;font-weight:bold;background:#f4f4f5">Issue</td>
-      <td style="padding:8px">${opts.issue}</td>
-    </tr>
-    <tr>
-      <td style="padding:8px;font-weight:bold;background:#f4f4f5;border-radius:0 0 0 4px">Preferred Time</td>
-      <td style="padding:8px;border-radius:0 0 4px 0">${opts.preferredTime || "Not specified"}</td>
-    </tr>
-  </table>
-
-  <hr style="margin:24px 0;border:none;border-top:1px solid #eee"/>
-  <p style="font-size:0.85em;color:#555">Questions? Call/WhatsApp: <strong>${storePhone}</strong></p>
-</body>
-</html>`;
-
-      await transporter.sendMail({
-        from: `"101Hub Services" <${smtpUser}>`,
-        to: storeEmail,
-        subject: `New Service Request ${opts.ticketRef} — ${opts.packageName}`,
-        html,
-      });
-
-      console.log(`[services] Admin email sent for ticket ${opts.ticketRef}`);
-    } catch (err) {
-      console.error("[services] Admin email failed:", err);
-    }
-  }
-
-  // Email notification sent above; SMS notifications have been disabled
-  // SMS is now only available through admin dashboard broadcast
 }
 
 export async function GET() {
@@ -170,6 +73,13 @@ export async function POST(request: Request) {
   if (!body.packageId || !body.customerName || !body.phone || !body.issue) {
     return NextResponse.json(
       { error: "packageId, customerName, phone and issue are required" },
+      { status: 400 }
+    );
+  }
+
+  if (!body.customerEmail) {
+    return NextResponse.json(
+      { error: "Email address is required." },
       { status: 400 }
     );
   }
@@ -209,6 +119,7 @@ export async function POST(request: Request) {
     package_id: body.packageId,
     package_name: selected.name,
     customer_name: body.customerName,
+    customer_email: body.customerEmail,
     customer_phone: normalizedPhone,
     issue: body.issue,
     preferred_time: body.preferredTime || null,
@@ -225,16 +136,16 @@ export async function POST(request: Request) {
     );
   }
 
-  // Send notifications (fire-and-forget for SMS, awaited for email to ensure it completes)
-  void sendNotifications({
+  // Send emails to admin and customer
+  void sendServiceRequestEmails({
     ticketRef,
     packageName: selected.name,
     customerName: body.customerName,
+    customerEmail: body.customerEmail,
     customerPhone: normalizedPhone,
     issue: body.issue,
     preferredTime: body.preferredTime,
-    tierLabel: body.tierLabel,
-    confirmedAmount: body.confirmedAmount,
+    requestedDate: body.requestedDate,
   });
 
   return NextResponse.json(
