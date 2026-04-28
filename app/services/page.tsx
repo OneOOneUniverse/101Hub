@@ -45,6 +45,11 @@ function ServicesContent() {
   const [result, setResult] = useState<ServiceResult | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
   const [subServiceId, setSubServiceId] = useState("");
+  const [isWaitingForPayment, setIsWaitingForPayment] = useState(false);
+  const [paymentWaitingReturned, setPaymentWaitingReturned] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  const SERVICE_AUTOSAVE_KEY = "101hub-service-draft";
   const selectedService = useMemo(() => services.find((s) => s.id === packageId) ?? null, [services, packageId]);
   const selectedSubService = useMemo(() => selectedService?.subServices?.find((s) => s.id === subServiceId) ?? null, [selectedService, subServiceId]);
   const selectedPrice = (selectedSubService?.price ?? selectedService?.price) ?? 0;
@@ -54,6 +59,61 @@ function ServicesContent() {
       setPackageId(services[0].id);
     }
   }, [packageId, services]);
+
+  // ── Restore draft on mount ──────────────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SERVICE_AUTOSAVE_KEY);
+      if (!saved) return;
+      const d = JSON.parse(saved) as Record<string, string>;
+      if (d.customerName) setCustomerName(d.customerName);
+      if (d.customerEmail) setCustomerEmail(d.customerEmail);
+      if (d.phone) setPhone(d.phone);
+      if (d.issue) setIssue(d.issue);
+      if (d.preferredTime) setPreferredTime(d.preferredTime);
+      if (d.requestedDate) setRequestedDate(d.requestedDate);
+      if (d.packageId) setPackageId(d.packageId);
+      if (d.subServiceId) setSubServiceId(d.subServiceId);
+      if (d.step === "2") setStep(2);
+      if (d.wasWaiting === "true") {
+        setStep(2);
+        setIsWaitingForPayment(true);
+        setPaymentWaitingReturned(true);
+      }
+      setDraftRestored(true);
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Autosave form fields ────────────────────────────────────────────────────
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        SERVICE_AUTOSAVE_KEY,
+        JSON.stringify({
+          customerName,
+          customerEmail,
+          phone,
+          issue,
+          preferredTime,
+          requestedDate,
+          packageId,
+          subServiceId,
+          step: String(step),
+          wasWaiting: isWaitingForPayment ? "true" : "false",
+        })
+      );
+    } catch {}
+  }, [customerName, customerEmail, phone, issue, preferredTime, requestedDate, packageId, subServiceId, step, isWaitingForPayment]);
+
+  // ── Detect when user switches back from banking app ────────────────────────
+  useEffect(() => {
+    if (!isWaitingForPayment) return;
+    const handleVisibility = () => {
+      if (!document.hidden) setPaymentWaitingReturned(true);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [isWaitingForPayment]);
 
   // Handle ?contact=serviceId from detail page
   useEffect(() => {
@@ -145,6 +205,10 @@ function ServicesContent() {
       setPaymentProof("");
       setStep(1);
       setSubServiceId("");
+      setIsWaitingForPayment(false);
+      setPaymentWaitingReturned(false);
+      setDraftRestored(false);
+      try { localStorage.removeItem(SERVICE_AUTOSAVE_KEY); } catch {}
     } catch {
       setSubmitError("Network error. Please try again.");
     } finally {
@@ -165,6 +229,99 @@ function ServicesContent() {
 
   return (
     <section className="space-y-6 sm:space-y-8">
+      {/* ── Waiting-for-payment overlay ─────────────────────────────────── */}
+      {isWaitingForPayment && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-6">
+          {!paymentWaitingReturned ? (
+            <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-2xl space-y-5">
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-30 animate-ping" />
+                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl">📲</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900">Waiting for you…</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Switch to your <span className="font-semibold text-emerald-700">MoMo or banking app</span>, send{" "}
+                  <span className="font-black text-gray-900">₵{selectedPrice.toFixed(2)}</span>, and take a screenshot of the confirmation.
+                </p>
+              </div>
+              <div className="flex justify-center gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                ))}
+              </div>
+              <p className="text-xs text-gray-400">This page will update automatically when you return</p>
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+                <p className="text-xs text-emerald-700 font-semibold">Amount to send</p>
+                <p className="text-2xl font-black text-emerald-800">₵{selectedPrice.toFixed(2)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setIsWaitingForPayment(false); setPaymentWaitingReturned(false); }}
+                className="text-xs text-gray-400 underline hover:text-gray-600"
+              >
+                Cancel — go back to form
+              </button>
+            </div>
+          ) : (
+            <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-2xl space-y-5">
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl">🎉</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900">Welcome back!</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Great — now upload your payment screenshot below and submit your request.
+                  <br />
+                  <span className="text-xs text-gray-400 mt-1 block">Your form details were saved while you were away.</span>
+                </p>
+              </div>
+              <div className="rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-left space-y-1">
+                <p className="text-xs font-bold text-blue-900">Checklist before submitting:</p>
+                <ul className="text-xs text-blue-800 space-y-1 ml-3 list-disc">
+                  <li>Screenshot shows <span className="font-semibold">₵{selectedPrice.toFixed(2)}</span></li>
+                  <li>Recipient number is visible</li>
+                  <li>Transaction status / reference visible</li>
+                </ul>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWaitingForPayment(false)}
+                className="w-full rounded-full bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 transition-colors active:scale-95"
+              >
+                📸 Upload Screenshot Now
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsWaitingForPayment(false); setPaymentWaitingReturned(false); }}
+                className="text-xs text-gray-400 underline hover:text-gray-600"
+              >
+                Not done yet — go back to form
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {/* ── Draft-restored banner ───────────────────────────────────────── */}
+      {draftRestored && !isWaitingForPayment && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-xs text-amber-800 font-semibold">💾 Your form was restored from where you left off.</p>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(SERVICE_AUTOSAVE_KEY);
+              setDraftRestored(false);
+              setCustomerName(""); setCustomerEmail(""); setPhone(""); setIssue("");
+              setPreferredTime(""); setRequestedDate(""); setSubServiceId("");
+              setStep(1);
+            }}
+            className="shrink-0 text-xs text-amber-700 underline hover:text-amber-900"
+          >
+            Clear &amp; start over
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="panel p-4 sm:p-6">
         <h1 className="text-2xl font-black sm:text-3xl">Expert Services</h1>
@@ -504,6 +661,22 @@ function ServicesContent() {
                 </div>
               </div>
             )}
+
+            {/* Go Pay Now CTA */}
+            <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-4 text-white shadow-md">
+              <p className="text-sm font-bold mb-1">Ready to pay? 💸</p>
+              <p className="text-xs text-emerald-100 mb-3">
+                Open your banking / MoMo app, send{" "}
+                <span className="font-black">₵{selectedPrice.toFixed(2)}</span>, take a screenshot, then come back here to upload it.
+              </p>
+              <button
+                type="button"
+                onClick={() => { setIsWaitingForPayment(true); setPaymentWaitingReturned(false); }}
+                className="w-full rounded-full bg-white text-emerald-700 font-black text-sm py-2.5 hover:bg-emerald-50 transition-colors active:scale-95"
+              >
+                🚀 Go Pay Now — I'll come back with screenshot
+              </button>
+            </div>
 
             {/* Payment Proof Upload */}
             <div>
