@@ -6151,22 +6151,62 @@ export default function AdminPage() {
             </Field>
 
             {/* Image / GIF */}
-            <Field label="Image or GIF URL">
-              <input
-                value={content.announcementPopup?.imageUrl ?? ""}
-                onChange={(e) =>
-                  setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), imageUrl: e.target.value } })
-                }
-                placeholder="https://... or /img/promo.gif"
-                className={inputClassName()}
-              />
-            </Field>
-            {content.announcementPopup?.imageUrl && (
-              <div className="rounded-xl border border-black/10 overflow-hidden w-full max-w-xs">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={content.announcementPopup.imageUrl} alt="Preview" className="w-full object-cover max-h-48" />
+            <Field label="Image or GIF">
+              <div className="flex flex-col gap-2">
+                {content.announcementPopup?.imageUrl ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-[var(--surface)] p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={content.announcementPopup.imageUrl}
+                      alt="Preview"
+                      className="h-16 w-24 rounded-lg object-cover border border-black/10"
+                    />
+                    <div className="flex flex-col gap-1 min-w-0 flex-1">
+                      <p className="text-xs text-[var(--ink-soft)] truncate">{content.announcementPopup.imageUrl}</p>
+                      <div className="flex gap-2">
+                        <ImageUploadButton
+                          folder="announcements"
+                          label="Replace"
+                          onUpload={(url) =>
+                            setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), imageUrl: url } })
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), imageUrl: "" } })
+                          }
+                          className="whitespace-nowrap rounded-full border border-red-300 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <ImageUploadButton
+                    folder="announcements"
+                    label="Upload Image / GIF"
+                    onUpload={(url) =>
+                      setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), imageUrl: url } })
+                    }
+                  />
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-black/10" />
+                  <span className="text-[10px] font-semibold text-[var(--ink-soft)]">OR paste URL</span>
+                  <div className="h-px flex-1 bg-black/10" />
+                </div>
+                <input
+                  value={content.announcementPopup?.imageUrl ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), imageUrl: e.target.value } })
+                  }
+                  placeholder="https://... or /img/promo.gif"
+                  className={inputClassName()}
+                />
               </div>
-            )}
+            </Field>
             <Field label="Image Alt Text">
               <input
                 value={content.announcementPopup?.imageAlt ?? ""}
