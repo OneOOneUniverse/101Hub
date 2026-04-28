@@ -340,6 +340,41 @@ export type DealsHubContent = {
   };
 };
 
+export type AnnouncementPopup = {
+  /** Whether the popup is active */
+  enabled: boolean;
+  /** Popup heading */
+  title?: string;
+  /** Body text shown below the image */
+  body?: string;
+  /** URL of image or GIF to display */
+  imageUrl?: string;
+  /** Alt text for the image */
+  imageAlt?: string;
+  /** Optional CTA button label */
+  ctaLabel?: string;
+  /** Optional CTA button URL */
+  ctaUrl?: string;
+  /** Seconds to wait after page load before showing */
+  delaySeconds: number;
+  /** ISO date — popup is hidden before this date */
+  startDate?: string;
+  /** ISO date — popup is hidden after this date */
+  endDate?: string;
+  /**
+   * How often to show the popup:
+   * - "always"           — every page load
+   * - "once-per-session" — once per browser session (sessionStorage)
+   * - "once-per-day"     — once per calendar day (localStorage)
+   * - "once-ever"        — once per device, ever (localStorage)
+   */
+  frequency: "always" | "once-per-session" | "once-per-day" | "once-ever";
+  /** Override backdrop/card background color */
+  bgColor?: string;
+  /** Override close button label */
+  closeLabel?: string;
+};
+
 export type ManualPaymentField = {
   label: string;
   value: string;
@@ -389,5 +424,6 @@ export type SiteContent = {
   smsTemplates?: SmsTemplate[];
   faqs?: FAQ[];
   dealsHub: DealsHubContent;
+  announcementPopup?: AnnouncementPopup;
   updatedAt: string;
 };

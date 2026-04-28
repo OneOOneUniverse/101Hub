@@ -32,6 +32,7 @@ import {
   type TriviaQuestion,
   type ManualPaymentField,
   type ProviderPaymentDetails,
+  type AnnouncementPopup,
 } from "@/lib/site-content-types";
 import { getSiteContentFromDb, saveSiteContentToDb } from "@/lib/site-content-db";
 
@@ -753,7 +754,32 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
       ) as SiteContent["providerLogos"],
     }),
     dealsHub: sanitizeDealsHub(candidate.dealsHub ?? (defaultContent as Partial<SiteContent>).dealsHub),
+    ...(candidate.announcementPopup && typeof candidate.announcementPopup === "object" && {
+      announcementPopup: sanitizeAnnouncementPopup(candidate.announcementPopup),
+    }),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
+  };
+}
+
+function sanitizeAnnouncementPopup(raw: unknown): AnnouncementPopup {
+  const r = typeof raw === "object" && raw !== null ? raw as Record<string, unknown> : {};
+  const freq = String(r.frequency ?? "once-per-session");
+  return {
+    enabled: !!r.enabled,
+    title: typeof r.title === "string" ? r.title : undefined,
+    body: typeof r.body === "string" ? r.body : undefined,
+    imageUrl: typeof r.imageUrl === "string" && r.imageUrl ? r.imageUrl : undefined,
+    imageAlt: typeof r.imageAlt === "string" ? r.imageAlt : undefined,
+    ctaLabel: typeof r.ctaLabel === "string" ? r.ctaLabel : undefined,
+    ctaUrl: typeof r.ctaUrl === "string" ? r.ctaUrl : undefined,
+    delaySeconds: Math.max(0, Math.min(60, Number(r.delaySeconds) || 0)),
+    startDate: typeof r.startDate === "string" && r.startDate ? r.startDate : undefined,
+    endDate: typeof r.endDate === "string" && r.endDate ? r.endDate : undefined,
+    frequency: (["always", "once-per-session", "once-per-day", "once-ever"] as const).includes(freq as AnnouncementPopup["frequency"])
+      ? (freq as AnnouncementPopup["frequency"])
+      : "once-per-session",
+    bgColor: typeof r.bgColor === "string" && r.bgColor ? r.bgColor : undefined,
+    closeLabel: typeof r.closeLabel === "string" && r.closeLabel ? r.closeLabel : undefined,
   };
 }
 

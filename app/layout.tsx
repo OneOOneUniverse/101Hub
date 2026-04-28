@@ -9,6 +9,7 @@ import SiteLoader from "@/components/SiteLoader";
 import ReferralTracker from "@/components/ReferralTracker";
 import ThemeProvider from "@/components/ThemeProvider";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
+import AnnouncementPopup from "@/components/AnnouncementPopup";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -158,6 +159,7 @@ export default async function RootLayout({
           <ThemeProvider>
           <SiteLoader />
           <PWAInstallBanner />
+          <AnnouncementPopup />
           <ReferralTracker />
           <NotificationProvider>
             <div className="relative flex min-h-screen flex-col overflow-x-hidden">

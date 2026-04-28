@@ -82,6 +82,25 @@ function withDeliveryDefaults(data: SiteContent): SiteContent {
   };
 }
 
+function defaultPopup(existing: SiteContent["announcementPopup"]): NonNullable<SiteContent["announcementPopup"]> {
+  return {
+    enabled: false,
+    title: "",
+    body: "",
+    imageUrl: "",
+    imageAlt: "",
+    ctaLabel: "",
+    ctaUrl: "",
+    delaySeconds: 0,
+    startDate: undefined,
+    endDate: undefined,
+    frequency: "once-per-session",
+    bgColor: "#ffffff",
+    closeLabel: "",
+    ...existing,
+  };
+}
+
 function createProduct(): Product {
   const id = createId("product");
 
@@ -263,7 +282,8 @@ type AdminSectionId =
   | "broadcast-email"
   | "faqs"
   | "deals-hub"
-  | "reviews";
+  | "reviews"
+  | "popup";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
@@ -290,6 +310,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "faqs", label: "FAQs" },
   { id: "deals-hub", label: "🎮 Deals Hub" },
   { id: "reviews", label: "⭐ Reviews" },
+  { id: "popup", label: "📢 Announcement Popup" },
 ];
 
 /** Sections a supervisor can see (subset of full admin). */
@@ -6070,6 +6091,208 @@ export default function AdminPage() {
 
       {activeSection === "reviews" ? (
         <AdminReviewsSection />
+      ) : null}
+
+      {activeSection === "popup" ? (
+        <Section title="📢 Announcement Popup" description="Configure a pop-up overlay that appears when visitors open the site. Upload a GIF or image, set a schedule, and control how often it shows.">
+          <div className="space-y-6">
+            {/* Enable toggle */}
+            <div className="flex items-center justify-between rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm">
+              <div>
+                <p className="text-sm font-bold text-[var(--brand-deep)]">Enable Popup</p>
+                <p className="text-xs text-[var(--ink-soft)]">Show announcement popup to visitors</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={content.announcementPopup?.enabled ?? false}
+                onChange={(e) =>
+                  setContent({
+                    ...content,
+                    announcementPopup: { ...defaultPopup(content.announcementPopup), enabled: e.target.checked },
+                  })
+                }
+                className="h-5 w-5 accent-[var(--brand)]"
+              />
+            </div>
+
+            {/* Title & Body */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Popup Title (optional)">
+                <input
+                  value={content.announcementPopup?.title ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), title: e.target.value } })
+                  }
+                  placeholder="e.g. 🎉 Flash Sale Live Now!"
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Close Button Label">
+                <input
+                  value={content.announcementPopup?.closeLabel ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), closeLabel: e.target.value } })
+                  }
+                  placeholder="Close"
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+
+            <Field label="Body Text (optional)">
+              <textarea
+                value={content.announcementPopup?.body ?? ""}
+                onChange={(e) =>
+                  setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), body: e.target.value } })
+                }
+                placeholder="Write a short message for your visitors..."
+                className={inputClassName(true)}
+              />
+            </Field>
+
+            {/* Image / GIF */}
+            <Field label="Image or GIF URL">
+              <input
+                value={content.announcementPopup?.imageUrl ?? ""}
+                onChange={(e) =>
+                  setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), imageUrl: e.target.value } })
+                }
+                placeholder="https://... or /img/promo.gif"
+                className={inputClassName()}
+              />
+            </Field>
+            {content.announcementPopup?.imageUrl && (
+              <div className="rounded-xl border border-black/10 overflow-hidden w-full max-w-xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={content.announcementPopup.imageUrl} alt="Preview" className="w-full object-cover max-h-48" />
+              </div>
+            )}
+            <Field label="Image Alt Text">
+              <input
+                value={content.announcementPopup?.imageAlt ?? ""}
+                onChange={(e) =>
+                  setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), imageAlt: e.target.value } })
+                }
+                placeholder="Describe the image (for accessibility)"
+                className={inputClassName()}
+              />
+            </Field>
+
+            {/* CTA */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="CTA Button Label (optional)">
+                <input
+                  value={content.announcementPopup?.ctaLabel ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), ctaLabel: e.target.value } })
+                  }
+                  placeholder="e.g. Shop Now"
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="CTA Button URL">
+                <input
+                  value={content.announcementPopup?.ctaUrl ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), ctaUrl: e.target.value } })
+                  }
+                  placeholder="/flash-sale"
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+
+            {/* Timing & frequency */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <Field label="Delay before showing (seconds)">
+                <input
+                  type="number"
+                  min={0}
+                  max={60}
+                  value={content.announcementPopup?.delaySeconds ?? 0}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), delaySeconds: Math.max(0, Math.min(60, Number(e.target.value) || 0)) } })
+                  }
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="Start Date (optional)">
+                <input
+                  type="date"
+                  value={content.announcementPopup?.startDate ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), startDate: e.target.value || undefined } })
+                  }
+                  className={inputClassName()}
+                />
+              </Field>
+              <Field label="End Date (optional)">
+                <input
+                  type="date"
+                  value={content.announcementPopup?.endDate ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), endDate: e.target.value || undefined } })
+                  }
+                  className={inputClassName()}
+                />
+              </Field>
+            </div>
+
+            <Field label="Show Frequency">
+              <select
+                value={content.announcementPopup?.frequency ?? "once-per-session"}
+                onChange={(e) =>
+                  setContent({
+                    ...content,
+                    announcementPopup: {
+                      ...defaultPopup(content.announcementPopup),
+                      frequency: e.target.value as "always" | "once-per-session" | "once-per-day" | "once-ever",
+                    },
+                  })
+                }
+                className={inputClassName()}
+              >
+                <option value="always">Every page load</option>
+                <option value="once-per-session">Once per browser session</option>
+                <option value="once-per-day">Once per day</option>
+                <option value="once-ever">Once ever (per device)</option>
+              </select>
+            </Field>
+
+            {/* Background color */}
+            <Field label="Card Background Color (optional)">
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={content.announcementPopup?.bgColor ?? "#ffffff"}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), bgColor: e.target.value } })
+                  }
+                  className="h-9 w-12 cursor-pointer rounded border border-black/10"
+                />
+                <input
+                  value={content.announcementPopup?.bgColor ?? ""}
+                  onChange={(e) =>
+                    setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), bgColor: e.target.value } })
+                  }
+                  placeholder="#ffffff"
+                  className={inputClassName()}
+                />
+              </div>
+            </Field>
+
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800">
+              <p className="font-bold mb-1">ℹ️ Tips</p>
+              <ul className="list-disc ml-4 space-y-1">
+                <li>Upload your GIF or image to Cloudinary (or your image host) and paste the URL above.</li>
+                <li>Set <strong>Start Date</strong> and <strong>End Date</strong> to limit the popup to a promo window.</li>
+                <li>Use <strong>Once per session</strong> to avoid annoying repeat visitors.</li>
+                <li>Leave <strong>Title</strong> and <strong>Body</strong> empty if you only want to show an image banner.</li>
+                <li>Click <strong>Save Changes</strong> at the top to apply.</li>
+              </ul>
+            </div>
+          </div>
+        </Section>
       ) : null}
     </div>
   );
