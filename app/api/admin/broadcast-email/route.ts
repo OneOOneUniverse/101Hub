@@ -6,6 +6,9 @@ import { sendBroadcastEmail } from "@/lib/email";
 type BroadcastPayload = {
   subject?: string;
   body?: string;
+  category?: 'new-product' | 'offer' | 'flash-sale' | 'event' | 'announcement' | 'general';
+  ctaUrl?: string;
+  ctaLabel?: string;
 };
 
 export async function POST(request: Request) {
@@ -81,7 +84,11 @@ export async function POST(request: Request) {
   }
 
   // Send broadcast
-  const result = await sendBroadcastEmail(emails, subject, body);
+  const result = await sendBroadcastEmail(emails, subject, body, {
+    category: payload.category,
+    ctaUrl: payload.ctaUrl,
+    ctaLabel: payload.ctaLabel,
+  });
 
   return NextResponse.json({
     success: true,

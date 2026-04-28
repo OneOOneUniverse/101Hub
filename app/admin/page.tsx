@@ -354,6 +354,9 @@ export default function AdminPage() {
   const [emailBody, setEmailBody] = useState("");
   const [emailSending, setEmailSending] = useState(false);
   const [emailResult, setEmailResult] = useState<{ success?: string; error?: string } | null>(null);
+  const [emailCategory, setEmailCategory] = useState<'new-product'|'offer'|'flash-sale'|'event'|'announcement'|'general'>("general");
+  const [emailCtaUrl, setEmailCtaUrl] = useState("");
+  const [emailCtaLabel, setEmailCtaLabel] = useState("");
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedFAQs, setExpandedFAQs] = useState<Set<string>>(new Set());
@@ -517,7 +520,13 @@ export default function AdminPage() {
       const response = await fetch("/api/admin/broadcast-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: subj, body }),
+        body: JSON.stringify({
+          subject: subj,
+          body,
+          category: emailCategory,
+          ctaUrl: emailCtaUrl.trim() || undefined,
+          ctaLabel: emailCtaLabel.trim() || undefined,
+        }),
       });
       const data = (await response.json()) as {
         success?: boolean;
@@ -536,6 +545,9 @@ export default function AdminPage() {
         });
         setEmailSubject("");
         setEmailBody("");
+        setEmailCtaUrl("");
+        setEmailCtaLabel("");
+        setEmailCategory("general");
       }
     } catch {
       setEmailResult({ error: "Network error — could not reach the server." });
@@ -4804,24 +4816,106 @@ export default function AdminPage() {
 
       {activeSection === "broadcast-email" ? (
         <Section
-          title="📧 Broadcast Email"
-          description="Send an email to every registered user. Uses your configured SMTP settings (Gmail). Supports basic HTML in the body."
+          title="📧 Email Campaigns"
+          description="Send targeted email campaigns to all registered users. Pick a category to auto-apply a branded banner and use templates to fill in the content."
         >
-          <div className="space-y-4">
+          <div className="space-y-5">
+            {/* Category picker */}
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--brand-deep)]">Campaign Type</label>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    { id: "new-product",  icon: "🆕", label: "New Product" },
+                    { id: "offer",        icon: "🏷️", label: "Special Offer" },
+                    { id: "flash-sale",   icon: "⚡", label: "Flash Sale" },
+                    { id: "event",        icon: "🎉", label: "Event / Launch" },
+                    { id: "announcement", icon: "📢", label: "Announcement" },
+                    { id: "general",      icon: "📬", label: "General" },
+                  ] as const
+                ).map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setEmailCategory(cat.id)}
+                    className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${emailCategory === cat.id ? "border-[var(--brand)] bg-[var(--brand)] text-white" : "border-black/15 bg-white text-[var(--ink)] hover:border-[var(--brand)]"}`}
+                  >
+                    {cat.icon} {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick templates */}
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--brand-deep)]">Quick Templates</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  {
+                    label: "New Arrivals",
+                    cat: "new-product" as const,
+                    subject: "🆕 New Products Just Landed at 101Hub!",
+                    body: "We just added exciting new products to our store!\n\nHead over to <a href=\"/products\">our products page</a> to check out the latest arrivals — fresh styles, new tech, and more.\n\n<b>Shop the new arrivals before they sell out!</b>",
+                    ctaLabel: "Browse New Arrivals",
+                    ctaUrl: "/products",
+                  },
+                  {
+                    label: "Flash Sale",
+                    cat: "flash-sale" as const,
+                    subject: "⚡ FLASH SALE — Up to 50% Off Today Only!",
+                    body: "Today only — we're running a <b>FLASH SALE</b> with incredible discounts across selected products!\n\n🔥 Up to <b>50% off</b> on select items\n⏰ Sale ends at midnight tonight\n\nDon't miss out — grab your favourites before time runs out!",
+                    ctaLabel: "Shop the Flash Sale",
+                    ctaUrl: "/flash-sale",
+                  },
+                  {
+                    label: "Exclusive Offer",
+                    cat: "offer" as const,
+                    subject: "🏷️ Exclusive Offer — Just for You!",
+                    body: "As one of our valued customers, we're giving you an <b>exclusive offer</b> this week.\n\nUse the promo code at checkout to enjoy your special discount.\n\n<b>Limited time — offer expires soon!</b>",
+                    ctaLabel: "Claim Your Offer",
+                    ctaUrl: "/products",
+                  },
+                  {
+                    label: "Event / Launch",
+                    cat: "event" as const,
+                    subject: "🎉 Big Event Happening at 101Hub!",
+                    body: "We have something special coming your way!\n\nJoin us for an exclusive event where we'll be showcasing new products, exciting deals, and much more.\n\n<b>Mark your calendar and be the first to know!</b>",
+                    ctaLabel: "Learn More",
+                    ctaUrl: "/",
+                  },
+                ].map((tpl) => (
+                  <button
+                    key={tpl.label}
+                    type="button"
+                    onClick={() => {
+                      setEmailCategory(tpl.cat);
+                      setEmailSubject(tpl.subject);
+                      setEmailBody(tpl.body);
+                      setEmailCtaLabel(tpl.ctaLabel);
+                      setEmailCtaUrl(tpl.ctaUrl);
+                      setEmailResult(null);
+                    }}
+                    className="rounded-full border border-black/15 bg-white px-3 py-1.5 text-xs font-semibold text-[var(--ink)] hover:border-[var(--brand)] hover:text-[var(--brand-deep)] transition"
+                  >
+                    Use: {tpl.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Subject */}
             <div className="space-y-1">
               <label className="block text-sm font-semibold text-[var(--brand-deep)]">Subject</label>
               <input
                 type="text"
                 value={emailSubject}
-                onChange={(e) => {
-                  setEmailSubject(e.target.value);
-                  setEmailResult(null);
-                }}
+                onChange={(e) => { setEmailSubject(e.target.value); setEmailResult(null); }}
                 placeholder="e.g. New arrivals just dropped!"
                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]"
               />
             </div>
 
+            {/* Body */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-semibold text-[var(--brand-deep)]">Body (HTML supported)</label>
@@ -4829,14 +4923,35 @@ export default function AdminPage() {
               </div>
               <textarea
                 value={emailBody}
-                onChange={(e) => {
-                  setEmailBody(e.target.value);
-                  setEmailResult(null);
-                }}
+                onChange={(e) => { setEmailBody(e.target.value); setEmailResult(null); }}
                 rows={8}
                 placeholder={"Write your email content here…\n\nYou can use basic HTML like <b>bold</b>, <a href=\"...\">links</a>, <br> for line breaks, etc."}
                 className="min-h-40 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)] font-mono"
               />
+            </div>
+
+            {/* CTA row */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="block text-sm font-semibold text-[var(--brand-deep)]">CTA Button Label <span className="text-[var(--ink-soft)] font-normal">(optional)</span></label>
+                <input
+                  type="text"
+                  value={emailCtaLabel}
+                  onChange={(e) => setEmailCtaLabel(e.target.value)}
+                  placeholder="e.g. Shop Now, View Offer…"
+                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-semibold text-[var(--brand-deep)]">CTA Link URL <span className="text-[var(--ink-soft)] font-normal">(optional)</span></label>
+                <input
+                  type="url"
+                  value={emailCtaUrl}
+                  onChange={(e) => setEmailCtaUrl(e.target.value)}
+                  placeholder="e.g. https://www.101hub.shop/products"
+                  className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--brand)]"
+                />
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-4">

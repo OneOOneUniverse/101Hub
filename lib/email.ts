@@ -426,20 +426,50 @@ export async function sendBroadcastEmail(
   recipients: string[],
   subject: string,
   bodyHtml: string,
+  opts?: {
+    category?: 'new-product' | 'offer' | 'flash-sale' | 'event' | 'announcement' | 'general';
+    ctaUrl?: string;
+    ctaLabel?: string;
+  },
 ): Promise<{ sent: number; failed: number }> {
   if (!isEmailConfigured()) {
     console.warn('[email] Broadcast skipped: SMTP not configured');
     return { sent: 0, failed: 0 };
   }
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+
+  // Category-specific banner config
+  const categoryConfig: Record<string, { icon: string; bannerBg: string; bannerBorder: string; bannerText: string; label: string }> = {
+    'new-product':   { icon: '🆕', bannerBg: '#eff6ff', bannerBorder: '#3b82f6', bannerText: '#1d4ed8', label: 'New Products' },
+    'offer':         { icon: '🏷️', bannerBg: '#fefce8', bannerBorder: '#eab308', bannerText: '#854d0e', label: 'Special Offer' },
+    'flash-sale':    { icon: '⚡', bannerBg: '#fff7ed', bannerBorder: BRAND_COLOR, bannerText: '#c2410c', label: 'Flash Sale' },
+    'event':         { icon: '🎉', bannerBg: '#fdf4ff', bannerBorder: '#a855f7', bannerText: '#7e22ce', label: 'Upcoming Event' },
+    'announcement':  { icon: '📢', bannerBg: '#f0fdf4', bannerBorder: '#22c55e', bannerText: '#15803d', label: 'Announcement' },
+    'general':       { icon: '📬', bannerBg: '#f9fafb', bannerBorder: '#9ca3af', bannerText: '#374151', label: 'Update' },
+  };
+  const cat = categoryConfig[opts?.category ?? 'general'] ?? categoryConfig['general'];
+
+  const ctaUrl   = opts?.ctaUrl   || `${appUrl}/products`;
+  const ctaLabel = opts?.ctaLabel || 'Shop Now';
+
   const html = wrapLayout(`
-    <div style="font-size:14px;color:#333;line-height:1.6">
+    <!-- Category banner -->
+    <div style="background:${cat.bannerBg};border:2px solid ${cat.bannerBorder};border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">${cat.icon}</span>
+      <p style="margin:0;font-size:14px;font-weight:700;color:${cat.bannerText}">${cat.label} from ${STORE_NAME}</p>
+    </div>
+
+    <!-- Body -->
+    <div style="font-size:14px;color:#333;line-height:1.7">
       ${bodyHtml}
     </div>
+
+    <!-- CTA -->
     <div style="text-align:center;margin:28px 0 12px">
-      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? ''}/products"
+      <a href="${ctaUrl}"
          style="display:inline-block;padding:12px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px">
-        Shop Now
+        ${ctaLabel}
       </a>
     </div>
     <p style="margin:16px 0 0;font-size:11px;color:#aaa;text-align:center">
@@ -504,6 +534,47 @@ export async function sendOrderMessageEmail(customerEmail: string, customerName:
     to: customerEmail,
     subject: `New message about your ${STORE_NAME} order ${orderRef}`,
     html: orderMessageHtml(customerName, orderRef, message),
+  });
+}
+
+// ─── Support chat new-session alert ─────────────────────────────
+
+/** Notify admin when a new support chat session is opened */
+export async function sendNewChatAlertEmail(opts: {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+}) {
+  const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop';
+
+  const html = wrapLayout(`
+    <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px 18px;margin-bottom:20px">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#15803d">💬 New Support Chat Started</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#166534">A customer just opened a live support chat.</p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Name</td><td style="padding:8px 12px;font-size:13px;font-weight:600;color:#222">${opts.customerName}</td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Email</td><td style="padding:8px 12px;font-size:13px;font-weight:600"><a href="mailto:${opts.customerEmail}" style="color:${BRAND_COLOR}">${opts.customerEmail}</a></td></tr>
+      <tr><td style="padding:8px 12px;font-size:13px;color:#888;white-space:nowrap">Phone</td><td style="padding:8px 12px;font-size:13px;font-weight:600"><a href="tel:${opts.customerPhone}" style="color:${BRAND_COLOR}">${opts.customerPhone}</a></td></tr>
+    </table>
+
+    <p style="font-size:13px;color:#555;margin:0 0 20px">Reply promptly — fast responses build customer trust.</p>
+
+    <div style="text-align:center;margin:24px 0 8px">
+      <a href="${appUrl}/admin?tab=support-chat"
+         style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+        Open Support Chat →
+      </a>
+    </div>
+  `);
+
+  await safeSend({
+    from: fromAddress(),
+    to: primaryEmail,
+    subject: `💬 New Support Chat — ${opts.customerName}`,
+    html,
   });
 }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { notifyAdmins, notifyUser } from "@/lib/db-notifications";
+import { sendNewChatAlertEmail } from "@/lib/email";
 
 /** GET — fetch messages for a chat session */
 export async function GET(req: NextRequest) {
@@ -36,6 +37,15 @@ export async function GET(req: NextRequest) {
       .select("id")
       .single();
     chat = newChat;
+
+    // Fire-and-forget email alert to admin when a new chat session opens
+    if (customerName && customerEmail && customerPhone) {
+      void sendNewChatAlertEmail({
+        customerName,
+        customerEmail,
+        customerPhone,
+      });
+    }
   } else if (customerName || customerEmail || customerPhone) {
     // Update existing chat with new user info if provided
     await supabaseAdmin
