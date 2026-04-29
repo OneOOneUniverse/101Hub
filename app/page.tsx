@@ -2,7 +2,6 @@ import Link from "next/link";
 import PromoSlider from "@/components/PromoSlider";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
 import BlackFridayBanner from "@/components/BlackFridayBanner";
-import HeroVideoBackground from "@/components/HeroVideoBackground";
 import { getSiteContent } from "@/lib/site-content";
 
 export const revalidate = 60; // regenerate cached page every 60 seconds
@@ -46,17 +45,6 @@ export default async function Home() {
               : undefined
           }
         >
-          {/* Video background — auto-cycles through multiple videos */}
-          <HeroVideoBackground
-            desktopVideos={[
-              ...(content.home.heroVideos ?? []),
-              ...(content.home.heroVideoUrl ? [content.home.heroVideoUrl] : []),
-            ]}
-            mobileVideos={[
-              ...(content.home.heroMobileVideos ?? []),
-              ...(content.home.heroVideoMobileUrl ? [content.home.heroVideoMobileUrl] : []),
-            ]}
-          />
           {/* Dark overlay for readability */}
           <div className="absolute inset-0 bg-black/55" />
 

@@ -28,5 +28,8 @@ export async function GET(request: NextRequest) {
     result.sort((a, b) => b.rating - a.rating);
   }
 
-  return NextResponse.json({ items: result, total: result.length });
+  return NextResponse.json(
+    { items: result, total: result.length },
+    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
+  );
 }

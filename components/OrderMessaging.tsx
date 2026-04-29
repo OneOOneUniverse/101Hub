@@ -30,7 +30,7 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
     void loadMessages();
     const interval = setInterval(() => {
       void loadMessages();
-    }, 5000);
+    }, 20000);
     return () => clearInterval(interval);
   }, [orderRef]);
 

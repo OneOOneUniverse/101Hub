@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { currentUser } from "@clerk/nextjs/server";
+
+export const revalidate = 60; // cache GET responses for 60s at the edge
 import { supabaseAdmin } from "@/lib/supabase";
 import { getAvatarById } from "@/lib/avatar-options";
 

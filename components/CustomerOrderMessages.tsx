@@ -52,7 +52,7 @@ export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessage
     void loadMessages();
     const interval = setInterval(() => {
       void loadMessages();
-    }, 10000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [orderRef, addNotification]);
 
