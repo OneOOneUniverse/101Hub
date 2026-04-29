@@ -124,7 +124,7 @@ export default function AnnouncementPopup() {
             <img
               src={popup.imageUrl}
               alt={popup.imageAlt ?? popup.title ?? "Announcement"}
-              className="w-full object-cover max-h-72"
+              className="w-full h-auto block"
               loading="eager"
             />
           </div>
