@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import NotificationBell from "./NotificationBell";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { getAvatarById } from "@/lib/avatar-options";
 
@@ -111,8 +110,6 @@ export default function GenNavbar({
       </Link>
 
       <div className="gen-nav-actions">
-        {/* Notification bell */}
-        <NotificationBell />
         {/* Profile avatar */}
         <div className="gen-profile-wrap" ref={profileRef}>
           <button
