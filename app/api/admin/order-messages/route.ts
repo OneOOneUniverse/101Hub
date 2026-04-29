@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { isAdminEmail } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
 type OrderMessage = {
@@ -20,13 +21,15 @@ type DeleteMessagePayload = {
 };
 
 export async function GET(request: Request) {
-  // Admin guard — use session claims to avoid a second Clerk network call
-  const { userId, sessionClaims } = await auth();
-  if (!userId) {
+  // Admin guard — single currentUser() call reads publicMetadata directly (reliable)
+  const user = await currentUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-  const role = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role as string | undefined;
-  if (role !== 'admin' && role !== 'supervisor') {
+  const meta = user.publicMetadata as Record<string, unknown> | undefined;
+  const role = typeof meta?.role === 'string' ? meta.role.toLowerCase() : '';
+  const emails = user.emailAddresses.map((e) => e.emailAddress);
+  if (role !== 'admin' && role !== 'supervisor' && !emails.some((e) => isAdminEmail(e))) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
@@ -75,13 +78,15 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  // Admin guard — use session claims to avoid a second Clerk network call
-  const { userId, sessionClaims } = await auth();
-  if (!userId) {
+  // Admin guard — single currentUser() call reads publicMetadata directly (reliable)
+  const user = await currentUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-  const role = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role as string | undefined;
-  if (role !== 'admin' && role !== 'supervisor') {
+  const meta2 = user.publicMetadata as Record<string, unknown> | undefined;
+  const role2 = typeof meta2?.role === 'string' ? meta2.role.toLowerCase() : '';
+  const emails2 = user.emailAddresses.map((e) => e.emailAddress);
+  if (role2 !== 'admin' && role2 !== 'supervisor' && !emails2.some((e) => isAdminEmail(e))) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
