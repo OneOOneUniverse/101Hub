@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
-import { isCurrentUserAdmin } from '@/lib/auth';
+import { isAdminEmail } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 /**
@@ -18,7 +18,11 @@ export async function GET(request: Request) {
   const limit = Math.min(Number(searchParams.get('limit') ?? 30), 100);
   const unreadOnly = searchParams.get('unread') === 'true';
 
-  const isAdmin = await isCurrentUserAdmin();
+  // Derive admin status from the already-fetched user — avoids a second Clerk network call
+  const metadata = user.publicMetadata as Record<string, unknown> | undefined;
+  const role = typeof metadata?.role === 'string' ? metadata.role.toLowerCase() : '';
+  const emails = user.emailAddresses.map((e) => e.emailAddress);
+  const isAdmin = role === 'admin' || role === 'supervisor' || emails.some((e) => isAdminEmail(e));
 
   // Build query: user's own notifications + admin broadcasts (if admin)
   // IMPORTANT: filters must come before .limit() for Supabase to generate valid SQL
@@ -80,7 +84,10 @@ export async function PUT(request: Request) {
   }
 
   const body = (await request.json()) as { ids?: string[]; all?: boolean };
-  const isAdmin = await isCurrentUserAdmin();
+  const metadata2 = user.publicMetadata as Record<string, unknown> | undefined;
+  const role2 = typeof metadata2?.role === 'string' ? metadata2.role.toLowerCase() : '';
+  const emails2 = user.emailAddresses.map((e) => e.emailAddress);
+  const isAdmin = role2 === 'admin' || role2 === 'supervisor' || emails2.some((e) => isAdminEmail(e));
 
   if (body.all) {
     // Mark all as read (including broadcast notifications)

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { isCurrentUserAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
 type OrderMessage = {
@@ -21,13 +20,13 @@ type DeleteMessagePayload = {
 };
 
 export async function GET(request: Request) {
-  // Admin guard
-  const { userId } = await auth();
+  // Admin guard — use session claims to avoid a second Clerk network call
+  const { userId, sessionClaims } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-  const adminCheck = await isCurrentUserAdmin();
-  if (!adminCheck) {
+  const role = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role as string | undefined;
+  if (role !== 'admin' && role !== 'supervisor') {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
@@ -76,13 +75,13 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  // Admin guard
-  const { userId } = await auth();
+  // Admin guard — use session claims to avoid a second Clerk network call
+  const { userId, sessionClaims } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-  const adminCheck = await isCurrentUserAdmin();
-  if (!adminCheck) {
+  const role = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role as string | undefined;
+  if (role !== 'admin' && role !== 'supervisor') {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
