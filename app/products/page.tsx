@@ -512,8 +512,11 @@ function ProductsPageContent() {
             </article>
           );
 
-          if (enabledStores.length > 0 && (index + 1) % 3 === 0 && index < paginatedProducts.length - 1) {
-            const bannerStore = enabledStores[Math.floor(index / 3) % enabledStores.length];
+          if (enabledStores.length > 0 && (index + 1) % 4 === 0 && index < paginatedProducts.length - 1) {
+            const bannerIndex = Math.floor(index / 4);
+            // Only show each store once; stop inserting after all stores have been shown
+            if (bannerIndex >= enabledStores.length) return [card];
+            const bannerStore = enabledStores[bannerIndex];
             return [card, (
               <Link
                 key={`store-banner-${index}`}
