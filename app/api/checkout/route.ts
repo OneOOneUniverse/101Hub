@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getSiteContent } from "@/lib/site-content";
+import { saveSiteContentToDb } from "@/lib/site-content-db";
 import { supabaseAdmin } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase";
 import { notifyAdmins, notifyUser } from "@/lib/db-notifications";
@@ -42,12 +43,13 @@ type CheckoutPayload = {
   paymentProof?: string;
   applyReward?: boolean;
   applyDealsReward?: boolean;
+  discountCode?: string;
 };
 
 type OrderLine = { name: string; qty: number; unitPrice: number; lineTotal: number };
 
 export async function POST(request: Request) {
-  const { products, features, deliverySettings, paymentSettings } = await getSiteContent();
+  const { products, features, deliverySettings, paymentSettings, discountCodes } = await getSiteContent();
   const clerkUser = await currentUser().catch(() => null);
   let body: CheckoutPayload;
 
@@ -180,6 +182,34 @@ export async function POST(request: Request) {
   }
 
   const paymentStatus = "⏳ Awaiting admin verification";
+
+  // ── Apply discount code if provided ──
+  let codeDiscount = 0;
+  let appliedCodeStr = "";
+  if (body.discountCode) {
+    const trimmedCode = body.discountCode.trim().toUpperCase();
+    const found = (discountCodes ?? []).find((c) => c.code === trimmedCode && c.enabled);
+    if (found) {
+      const notExpired = !found.expiresAt || new Date(found.expiresAt) >= new Date();
+      const withinLimit = !found.maxUsages || found.maxUsages === 0 || found.usageCount < found.maxUsages;
+      const meetsMin = !found.minOrderAmount || subtotal >= found.minOrderAmount;
+      if (notExpired && withinLimit && meetsMin) {
+        codeDiscount = found.type === "percent"
+          ? Math.min(subtotal, (subtotal * found.value) / 100)
+          : Math.min(subtotal, found.value);
+        codeDiscount = Math.round(codeDiscount * 100) / 100;
+        appliedCodeStr = trimmedCode;
+        total = Math.max(0, total - codeDiscount);
+        // Increment usage count — fire-and-forget so checkout isn't blocked
+        void getSiteContent().then((fullContent) => {
+          const updatedCodes = (fullContent.discountCodes ?? []).map((c) =>
+            c.code === trimmedCode ? { ...c, usageCount: c.usageCount + 1 } : c
+          );
+          return saveSiteContentToDb({ ...fullContent, discountCodes: updatedCodes });
+        }).catch((err: unknown) => console.error("[checkout] discount usage update failed:", err));
+      }
+    }
+  }
 
   // Save order to Supabase first — emails are only sent after a successful insert
   const { error: dbError } = await supabaseAdmin.from("orders").insert({

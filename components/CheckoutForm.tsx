@@ -110,6 +110,11 @@ export default function CheckoutForm() {
   const [isWaitingForPayment, setIsWaitingForPayment] = useState(false);
   const [paymentWaitingReturned, setPaymentWaitingReturned] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
+  // Discount code
+  const [discountCodeInput, setDiscountCodeInput] = useState("");
+  const [appliedCode, setAppliedCode] = useState<{ code: string; type: "percent" | "fixed"; value: number; discountAmount: number; description: string } | null>(null);
+  const [codeError, setCodeError] = useState("");
+  const [codeLoading, setCodeLoading] = useState(false);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
 
   // Validate cart items on mount and when products change
@@ -267,11 +272,12 @@ export default function CheckoutForm() {
     const processingFee = subtotal > 0 ? (deliverySettings?.processingFee ?? 4) : 0;
     const rewardDiscount = rewardApplied && activeReward ? subtotal * activeReward.discountPercent / 100 : 0;
     const dealsDiscount = dealsRewardApplied && dealsReward ? dealsReward.discountCedis : 0;
+    const codeDiscount = appliedCode ? appliedCode.discountAmount : 0;
     const effectiveDelivery = rewardApplied && activeReward?.freeShipping ? 0 : delivery;
-    const total = Math.max(0, subtotal - rewardDiscount - dealsDiscount + effectiveDelivery + processingFee);
+    const total = Math.max(0, subtotal - rewardDiscount - dealsDiscount - codeDiscount + effectiveDelivery + processingFee);
 
-    return { subtotal, delivery, processingFee, total, rewardDiscount, dealsDiscount, effectiveDelivery };
-  }, [items, products, location, region, town, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward]);
+    return { subtotal, delivery, processingFee, total, rewardDiscount, dealsDiscount, codeDiscount, effectiveDelivery };
+  }, [items, products, location, region, town, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward, appliedCode]);
 
   // Payment amount is the full total
   const paymentAmount = totals.total;
@@ -303,6 +309,32 @@ export default function CheckoutForm() {
         actionLabel="Browse Products"
       />
     );
+  }
+
+  async function handleApplyCode() {
+    const code = discountCodeInput.trim().toUpperCase();
+    if (!code) return;
+    setCodeLoading(true);
+    setCodeError("");
+    try {
+      const res = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: totals.subtotal }),
+      });
+      const data = await res.json() as { valid?: boolean; code?: string; type?: "percent" | "fixed"; value?: number; discountAmount?: number; description?: string; error?: string };
+      if (!res.ok || !data.valid) {
+        setCodeError(data.error ?? "Invalid discount code");
+        setAppliedCode(null);
+      } else {
+        setAppliedCode({ code: data.code!, type: data.type!, value: data.value!, discountAmount: data.discountAmount!, description: data.description! });
+        setCodeError("");
+      }
+    } catch {
+      setCodeError("Could not verify code — try again");
+    } finally {
+      setCodeLoading(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -360,6 +392,7 @@ export default function CheckoutForm() {
           paymentProof: paymentProofBase64,
           applyReward: rewardApplied && activeReward ? true : false,
           applyDealsReward: dealsRewardApplied && dealsReward ? true : false,
+          discountCode: appliedCode ? appliedCode.code : undefined,
         }),
       });
 
@@ -1404,6 +1437,49 @@ export default function CheckoutForm() {
           </div>
         )}
 
+        {/* Discount code input */}
+        <div className="mt-3">
+          {appliedCode ? (
+            <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+              <span className="flex items-center gap-1.5 text-xs font-bold text-green-800">
+                🏷️ {appliedCode.code} — {appliedCode.description}
+              </span>
+              <button
+                type="button"
+                onClick={() => { setAppliedCode(null); setDiscountCodeInput(""); }}
+                className="ml-2 text-xs font-bold text-red-500 hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={discountCodeInput}
+                  onChange={(e) => { setDiscountCodeInput(e.target.value.toUpperCase()); setCodeError(""); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleApplyCode(); } }}
+                  placeholder="Discount code"
+                  maxLength={32}
+                  className="flex-1 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleApplyCode()}
+                  disabled={codeLoading || !discountCodeInput.trim()}
+                  className="rounded-lg bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50 transition"
+                >
+                  {codeLoading ? "…" : "Apply"}
+                </button>
+              </div>
+              {codeError && (
+                <p className="text-xs font-semibold text-red-600">{codeError}</p>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="mt-4 space-y-2 text-sm">
           {items.map((line) => {
             const product = products.find((item) => item.id === line.productId);
@@ -1437,6 +1513,21 @@ export default function CheckoutForm() {
                   🎁 {dealsReward.label}
                 </span>
                 <span className="font-semibold">−GHS {totals.dealsDiscount.toFixed(2)}</span>
+              </div>
+            )}
+            {appliedCode && totals.codeDiscount > 0 && (
+              <div className="mt-1 flex items-center justify-between text-green-700">
+                <span className="flex items-center gap-1 text-xs">
+                  🏷️ Code: {appliedCode.code}
+                  <button
+                    type="button"
+                    onClick={() => { setAppliedCode(null); setDiscountCodeInput(""); }}
+                    className="ml-1 text-red-500 hover:underline font-bold"
+                  >
+                    ✕
+                  </button>
+                </span>
+                <span className="font-semibold">−GHS {totals.codeDiscount.toFixed(2)}</span>
               </div>
             )}
             <div className="mt-1 flex items-center justify-between">

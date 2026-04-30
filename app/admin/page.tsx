@@ -26,6 +26,7 @@ import {
   type SpinWheelSlice,
   type TriviaQuestion,
   type SpecialStore,
+  type DiscountCode,
 } from "@/lib/site-content-types";
 import PendingPaymentsDashboard from "@/components/PendingPaymentsDashboard";
 import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
@@ -283,7 +284,8 @@ type AdminSectionId =
   | "faqs"
   | "deals-hub"
   | "reviews"
-  | "popup";
+  | "popup"
+  | "discount-codes";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
@@ -311,6 +313,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "deals-hub", label: "🎮 Deals Hub" },
   { id: "reviews", label: "⭐ Reviews" },
   { id: "popup", label: "📢 Announcement Popup" },
+  { id: "discount-codes", label: "🏷️ Discount Codes" },
 ];
 
 /** Sections a supervisor can see (subset of full admin). */
@@ -5402,6 +5405,165 @@ export default function AdminPage() {
                   />
                 </Field>
 
+                <Field label="Tagline (brand slogan, optional)">
+                  <input
+                    value={store.tagline ?? ""}
+                    placeholder="e.g. Quality you can trust"
+                    onChange={(e) => {
+                      const stores = [...content.dealsHub.specialStores];
+                      stores[si] = { ...stores[si], tagline: e.target.value || undefined };
+                      setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                    }}
+                    className={inputClassName()}
+                  />
+                </Field>
+
+                {/* Branding colours */}
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Field label="Accent / Secondary Colour">
+                    <input
+                      type="color"
+                      value={store.accentColor ?? store.bgColor}
+                      onChange={(e) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], accentColor: e.target.value };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className="h-10 w-full cursor-pointer rounded-lg border border-black/10 p-1"
+                    />
+                  </Field>
+                  <Field label="Store Logo Image (optional)">
+                    <div className="flex gap-2 mb-1">
+                      <ImageUploadButton
+                        folder="deals"
+                        label="Upload Logo"
+                        onUpload={(url) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], logoImage: url };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                      />
+                    </div>
+                    <input
+                      value={store.logoImage ?? ""}
+                      placeholder="Or paste logo URL…"
+                      onChange={(e) => {
+                        const stores = [...content.dealsHub.specialStores];
+                        stores[si] = { ...stores[si], logoImage: e.target.value || undefined };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                </div>
+
+                {/* Owner / Brand Contact Info */}
+                <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-4 space-y-3">
+                  <p className="text-sm font-black text-[var(--brand-deep)]">🏷️ Store Owner / Brand Info</p>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <Field label="Owner Name">
+                      <input
+                        value={store.ownerName ?? ""}
+                        placeholder="e.g. John Mensah"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerName: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Location / Address">
+                      <input
+                        value={store.ownerLocation ?? ""}
+                        placeholder="e.g. Accra, Ghana"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerLocation: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Phone">
+                      <input
+                        type="tel"
+                        value={store.ownerPhone ?? ""}
+                        placeholder="e.g. +233 24 000 0000"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerPhone: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Email">
+                      <input
+                        type="email"
+                        value={store.ownerEmail ?? ""}
+                        placeholder="e.g. store@example.com"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerEmail: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="WhatsApp Number (digits only)">
+                      <input
+                        type="tel"
+                        value={store.ownerWhatsapp ?? ""}
+                        placeholder="e.g. 233240000000"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerWhatsapp: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Instagram (handle or full URL)">
+                      <input
+                        value={store.ownerInstagram ?? ""}
+                        placeholder="e.g. @mybrand or https://instagram.com/mybrand"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerInstagram: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Facebook (username or full URL)">
+                      <input
+                        value={store.ownerFacebook ?? ""}
+                        placeholder="e.g. mybrand or https://facebook.com/mybrand"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerFacebook: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Website URL (optional)">
+                      <input
+                        type="url"
+                        value={store.ownerWebsite ?? ""}
+                        placeholder="e.g. https://mybrand.com"
+                        onChange={(e) => {
+                          const stores = [...content.dealsHub.specialStores];
+                          stores[si] = { ...stores[si], ownerWebsite: e.target.value || undefined };
+                          setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                  </div>
+                </div>
+
                 <Field label="Fixed Store Price (GHS) — optional. Products in this store show this price instead of their original price.">
                   <input
                     type="number"
@@ -6450,6 +6612,179 @@ export default function AdminPage() {
                 <li>Click <strong>Save Changes</strong> at the top to apply.</li>
               </ul>
             </div>
+          </div>
+        </Section>
+      ) : null}
+
+      {/* ─────────────── DISCOUNT CODES ─────────────── */}
+      {activeSection === "discount-codes" ? (
+        <Section title="🏷️ Discount Codes" description="Create and manage discount codes customers can apply at checkout. Supports percentage or fixed GHS off, usage limits, expiry dates, and minimum order amounts.">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-black text-[var(--brand-deep)]">All Codes ({(content.discountCodes ?? []).length})</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  const newCode: DiscountCode = {
+                    id: createId("dc"),
+                    code: "",
+                    type: "percent",
+                    value: 10,
+                    usageCount: 0,
+                    enabled: true,
+                    createdAt: new Date().toISOString(),
+                  };
+                  setContent({ ...content, discountCodes: [...(content.discountCodes ?? []), newCode] });
+                }}
+                className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)]"
+              >
+                + Add Code
+              </button>
+            </div>
+
+            {(content.discountCodes ?? []).length === 0 && (
+              <p className="text-sm text-[var(--ink-soft)] py-6 text-center">No discount codes yet. Click "+ Add Code" to create one.</p>
+            )}
+
+            {(content.discountCodes ?? []).map((dc, i) => {
+              const codes = content.discountCodes ?? [];
+              const update = (patch: Partial<DiscountCode>) => {
+                const updated = [...codes];
+                updated[i] = { ...updated[i], ...patch };
+                setContent({ ...content, discountCodes: updated });
+              };
+              const isExpired = dc.expiresAt ? new Date(dc.expiresAt) < new Date() : false;
+              const isMaxed = dc.maxUsages && dc.maxUsages > 0 ? dc.usageCount >= dc.maxUsages : false;
+
+              return (
+                <div key={dc.id} className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
+                  {/* Header row */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${dc.enabled && !isExpired && !isMaxed ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"}`}>
+                        {dc.enabled && !isExpired && !isMaxed ? "✓ Active" : isExpired ? "⏰ Expired" : isMaxed ? "🚫 Limit reached" : "○ Disabled"}
+                      </span>
+                      {dc.code && (
+                        <span className="font-mono font-black text-sm tracking-wider text-[var(--brand-deep)]">{dc.code}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-1.5 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={dc.enabled}
+                          onChange={(e) => update({ enabled: e.target.checked })}
+                          className="h-4 w-4 accent-[var(--brand)]"
+                        />
+                        Enabled
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = codes.filter((_, ci) => ci !== i);
+                          setContent({ ...content, discountCodes: updated });
+                        }}
+                        className="text-xs font-bold text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <Field label="Code (what customers type)">
+                      <input
+                        value={dc.code}
+                        placeholder="e.g. SAVE10"
+                        maxLength={32}
+                        onChange={(e) => update({ code: e.target.value.toUpperCase().replace(/\s/g, "") })}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Discount Type">
+                      <select
+                        value={dc.type}
+                        onChange={(e) => update({ type: e.target.value as "percent" | "fixed" })}
+                        className={inputClassName()}
+                      >
+                        <option value="percent">Percentage off (%)</option>
+                        <option value="fixed">Fixed amount off (GHS)</option>
+                      </select>
+                    </Field>
+                    <Field label={dc.type === "percent" ? "Discount (%)" : "Discount Amount (GHS)"}>
+                      <input
+                        type="number"
+                        min="0"
+                        max={dc.type === "percent" ? "100" : undefined}
+                        step={dc.type === "percent" ? "1" : "0.01"}
+                        value={dc.value}
+                        onChange={(e) => {
+                          const v = parseFloat(e.target.value);
+                          update({ value: isNaN(v) ? 0 : dc.type === "percent" ? Math.min(100, Math.max(0, v)) : Math.max(0, v) });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Min. Order Amount (GHS, optional)">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={dc.minOrderAmount ?? ""}
+                        placeholder="No minimum"
+                        onChange={(e) => {
+                          const v = parseFloat(e.target.value);
+                          update({ minOrderAmount: isNaN(v) || v <= 0 ? undefined : v });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Max Usages (0 = unlimited)">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={dc.maxUsages ?? ""}
+                        placeholder="Unlimited"
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value, 10);
+                          update({ maxUsages: isNaN(v) || v < 0 ? undefined : v });
+                        }}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                    <Field label="Expiry Date (optional)">
+                      <input
+                        type="datetime-local"
+                        value={dc.expiresAt ? dc.expiresAt.slice(0, 16) : ""}
+                        onChange={(e) => update({ expiresAt: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                        className={inputClassName()}
+                      />
+                    </Field>
+                  </div>
+
+                  {/* Usage stats */}
+                  <div className="flex items-center gap-4 text-xs text-[var(--ink-soft)]">
+                    <span>Used <strong className="text-[var(--ink)]">{dc.usageCount}</strong> time{dc.usageCount !== 1 ? "s" : ""}</span>
+                    {dc.maxUsages && dc.maxUsages > 0 && (
+                      <span>/ {dc.maxUsages} max</span>
+                    )}
+                    {dc.expiresAt && (
+                      <span className={isExpired ? "text-red-600 font-semibold" : ""}>
+                        Expires {new Date(dc.expiresAt).toLocaleDateString()}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => update({ usageCount: 0 })}
+                      className="ml-auto text-[var(--brand)] hover:underline font-semibold"
+                    >
+                      Reset count
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Section>
       ) : null}

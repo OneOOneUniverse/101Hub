@@ -255,14 +255,26 @@ export type SpecialStore = {
   name: string;
   slug: string;
   description: string;
+  tagline?: string;
   emoji: string;
   bgColor: string;
   textColor: string;
+  accentColor?: string;
   backgroundImage: string;
+  logoImage?: string;
   featuredProductIds: string[];
   storePrice?: number;   // fixed price shown inside this store (e.g. 50 for "50 Cedis Store")
   promoSlides?: PromoSlide[];
   enabled: boolean;
+  // Owner / brand contact info
+  ownerName?: string;
+  ownerPhone?: string;
+  ownerEmail?: string;
+  ownerWhatsapp?: string;
+  ownerInstagram?: string;
+  ownerFacebook?: string;
+  ownerWebsite?: string;
+  ownerLocation?: string;
 };
 
 export type SpinWheelSlice = {
@@ -376,6 +388,20 @@ export type AnnouncementPopup = {
   closeLabel?: string;
 };
 
+// ─── Discount Codes ───────────────────────────────────────────
+export type DiscountCode = {
+  id: string;
+  code: string;              // The code customers type, e.g. "SAVE10"
+  type: "percent" | "fixed"; // percent off subtotal OR fixed GHS amount off
+  value: number;             // e.g. 10 (10%) or 5 (GHS 5)
+  minOrderAmount?: number;   // optional minimum subtotal before code applies
+  maxUsages?: number;        // 0 = unlimited
+  usageCount: number;        // how many times it's been used
+  expiresAt?: string;        // ISO date string
+  enabled: boolean;
+  createdAt: string;
+};
+
 export type ManualPaymentField = {
   label: string;
   value: string;
@@ -426,5 +452,6 @@ export type SiteContent = {
   faqs?: FAQ[];
   dealsHub: DealsHubContent;
   announcementPopup?: AnnouncementPopup;
+  discountCodes?: DiscountCode[];
   updatedAt: string;
 };

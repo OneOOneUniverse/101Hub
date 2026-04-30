@@ -33,6 +33,7 @@ import {
   type ManualPaymentField,
   type ProviderPaymentDetails,
   type AnnouncementPopup,
+  type DiscountCode,
 } from "@/lib/site-content-types";
 import { getSiteContentFromDb, saveSiteContentToDb } from "@/lib/site-content-db";
 
@@ -555,10 +556,13 @@ function sanitizeSpecialStore(value: unknown, index: number): SpecialStore {
     name: toText(c.name, defaults.name),
     slug: toText(c.slug, defaults.slug),
     description: toText(c.description, defaults.description),
+    ...(toOptionalText(c.tagline) ? { tagline: toOptionalText(c.tagline) } : {}),
     emoji: toText(c.emoji, defaults.emoji),
     bgColor: toText(c.bgColor, defaults.bgColor),
     textColor: toText(c.textColor, defaults.textColor),
+    ...(toOptionalText(c.accentColor) ? { accentColor: toOptionalText(c.accentColor) } : {}),
     backgroundImage: toText((c as Record<string, unknown>).backgroundImage as string | undefined, defaults.backgroundImage),
+    ...(toOptionalText(c.logoImage) ? { logoImage: toOptionalText(c.logoImage) } : {}),
     featuredProductIds: Array.isArray(c.featuredProductIds)
       ? c.featuredProductIds.filter((i): i is string => typeof i === "string")
       : defaults.featuredProductIds,
@@ -569,6 +573,14 @@ function sanitizeSpecialStore(value: unknown, index: number): SpecialStore {
       ? ((c as Record<string, unknown>).promoSlides as unknown[]).map((slide, i) => sanitizePromoSlide(slide, i))
       : [],
     enabled: toBoolean(c.enabled, defaults.enabled),
+    ...(toOptionalText(c.ownerName) ? { ownerName: toOptionalText(c.ownerName) } : {}),
+    ...(toOptionalText(c.ownerPhone) ? { ownerPhone: toOptionalText(c.ownerPhone) } : {}),
+    ...(toOptionalText(c.ownerEmail) ? { ownerEmail: toOptionalText(c.ownerEmail) } : {}),
+    ...(toOptionalText(c.ownerWhatsapp) ? { ownerWhatsapp: toOptionalText(c.ownerWhatsapp) } : {}),
+    ...(toOptionalText(c.ownerInstagram) ? { ownerInstagram: toOptionalText(c.ownerInstagram) } : {}),
+    ...(toOptionalText(c.ownerFacebook) ? { ownerFacebook: toOptionalText(c.ownerFacebook) } : {}),
+    ...(toOptionalText(c.ownerWebsite) ? { ownerWebsite: toOptionalText(c.ownerWebsite) } : {}),
+    ...(toOptionalText(c.ownerLocation) ? { ownerLocation: toOptionalText(c.ownerLocation) } : {}),
   };
 }
 
@@ -760,7 +772,27 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     ...(candidate.announcementPopup && typeof candidate.announcementPopup === "object" && {
       announcementPopup: sanitizeAnnouncementPopup(candidate.announcementPopup),
     }),
+    ...(Array.isArray(candidate.discountCodes) && {
+      discountCodes: candidate.discountCodes.map((c) => sanitizeDiscountCode(c)),
+    }),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
+  };
+}
+
+function sanitizeDiscountCode(raw: unknown): DiscountCode {
+  const r = typeof raw === "object" && raw !== null ? raw as Record<string, unknown> : {};
+  const rawType = String(r.type ?? "percent");
+  return {
+    id: toText(r.id as string | undefined, `dc-${Date.now()}`),
+    code: toText(r.code as string | undefined, "").toUpperCase().trim(),
+    type: rawType === "fixed" ? "fixed" : "percent",
+    value: Math.max(0, toNumber(r.value, 0)),
+    ...(r.minOrderAmount !== undefined && r.minOrderAmount !== null && { minOrderAmount: Math.max(0, toNumber(r.minOrderAmount, 0)) }),
+    ...(r.maxUsages !== undefined && r.maxUsages !== null && { maxUsages: Math.max(0, Math.trunc(toNumber(r.maxUsages, 0))) }),
+    usageCount: Math.max(0, Math.trunc(toNumber(r.usageCount, 0))),
+    ...(typeof r.expiresAt === "string" && r.expiresAt && { expiresAt: r.expiresAt }),
+    enabled: toBoolean(r.enabled, true),
+    createdAt: typeof r.createdAt === "string" && r.createdAt ? r.createdAt : new Date().toISOString(),
   };
 }
 
