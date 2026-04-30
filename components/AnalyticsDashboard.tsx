@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   AreaChart,
   Area,
@@ -92,9 +93,29 @@ export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
+  // Live active visitor count via Supabase Presence — same channel VisitorTracker uses
+  const [liveActive, setLiveActive] = useState<number | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  const fetchData = useCallback(async (d: number) => {
-    setLoading(true);
+  // Subscribe to presence channel once on mount
+  useEffect(() => {
+    const ch = supabase.channel("101hub-visitor-presence");
+    channelRef.current = ch;
+
+    ch.on("presence", { event: "sync" }, () => {
+      const state = ch.presenceState();
+      setLiveActive(Object.keys(state).length);
+    });
+
+    ch.subscribe();
+    return () => {
+      void supabase.removeChannel(ch);
+      channelRef.current = null;
+    };
+  }, []);
+
+  const fetchData = useCallback(async (d: number, isBackground = false) => {
+    if (!isBackground) setLoading(true);
     try {
       const res = await fetch(`/api/admin/analytics?days=${d}`, { cache: "no-store" });
       if (res.ok) {
@@ -103,14 +124,14 @@ export default function AnalyticsDashboard() {
     } catch (e) {
       console.error("[AnalyticsDashboard] fetch failed:", e);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void fetchData(days);
-    // Auto-refresh every 30 seconds so active-visitors count stays current
-    const interval = setInterval(() => void fetchData(days), 30_000);
+    // Refresh summary stats every 60 s — active visitors are live via Presence above
+    const interval = setInterval(() => void fetchData(days, true), 60_000);
     return () => clearInterval(interval);
   }, [days, fetchData]);
 
@@ -184,12 +205,12 @@ export default function AnalyticsDashboard() {
           <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
         </span>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-black text-emerald-700">{data.activeVisitors ?? 0}</span>
+          <span className="text-2xl font-black text-emerald-700">{liveActive ?? data.activeVisitors ?? 0}</span>
           <span className="text-sm font-semibold text-emerald-600">
-            visitor{(data.activeVisitors ?? 0) !== 1 ? "s" : ""} active now
+            visitor{(liveActive ?? data.activeVisitors ?? 0) !== 1 ? "s" : ""} active now
           </span>
         </div>
-        <span className="ml-auto text-xs text-emerald-500/70">last 15 min · auto-refreshes</span>
+        <span className="ml-auto text-xs text-emerald-500/70">live · real-time</span>
       </div>
 
       {/* Summary cards */}
