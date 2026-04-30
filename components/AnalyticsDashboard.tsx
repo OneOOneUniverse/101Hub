@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useCallback, useEffect, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -93,25 +92,24 @@ export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
-  // Live active visitor count via Supabase Presence — same channel VisitorTracker uses
   const [liveActive, setLiveActive] = useState<number | null>(null);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Subscribe to presence channel once on mount
+  // Lightweight active-visitor poll — separate from the heavy analytics fetch
   useEffect(() => {
-    const ch = supabase.channel("101hub-visitor-presence");
-    channelRef.current = ch;
-
-    ch.on("presence", { event: "sync" }, () => {
-      const state = ch.presenceState();
-      setLiveActive(Object.keys(state).length);
-    });
-
-    ch.subscribe();
-    return () => {
-      void supabase.removeChannel(ch);
-      channelRef.current = null;
+    const fetchActive = async () => {
+      try {
+        const res = await fetch("/api/admin/active-visitors", { cache: "no-store" });
+        if (res.ok) {
+          const json = (await res.json()) as { count: number };
+          setLiveActive(json.count);
+        }
+      } catch {
+        // silently fail
+      }
     };
+    void fetchActive();
+    const iv = setInterval(() => void fetchActive(), 10_000);
+    return () => clearInterval(iv);
   }, []);
 
   const fetchData = useCallback(async (d: number, isBackground = false) => {
@@ -130,7 +128,7 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     void fetchData(days);
-    // Refresh summary stats every 60 s — active visitors are live via Presence above
+    // Refresh summary stats every 60 s
     const interval = setInterval(() => void fetchData(days, true), 60_000);
     return () => clearInterval(interval);
   }, [days, fetchData]);
