@@ -9,9 +9,10 @@ const AUTO_SLIDE_MS = 4200;
 
 type PromoSliderProps = {
   slides: PromoSlide[];
+  compact?: boolean;
 };
 
-export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
+export default function PromoSlider({ slides, compact = false }: Readonly<PromoSliderProps>) {
   const [activeIndex, setActiveIndex] = useState(0);
   const normalizedIndex = slides.length ? activeIndex % slides.length : 0;
   const activeSlideIsVideo = slides[normalizedIndex]?.mediaType === "video";
@@ -52,7 +53,7 @@ export default function PromoSlider({ slides }: Readonly<PromoSliderProps>) {
 
   return (
     <section className="promo-slider slider-container relative mx-auto overflow-hidden rounded-xl" aria-label="Ongoing promos and offers">
-      <div className="relative w-full" style={{ aspectRatio: "3 / 1" }}>
+      <div className="relative w-full" style={{ aspectRatio: compact ? "4 / 1" : "3 / 1" }}>
         {slides.map((slide, index) => {
           const isActive = index === normalizedIndex;
 

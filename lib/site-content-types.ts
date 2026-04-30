@@ -261,6 +261,7 @@ export type SpecialStore = {
   backgroundImage: string;
   featuredProductIds: string[];
   storePrice?: number;   // fixed price shown inside this store (e.g. 50 for "50 Cedis Store")
+  promoSlides?: PromoSlide[];
   enabled: boolean;
 };
 

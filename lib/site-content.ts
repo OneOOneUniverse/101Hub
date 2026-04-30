@@ -564,7 +564,10 @@ function sanitizeSpecialStore(value: unknown, index: number): SpecialStore {
       : defaults.featuredProductIds,
     storePrice: typeof (c as Record<string, unknown>).storePrice === "number" && (c as Record<string, unknown>).storePrice as number > 0
       ? (c as Record<string, unknown>).storePrice as number
-      : defaults.storePrice,
+      : undefined,
+    promoSlides: Array.isArray((c as Record<string, unknown>).promoSlides)
+      ? ((c as Record<string, unknown>).promoSlides as unknown[]).map((slide, i) => sanitizePromoSlide(slide, i))
+      : [],
     enabled: toBoolean(c.enabled, defaults.enabled),
   };
 }

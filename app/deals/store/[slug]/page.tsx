@@ -6,6 +6,7 @@ import { getSiteContent } from "@/lib/site-content";
 import WishlistButton from "@/components/WishlistButton";
 import ProductCardShare from "@/components/ProductCardShare";
 import { getReviewStats } from "@/lib/product-feedback";
+import PromoSlider from "@/components/PromoSlider";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -57,6 +58,11 @@ export default async function SpecialStorePage({ params }: Props) {
         </p>
         </div>
       </section>
+
+      {/* Store promo slider (compact) */}
+      {store.promoSlides && store.promoSlides.length > 0 && (
+        <PromoSlider slides={store.promoSlides} compact />
+      )}
 
       {/* Products grid */}
       {storeProducts.length === 0 ? (

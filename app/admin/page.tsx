@@ -5491,6 +5491,125 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Store Promo Slides */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-[var(--brand-deep)]">Promo Slides ({(store.promoSlides ?? []).length})</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const stores = [...content.dealsHub.specialStores];
+                        const newSlide = createSlide();
+                        stores[si] = { ...stores[si], promoSlides: [...(store.promoSlides ?? []), newSlide] };
+                        setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                      }}
+                      className="rounded-full border border-[var(--brand)] px-3 py-1 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10"
+                    >
+                      + Add Slide
+                    </button>
+                  </div>
+                  {(store.promoSlides ?? []).map((slide, sli) => (
+                    <div key={slide.id} className="rounded-xl border border-black/10 bg-[var(--surface)] p-3 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold truncate">{slide.title || slide.alt || slide.id || "Untitled slide"}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const stores = [...content.dealsHub.specialStores];
+                            const slides = (store.promoSlides ?? []).filter((_, i) => i !== sli);
+                            stores[si] = { ...stores[si], promoSlides: slides };
+                            setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                          }}
+                          className="shrink-0 text-xs font-bold text-red-600 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Field label="Image / Video">
+                          <div className="flex gap-2 mb-1">
+                            <ImageUploadButton
+                              folder="deals"
+                              label="Upload Image"
+                              onUpload={(url) => {
+                                const stores = [...content.dealsHub.specialStores];
+                                const slides = [...(store.promoSlides ?? [])];
+                                slides[sli] = { ...slide, src: url, mediaType: "image" };
+                                stores[si] = { ...stores[si], promoSlides: slides };
+                                setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                              }}
+                            />
+                            <ImageUploadButton
+                              folder="deals"
+                              resourceType="video"
+                              label="Upload Video"
+                              onUpload={(url) => {
+                                const stores = [...content.dealsHub.specialStores];
+                                const slides = [...(store.promoSlides ?? [])];
+                                slides[sli] = { ...slide, src: url, mediaType: "video" };
+                                stores[si] = { ...stores[si], promoSlides: slides };
+                                setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                              }}
+                            />
+                          </div>
+                          <input
+                            value={slide.src}
+                            placeholder="Or paste URL…"
+                            onChange={(e) => {
+                              const stores = [...content.dealsHub.specialStores];
+                              const slides = [...(store.promoSlides ?? [])];
+                              slides[sli] = { ...slide, src: e.target.value };
+                              stores[si] = { ...stores[si], promoSlides: slides };
+                              setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Title">
+                          <input
+                            value={slide.title}
+                            onChange={(e) => {
+                              const stores = [...content.dealsHub.specialStores];
+                              const slides = [...(store.promoSlides ?? [])];
+                              slides[sli] = { ...slide, title: e.target.value };
+                              stores[si] = { ...stores[si], promoSlides: slides };
+                              setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Caption">
+                          <input
+                            value={slide.subtitle}
+                            onChange={(e) => {
+                              const stores = [...content.dealsHub.specialStores];
+                              const slides = [...(store.promoSlides ?? [])];
+                              slides[sli] = { ...slide, subtitle: e.target.value };
+                              stores[si] = { ...stores[si], promoSlides: slides };
+                              setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                        <Field label="Link URL (optional)">
+                          <input
+                            value={slide.actionUrl ?? ""}
+                            placeholder="e.g. /products?q=…"
+                            onChange={(e) => {
+                              const stores = [...content.dealsHub.specialStores];
+                              const slides = [...(store.promoSlides ?? [])];
+                              slides[sli] = { ...slide, actionUrl: e.target.value || undefined };
+                              stores[si] = { ...stores[si], promoSlides: slides };
+                              setContent({ ...content, dealsHub: { ...content.dealsHub, specialStores: stores } });
+                            }}
+                            className={inputClassName()}
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

@@ -171,6 +171,14 @@ function ProductsPageContent() {
     currentPage * PRODUCTS_PER_PAGE
   );
 
+  const enabledStores = useMemo(
+    () =>
+      content?.features.dealsHub && content.dealsHub?.enabled
+        ? (content.dealsHub.specialStores ?? []).filter((s) => s.enabled)
+        : [],
+    [content]
+  );
+
   function goToPage(page: number) {
     setCurrentPage(page);
     document.getElementById("products-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -348,7 +356,7 @@ function ProductsPageContent() {
       </section>
 
       <section id="products-grid" className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
-        {paginatedProducts.map((item) => {
+        {paginatedProducts.flatMap((item, index) => {
           // Product-specific discount takes priority
           const hasProductDiscount = item.discount && item.discount > 0;
           const discountPercent = hasProductDiscount ? item.discount : 0;
@@ -367,7 +375,7 @@ function ProductsPageContent() {
           const isOnSale = totalDiscount > 0;
           const discountSource = hasProductDiscount ? "product" : isFlashSale ? "flash" : null;
 
-          return (
+          const card = (
             <article key={item.id} className="product-card">
               <div className="product-card__shine" />
               <div className="product-card__glow" />
@@ -503,6 +511,45 @@ function ProductsPageContent() {
               </div>
             </article>
           );
+
+          if (enabledStores.length > 0 && (index + 1) % 3 === 0 && index < paginatedProducts.length - 1) {
+            const bannerStore = enabledStores[Math.floor(index / 3) % enabledStores.length];
+            return [card, (
+              <Link
+                key={`store-banner-${index}`}
+                href={`/deals/store/${bannerStore.slug}`}
+                className="col-span-full flex items-center justify-between gap-3 rounded-xl overflow-hidden px-4 h-14 transition-opacity hover:opacity-90"
+                style={
+                  bannerStore.backgroundImage
+                    ? { backgroundImage: `url('${bannerStore.backgroundImage}')`, backgroundSize: "cover", backgroundPosition: "center" }
+                    : { background: `linear-gradient(135deg, ${bannerStore.bgColor}, ${bannerStore.bgColor}cc)` }
+                }
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">{bannerStore.emoji}</span>
+                  <div>
+                    <p className="text-xs font-black leading-none" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                      {bannerStore.name}
+                    </p>
+                    {bannerStore.description && (
+                      <p className="hidden sm:block text-[10px] opacity-75 leading-tight mt-0.5" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                        {bannerStore.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-xs font-bold" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                    Shop Now
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                    <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </Link>
+            )];
+          }
+          return [card];
         })}
       </section>
 
