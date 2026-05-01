@@ -8,7 +8,7 @@ import { readWishlist } from "@/lib/product-feedback";
 import { getRelatedProducts } from "@/lib/store-data";
 import WishlistButton from "@/components/WishlistButton";
 
-type CartLine = { productId: string; qty: number; size?: string; color?: string };
+type CartLine = { productId: string; qty: number; size?: string; color?: string; overridePrice?: number };
 
 type ActiveReward = {
   id: number;
@@ -122,9 +122,10 @@ export default function CartManager() {
       .map((line) => {
         const product = products.find((p) => p.id === line.productId);
         if (!product) return null;
-        return { product, qty: line.qty, lineTotal: line.qty * product.price, size: line.size, color: line.color };
+        const unitPrice = line.overridePrice !== undefined ? line.overridePrice : product.price;
+        return { product, qty: line.qty, unitPrice, lineTotal: line.qty * unitPrice, size: line.size, color: line.color, overridePrice: line.overridePrice };
       })
-      .filter(Boolean) as { product: (typeof products)[number]; qty: number; lineTotal: number; size?: string; color?: string }[];
+      .filter(Boolean) as { product: (typeof products)[number]; qty: number; unitPrice: number; lineTotal: number; size?: string; color?: string; overridePrice?: number }[];
 
     const subtotal = resolved.reduce((sum, item) => sum + item.lineTotal, 0);
     const delivery = subtotal > 250 ? 0 : subtotal > 0 ? 12 : 0;
@@ -238,7 +239,15 @@ export default function CartManager() {
                       )}
                     </div>
                   )}
-                  <p className="text-xs text-[var(--ink-soft)] sm:text-sm">GHS {item.product.price.toFixed(2)} each</p>
+                  {item.overridePrice !== undefined ? (
+                    <p className="text-xs text-[var(--ink-soft)] sm:text-sm">
+                      <span className="font-bold text-[var(--brand-deep)]">GHS {item.unitPrice.toFixed(2)}</span>
+                      {" "}<span className="line-through">GHS {item.product.price.toFixed(2)}</span>
+                      {" "}<span className="text-emerald-600 font-semibold">Store price</span>
+                    </p>
+                  ) : (
+                    <p className="text-xs text-[var(--ink-soft)] sm:text-sm">GHS {item.product.price.toFixed(2)} each</p>
+                  )}
                 </div>
                 <button
                   onClick={() => removeLine(item.product.id, item.size, item.color)}

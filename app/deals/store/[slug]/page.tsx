@@ -8,6 +8,7 @@ import ProductCardShare from "@/components/ProductCardShare";
 import { getReviewStats } from "@/lib/product-feedback";
 import PromoSlider from "@/components/PromoSlider";
 import StoreShareButton from "@/components/StoreShareButton";
+import StoreAddToCart from "@/components/StoreAddToCart";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -313,6 +314,17 @@ export default async function SpecialStorePage({ params }: Props) {
                       </>
                     )}
                   </div>
+
+                  {/* Add to Cart */}
+                  {content.features.cart && (
+                    <div className="pt-1">
+                      <StoreAddToCart
+                        productId={product.id}
+                        storePrice={displayPrice}
+                        regularPrice={product.price}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             );
