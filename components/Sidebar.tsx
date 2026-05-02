@@ -177,6 +177,14 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 Deals Hub
               </Link>
             )}
+            <Link href="/auctions" className={linkClass("/auctions")} onClick={onClose}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.876V6a1 1 0 00-1-1H4a1 1 0 00-1 1v2.876a1 1 0 001.447.894L9 8m6 2v9a1 1 0 01-1 1H10a1 1 0 01-1-1v-9m6 0H9" /></svg>
+              Auctions
+            </Link>
+            <Link href="/features" className={linkClass("/features")} onClick={onClose}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+              All Features
+            </Link>
           </div>
 
           <div className="sidebar-divider" />

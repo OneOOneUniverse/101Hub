@@ -7,6 +7,7 @@ import {
   readProductReviews,
   type ProductReview,
 } from "@/lib/product-feedback";
+import { sanitizeLine, sanitizeText, isValidName, hasMinLength, hasMaxLength } from "@/lib/validation";
 
 type ProductReviewsProps = {
   productId: string;
@@ -18,6 +19,7 @@ export default function ProductReviews({ productId, baseRating }: ProductReviews
   const [author, setAuthor] = useState("");
   const [comment, setComment] = useState("");
   const [rating, setRating] = useState(5);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     const sync = () => setReviews(readProductReviews(productId));
@@ -36,16 +38,33 @@ export default function ProductReviews({ productId, baseRating }: ProductReviews
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const safeComment = comment.trim();
+    setFormError("");
 
-    if (safeComment.length < 4) {
+    const safeAuthor = sanitizeLine(author);
+    const safeComment = sanitizeText(comment);
+
+    if (safeAuthor && !isValidName(safeAuthor)) {
+      setFormError("Name can only contain letters, spaces, hyphens, or apostrophes (2–80 chars).");
+      return;
+    }
+    if (!hasMinLength(safeComment, 10)) {
+      setFormError("Review must be at least 10 characters long.");
+      return;
+    }
+    if (!hasMaxLength(safeComment, 1000)) {
+      setFormError("Review is too long (max 1000 characters).");
+      return;
+    }
+    if (rating < 1 || rating > 5) {
+      setFormError("Please select a rating between 1 and 5.");
       return;
     }
 
-    addProductReview({ productId, author, comment: safeComment, rating });
+    addProductReview({ productId, author: safeAuthor || "Anonymous", comment: safeComment, rating });
     setAuthor("");
     setComment("");
     setRating(5);
+    setFormError("");
     setReviews(readProductReviews(productId));
   }
 
@@ -65,6 +84,7 @@ export default function ProductReviews({ productId, baseRating }: ProductReviews
           value={author}
           onChange={(event) => setAuthor(event.target.value)}
           placeholder="Your name (optional)"
+          maxLength={80}
           className="input-styled"
         />
         <div className="flex items-center gap-2 rounded-lg border-2 border-[rgba(255,107,53,0.25)] px-3 py-2 transition-all hover:border-[var(--brand)]">
@@ -95,10 +115,18 @@ export default function ProductReviews({ productId, baseRating }: ProductReviews
         </div>
         <textarea
           value={comment}
-          onChange={(event) => setComment(event.target.value)}
-          placeholder="Write a short review"
+          onChange={(event) => {
+            setComment(event.target.value);
+            if (formError) setFormError("");
+          }}
+          placeholder="Write a short review (min 10 characters)"
+          maxLength={1000}
           className="input-styled sm:col-span-2 min-h-28"
         />
+        <p className="sm:col-span-2 text-right text-xs text-[var(--ink-soft)] -mt-2">{comment.length}/1000</p>
+        {formError && (
+          <p className="sm:col-span-2 rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{formError}</p>
+        )}
         <div className="sm:col-span-2 flex justify-end">
           <button
             type="submit"

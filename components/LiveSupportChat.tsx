@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback, FormEvent } from "react";
 import { supabase } from "@/lib/supabase";
+import { sanitizeLine, isValidEmail, isValidGhanaPhone, isValidName, hasMaxLength } from "@/lib/validation";
 
 // ── Types ──
 
@@ -139,16 +140,24 @@ export default function LiveSupportChat() {
   async function handleCredentialsSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError("");
-    const name = formName.trim();
-    const email = formEmail.trim();
-    const phone = formPhone.trim();
+    const name = sanitizeLine(formName);
+    const email = sanitizeLine(formEmail);
+    const phone = sanitizeLine(formPhone);
+
     if (!name || !email || !phone) {
       setFormError("All fields are required.");
       return;
     }
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRe.test(email)) {
-      setFormError("Please enter a valid email address.");
+    if (!isValidName(name)) {
+      setFormError("Name can only contain letters, spaces, hyphens, or apostrophes (2–80 chars).");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setFormError("Please enter a valid email address (e.g. you@example.com).");
+      return;
+    }
+    if (!isValidGhanaPhone(phone)) {
+      setFormError("Enter a valid Ghana phone number (e.g. 0241234567 or +233241234567).");
       return;
     }
     const info: UserInfo = { name, email, phone };
@@ -161,6 +170,7 @@ export default function LiveSupportChat() {
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || sending) return;
+    if (!hasMaxLength(text, 1000)) return; // silently cap — UI already shows counter
 
     setSending(true);
     setInput("");
@@ -311,6 +321,7 @@ export default function LiveSupportChat() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="John Doe"
+                  maxLength={80}
                   className="w-full text-sm rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--brand)]/40 bg-white"
                 />
               </div>
@@ -323,6 +334,7 @@ export default function LiveSupportChat() {
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
                   placeholder="you@example.com"
+                  maxLength={254}
                   className="w-full text-sm rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--brand)]/40 bg-white"
                 />
               </div>
@@ -335,6 +347,7 @@ export default function LiveSupportChat() {
                   value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
                   placeholder="+233 548 656 980"
+                  maxLength={20}
                   className="w-full text-sm rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--brand)]/40 bg-white"
                 />
               </div>
@@ -431,7 +444,7 @@ export default function LiveSupportChat() {
 
                 <input
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => setInput(e.target.value.slice(0, 1000))}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();

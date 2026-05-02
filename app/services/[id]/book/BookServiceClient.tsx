@@ -5,6 +5,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
+import {
+  sanitizeLine,
+  sanitizeText,
+  isValidName,
+  isValidEmail,
+  isValidGhanaPhone,
+  hasMinLength,
+  hasMaxLength,
+} from "@/lib/validation";
 
 type ServiceResult = {
   success: boolean;
@@ -100,8 +109,40 @@ export default function BookServiceClient() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setSubmitError("");
+
+    // ── Field-level validation ─────────────────────────────────────────────
+    const safeName = sanitizeLine(customerName);
+    const safeEmail = sanitizeLine(customerEmail);
+    const safePhone = sanitizeLine(phone);
+    const safeIssue = sanitizeText(issue);
+
+    if (!isValidName(safeName)) {
+      setSubmitError("Name can only contain letters, spaces, hyphens, or apostrophes (2–80 characters).");
+      return;
+    }
+    if (safeEmail && !isValidEmail(safeEmail)) {
+      setSubmitError("Please enter a valid email address (e.g. you@example.com).");
+      return;
+    }
+    if (!safePhone) {
+      setSubmitError("Phone number is required.");
+      return;
+    }
+    if (!isValidGhanaPhone(safePhone)) {
+      setSubmitError("Enter a valid Ghana phone number (e.g. 0241234567 or +233241234567).");
+      return;
+    }
+    if (!hasMinLength(safeIssue, 10)) {
+      setSubmitError("Please describe your issue in at least 10 characters.");
+      return;
+    }
+    if (!hasMaxLength(safeIssue, 1000)) {
+      setSubmitError("Issue description is too long (max 1000 characters).");
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
       const response = await fetch("/api/services", {
@@ -109,10 +150,10 @@ export default function BookServiceClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           packageId,
-          customerName,
-          customerEmail,
-          phone,
-          issue,
+          customerName: safeName,
+          customerEmail: safeEmail || undefined,
+          phone: safePhone,
+          issue: safeIssue,
           preferredTime,
           requestedDate: requestedDate || undefined,
           paymentProof: paymentProof || undefined,
@@ -400,25 +441,26 @@ export default function BookServiceClient() {
             {/* Name */}
             <div>
               <label htmlFor="name" className="mb-1 block text-xs font-semibold sm:text-sm">Full Name</label>
-              <input id="name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="John Doe" className="input-styled text-sm" />
+              <input id="name" required maxLength={80} value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="John Doe" className="input-styled text-sm" />
             </div>
 
             {/* Email */}
             <div>
               <label htmlFor="email" className="mb-1 block text-xs font-semibold sm:text-sm">Email Address</label>
-              <input id="email" type="email" required value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="you@example.com" className="input-styled text-sm" />
+              <input id="email" type="email" maxLength={254} value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="you@example.com" className="input-styled text-sm" />
             </div>
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="mb-1 block text-xs font-semibold sm:text-sm">Phone Number</label>
-              <input id="phone" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+233 548656980" className="input-styled text-sm" />
+              <label htmlFor="phone" className="mb-1 block text-xs font-semibold sm:text-sm">Phone Number <span className="text-red-500">*</span></label>
+              <input id="phone" type="tel" required maxLength={20} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+233 548656980" className="input-styled text-sm" />
             </div>
 
             {/* Issue */}
             <div>
-              <label htmlFor="issue" className="mb-1 block text-xs font-semibold sm:text-sm">What do you need help with?</label>
-              <textarea id="issue" required value={issue} onChange={(e) => setIssue(e.target.value)} placeholder="Describe the issue or what you need..." className="input-styled h-20 sm:h-24 text-sm" />
+              <label htmlFor="issue" className="mb-1 block text-xs font-semibold sm:text-sm">What do you need help with? <span className="text-red-500">*</span></label>
+              <textarea id="issue" required maxLength={1000} value={issue} onChange={(e) => setIssue(e.target.value)} placeholder="Describe the issue or what you need... (min 10 characters)" className="input-styled h-20 sm:h-24 text-sm" />
+              <p className="mt-0.5 text-right text-xs text-[var(--ink-soft)]">{issue.length}/1000</p>
             </div>
 
             {/* Date + Time */}
@@ -442,8 +484,28 @@ export default function BookServiceClient() {
             <button
               type="button"
               onClick={() => {
-                if (!packageId || !customerName.trim() || !customerEmail.trim() || !phone.trim() || !issue.trim() || !requestedDate || !preferredTime) {
-                  setSubmitError("Please fill in all fields before proceeding.");
+                const safeName = sanitizeLine(customerName);
+                const safeEmail = sanitizeLine(customerEmail);
+                const safePhone = sanitizeLine(phone);
+                const safeIssue = sanitizeText(issue);
+                if (!safeName || !safePhone || !safeIssue || !requestedDate || !preferredTime) {
+                  setSubmitError("Please fill in all required fields before proceeding.");
+                  return;
+                }
+                if (!isValidName(safeName)) {
+                  setSubmitError("Name can only contain letters, spaces, hyphens, or apostrophes.");
+                  return;
+                }
+                if (safeEmail && !isValidEmail(safeEmail)) {
+                  setSubmitError("Please enter a valid email address.");
+                  return;
+                }
+                if (!isValidGhanaPhone(safePhone)) {
+                  setSubmitError("Enter a valid Ghana phone number (e.g. 0241234567).");
+                  return;
+                }
+                if (!hasMinLength(safeIssue, 10)) {
+                  setSubmitError("Please describe your issue in at least 10 characters.");
                   return;
                 }
                 if (selectedService?.subServices?.length && !subServiceId) {

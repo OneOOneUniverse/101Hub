@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { sanitizeSearchQuery } from "@/lib/validation";
 
 export default function NavSearch() {
   const router = useRouter();
@@ -9,7 +10,7 @@ export default function NavSearch() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const term = query.trim();
+    const term = sanitizeSearchQuery(query);
 
     if (!term) {
       router.push("/products");
@@ -28,7 +29,7 @@ export default function NavSearch() {
         <input
           id="nav-search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => setQuery(event.target.value.slice(0, 100))}
           placeholder="Search gadgets, brands, and accessories"
           className="w-full bg-transparent text-sm outline-none text-[#172026] placeholder:text-[rgba(255,107,53,0.5)] placeholder:font-semibold"
         />

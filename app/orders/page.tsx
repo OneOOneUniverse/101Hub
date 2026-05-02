@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BoxIcon } from "@/components/Icons";
 import { getOrdersFromLocal, saveOrderToLocal, getOrderStatusLabel, getOrderStatusColor, type OrderData } from "@/lib/order-status";
+import { sanitizeLine, isValidOrderRef } from "@/lib/validation";
 
 export default function OrderLookupPage() {
   const router = useRouter();
@@ -44,9 +45,13 @@ export default function OrderLookupPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const trimmed = ref.trim().toUpperCase();
+    const trimmed = sanitizeLine(ref).toUpperCase();
     if (!trimmed) {
       setError("Please enter an order reference.");
+      return;
+    }
+    if (!isValidOrderRef(trimmed)) {
+      setError("Order reference must contain only letters, numbers, or hyphens (e.g. GH-1234567890).");
       return;
     }
 
@@ -97,6 +102,7 @@ export default function OrderLookupPage() {
               className="input-styled font-mono font-semibold"
               autoComplete="off"
               spellCheck={false}
+              maxLength={40}
             />
             <p className="mt-1 text-xs text-[var(--ink-soft)]">
               You can find this in your order confirmation email.

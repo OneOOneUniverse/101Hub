@@ -7,6 +7,16 @@ import { useStoreContent } from "@/lib/use-store-content";
 import AnimatedPaymentModal from "@/components/AnimatedPaymentModal";
 import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 import { saveOrderToLocal } from "@/lib/order-status";
+import {
+  sanitizeLine,
+  sanitizeText,
+  isValidEmail,
+  isValidGhanaPhone,
+  isValidName,
+  isValidImageFile,
+  hasMinLength,
+  hasMaxLength,
+} from "@/lib/validation";
 
 type CartLine = { productId: string; qty: number };
 
@@ -115,6 +125,8 @@ export default function CheckoutForm() {
   const [appliedCode, setAppliedCode] = useState<{ code: string; type: "percent" | "fixed"; value: number; discountAmount: number; description: string } | null>(null);
   const [codeError, setCodeError] = useState("");
   const [codeLoading, setCodeLoading] = useState(false);
+  // Per-field validation errors
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const products = useMemo(() => content?.products ?? [], [content?.products]);
 
   // Validate cart items on mount and when products change
@@ -339,18 +351,68 @@ export default function CheckoutForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setError("");
     setPaymentProofError("");
 
-    try {
-      // Validate payment proof for manual method
-      if (paymentMethod === "manual" && !paymentProof) {
-        setPaymentProofError("Payment proof is required for manual payment.");
-        setSubmitting(false);
-        return;
-      }
+    // ── Field-level validation ───────────────────────────────────────────────
+    const errors: Record<string, string> = {};
 
+    const safeName = sanitizeLine(customerName);
+    if (!safeName) {
+      errors.customerName = "Full name is required.";
+    } else if (!isValidName(safeName)) {
+      errors.customerName = "Name can only contain letters, spaces, hyphens, or apostrophes (2–80 characters).";
+    }
+
+    const safeEmail = sanitizeLine(email);
+    if (!safeEmail) {
+      errors.email = "Email address is required.";
+    } else if (!isValidEmail(safeEmail)) {
+      errors.email = "Please enter a valid email address (e.g. you@example.com).";
+    }
+
+    const safePhone = sanitizeLine(phone);
+    if (!safePhone) {
+      errors.phone = "Phone number is required.";
+    } else if (!isValidGhanaPhone(safePhone)) {
+      errors.phone = "Enter a valid Ghana phone number (e.g. 0241234567 or +233241234567).";
+    }
+
+    const safeAddress = sanitizeText(address);
+    if (!safeAddress) {
+      errors.address = "Delivery address is required.";
+    } else if (!hasMinLength(safeAddress, 5)) {
+      errors.address = "Please provide a more detailed address (at least 5 characters).";
+    } else if (!hasMaxLength(safeAddress, 300)) {
+      errors.address = "Address is too long (max 300 characters).";
+    }
+
+    const safeNote = sanitizeText(note);
+    if (safeNote && !hasMaxLength(safeNote, 500)) {
+      errors.note = "Note is too long (max 500 characters).";
+    }
+
+    if (paymentMethod === "manual" && !paymentProof) {
+      setPaymentProofError("Payment proof (screenshot) is required.");
+      errors.paymentProof = "required";
+    } else if (paymentMethod === "manual" && paymentProof) {
+      const fileCheck = isValidImageFile(paymentProof);
+      if (!fileCheck.ok) {
+        setPaymentProofError(fileCheck.message);
+        errors.paymentProof = "invalid";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setSubmitting(false);
+      return;
+    }
+    setFieldErrors({});
+
+    setSubmitting(true);
+
+    try {
       // Validate GPS coords when selected delivery type requires location
       const selectedDeliveryType = content?.deliverySettings?.deliveryTypes?.find((t) => t.id === deliveryType);
       if (selectedDeliveryType?.requiresLocation && !gpsCoords) {
@@ -373,20 +435,20 @@ export default function CheckoutForm() {
         });
       }
 
-      const fullAddress = [address, town, region].filter(Boolean).join(", ");
+      const fullAddress = [safeAddress, town, region].filter(Boolean).join(", ");
 
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName,
-          email,
-          phone,
+          customerName: safeName,
+          email: safeEmail,
+          phone: safePhone,
           address: fullAddress,
           location,
           deliveryType,
           gpsCoords: gpsCoords ?? undefined,
-          note,
+          note: safeNote,
           items,
           paymentMethod,
           paymentProof: paymentProofBase64,
@@ -741,9 +803,15 @@ export default function CheckoutForm() {
                 required
                 placeholder="e.g. Kwame Mensah"
                 value={customerName}
-                onChange={(event) => setCustomerName(event.target.value)}
-                className="input-styled"
+                onChange={(event) => {
+                  setCustomerName(event.target.value);
+                  if (fieldErrors.customerName) setFieldErrors((p) => ({ ...p, customerName: "" }));
+                }}
+                className={`input-styled${fieldErrors.customerName ? " border-red-400" : ""}`}
               />
+              {fieldErrors.customerName && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.customerName}</p>
+              )}
             </div>
 
             {/* Email (required) */}
@@ -757,10 +825,17 @@ export default function CheckoutForm() {
                 required
                 placeholder="you@example.com"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="input-styled"
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: "" }));
+                }}
+                className={`input-styled${fieldErrors.email ? " border-red-400" : ""}`}
               />
-              <p className="mt-1 text-xs text-[var(--ink-soft)]">We'll send your order confirmation to this email</p>
+              {fieldErrors.email ? (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
+              ) : (
+                <p className="mt-1 text-xs text-[var(--ink-soft)]">We'll send your order confirmation to this email</p>
+              )}
             </div>
 
             {/* Phone */}
@@ -770,12 +845,19 @@ export default function CheckoutForm() {
               </label>
               <input
                 id="phone"
+                type="tel"
                 required
                 placeholder="+233 ..."
                 value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                className="input-styled"
+                onChange={(event) => {
+                  setPhone(event.target.value);
+                  if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: "" }));
+                }}
+                className={`input-styled${fieldErrors.phone ? " border-red-400" : ""}`}
               />
+              {fieldErrors.phone && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>
+              )}
             </div>
           </div>
         </div>
@@ -837,9 +919,15 @@ export default function CheckoutForm() {
                 required
                 placeholder="Street name, house number, landmark..."
                 value={address}
-                onChange={(event) => setAddress(event.target.value)}
-                className="input-styled h-24"
+                onChange={(event) => {
+                  setAddress(event.target.value);
+                  if (fieldErrors.address) setFieldErrors((p) => ({ ...p, address: "" }));
+                }}
+                className={`input-styled h-24${fieldErrors.address ? " border-red-400" : ""}`}
               />
+              {fieldErrors.address && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.address}</p>
+              )}
             </div>
 
         {/* Delivery Location */}
@@ -1061,9 +1149,17 @@ export default function CheckoutForm() {
             id="note"
             placeholder="Landmark, delivery instructions..."
             value={note}
-            onChange={(event) => setNote(event.target.value)}
-            className="input-styled h-20"
+            maxLength={500}
+            onChange={(event) => {
+              setNote(event.target.value);
+              if (fieldErrors.note) setFieldErrors((p) => ({ ...p, note: "" }));
+            }}
+            className={`input-styled h-20${fieldErrors.note ? " border-red-400" : ""}`}
           />
+          <p className="mt-0.5 text-right text-xs text-[var(--ink-soft)]">{note.length}/500</p>
+          {fieldErrors.note && (
+            <p className="mt-1 text-xs text-red-600">{fieldErrors.note}</p>
+          )}
         </div>
           </div>
         </div>
