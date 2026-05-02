@@ -104,7 +104,7 @@ function AuctionCard({ a }: { a: Auction }) {
                   countdown.urgent ? "bg-red-50 border border-red-200" : "bg-orange-50 border border-orange-200"
                 }`}
               >
-                <p className={`text-[10px] font-semibold ${countdown.urgent ? "text-red-600" : "text-[var(--brand)]"`}>
+                <p className={`text-[10px] font-semibold ${countdown.urgent ? "text-red-600" : "text-[var(--brand)]"}`}>
                   Ends in
                 </p>
                 <p className={`font-mono text-sm font-black tabular-nums ${countdown.urgent ? "text-red-700" : "text-[var(--brand)]"}`}>
