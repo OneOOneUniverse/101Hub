@@ -54,7 +54,7 @@ export async function POST(
   // plain select → validate → update (optimistic concurrency via status check).
   const { data: auction, error: fetchErr } = await supabaseAdmin
     .from("auctions")
-    .select("id,status,ends_at,starting_price,current_bid,min_increment")
+    .select("id,status,ends_at,starting_price,current_bid,min_increment,bid_count")
     .eq("id", auctionId)
     .single();
 
