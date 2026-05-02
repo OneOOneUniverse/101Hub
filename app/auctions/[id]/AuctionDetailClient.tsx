@@ -174,7 +174,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
   if (notFound || !auction) {
     return (
       <main className="mx-auto max-w-5xl px-3 py-12 sm:px-4 text-center space-y-4">
-        <p className="text-5xl">🔨</p>
+        <svg className="mx-auto" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
         <h1 className="text-2xl font-black text-[var(--ink)]">Auction Not Found</h1>
         <p className="text-sm text-[var(--ink-soft)]">This auction may have been removed.</p>
         <Link href="/auctions" className="inline-block rounded-full bg-purple-600 px-6 py-2 text-sm font-bold text-white hover:bg-purple-700">
@@ -217,14 +217,16 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-7xl">🔨</div>
+                <div className="flex h-full w-full items-center justify-center">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
+                </div>
               )}
 
               {/* Status overlay */}
               {!isEnded && countdown && (
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-purple-900/80 to-transparent p-4">
                   <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-purple-200">
-                    {countdown.urgent ? "⚠️ Ending Soon!" : "Time Remaining"}
+                    {countdown.urgent ? "Ending Soon!" : "Time Remaining"}
                   </p>
                   <div className="flex gap-2">
                     {countdown.d > 0 && <CountdownBlock label="Days" value={countdown.d} />}
@@ -356,12 +358,12 @@ export default function AuctionDetailClient({ id }: { id: number }) {
 
                 {bidError && (
                   <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
-                    ❌ {bidError}
+                    {bidError}
                   </p>
                 )}
                 {bidSuccess && (
                   <p className="rounded-lg bg-green-50 px-3 py-2 text-xs font-semibold text-green-700">
-                    ✅ {bidSuccess}
+                    {bidSuccess}
                   </p>
                 )}
 
@@ -370,7 +372,12 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                   disabled={submitting}
                   className="w-full rounded-full bg-purple-600 py-3 text-sm font-black text-white hover:bg-purple-700 disabled:opacity-60 transition-all active:scale-95 shadow-md"
                 >
-                  {submitting ? "Placing Bid…" : "🔨 Place Bid"}
+                  {submitting ? "Placing Bid…" : (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
+                      Place Bid
+                    </span>
+                  )}
                 </button>
               </form>
 
@@ -380,7 +387,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
             </div>
           ) : (
             <div className="panel p-5 text-center space-y-3">
-              <p className="text-3xl">🏁</p>
+              <svg className="mx-auto" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
               <p className="text-sm font-bold text-[var(--ink)]">
                 {auction.winner_name
                   ? `This auction was won by ${auction.winner_name}.`
@@ -414,7 +421,9 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  {idx === 0 && <span className="text-base">🥇</span>}
+                  {idx === 0 && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#f59e0b" stroke="none" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  )}
                   <div>
                     <p className="font-bold text-[var(--ink)]">{bid.bidder_name}</p>
                     <p className="text-[10px] text-[var(--ink-soft)]">

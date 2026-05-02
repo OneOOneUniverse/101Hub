@@ -56,7 +56,9 @@ function AuctionCard({ a }: { a: Auction }) {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-5xl">🔨</div>
+          <div className="flex h-full w-full items-center justify-center">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
+          </div>
         )}
 
         {/* Status badge */}
@@ -74,7 +76,7 @@ function AuctionCard({ a }: { a: Auction }) {
 
         {/* Bid count chip */}
         <span className="absolute left-2.5 top-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           {a.bid_count} bid{a.bid_count !== 1 ? "s" : ""}
         </span>
       </div>
@@ -169,10 +171,11 @@ export default function AuctionsPage() {
           <div className="space-y-2">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-white/80 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              {activeCount} Active {activeCount === 1 ? "Auction" : "Auctions"}
+              {activeCount} Active {activeCount === 1 ? "Auction" : "Auctions"}  
             </span>
-            <h1 className="text-3xl font-black text-white sm:text-4xl">
-              🔨 Live Auctions
+            <h1 className="flex items-center gap-3 text-3xl font-black text-white sm:text-4xl">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
+              Live Auctions
             </h1>
             <p className="max-w-md text-sm text-white/65">
               Bid on exclusive items in real-time. The highest bid when the
@@ -218,7 +221,7 @@ export default function AuctionsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="panel flex flex-col items-center gap-4 py-16 text-center">
-          <span className="text-5xl">🔨</span>
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
           <p className="text-base font-bold text-[var(--ink)]">No auctions yet</p>
           <p className="text-sm text-[var(--ink-soft)]">
             Check back soon — new items go live regularly.
@@ -240,13 +243,15 @@ export default function AuctionsPage() {
         <h2 className="mb-6 text-lg font-black text-[var(--ink)]">How Auctions Work</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { step: "1", icon: "👀", title: "Browse Items", desc: "Find an item you love with an active countdown." },
-            { step: "2", icon: "💸", title: "Place Your Bid", desc: "Enter your name, email, and a bid above the minimum." },
-            { step: "3", icon: "🏆", title: "Win & Collect", desc: "If you're the highest bidder when time runs out, you win!" },
+            { step: "1", icon: "eye", title: "Browse Items", desc: "Find an item you love with an active countdown." },
+            { step: "2", icon: "bid", title: "Place Your Bid", desc: "Enter your name, email, and a bid above the minimum." },
+            { step: "3", icon: "trophy", title: "Win & Collect", desc: "If you're the highest bidder when time runs out, you win!" },
           ].map(({ step, icon, title, desc }) => (
             <div key={step} className="flex gap-4 items-start">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-lg font-black text-purple-700">
-                {icon}
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
+                {icon === "eye" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+                {icon === "bid" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>}
+                {icon === "trophy" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 000 5H6"/><path d="M18 9h1.5a2.5 2.5 0 010 5H18"/><path d="M4 22h16"/><path d="M10 22v-5"/><path d="M14 22v-5"/><path d="M6 2v7a6 6 0 0012 0V2"/></svg>}
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-purple-500 mb-0.5">Step {step}</p>

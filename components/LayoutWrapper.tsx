@@ -9,6 +9,7 @@ import NavSearch from "@/components/NavSearch";
 import SiteFooter from "@/components/SiteFooter";
 import LiveSupportChat from "@/components/LiveSupportChat";
 import VisitorTracker from "@/components/VisitorTracker";
+import ActivityToast from "@/components/ActivityToast";
 import MarqueeBar from "@/components/MarqueeBar";
 import { useCartCount } from "@/lib/use-cart-count";
 import { useSyncBrowsingDataToProfile, useLoadUserBrowsingData } from "@/lib/use-sync-browsing-data";
@@ -126,6 +127,8 @@ export default function LayoutWrapper({
       ) : null}
       {/* Live support chat widget — persists across all pages */}
       <LiveSupportChat />
+      {/* Social proof activity toasts */}
+      <ActivityToast />
     </>
   );
 }

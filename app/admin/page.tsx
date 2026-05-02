@@ -285,7 +285,8 @@ type AdminSectionId =
   | "deals-hub"
   | "reviews"
   | "popup"
-  | "discount-codes";
+  | "discount-codes"
+  | "auctions";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
@@ -314,6 +315,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "reviews", label: "⭐ Reviews" },
   { id: "popup", label: "📢 Announcement Popup" },
   { id: "discount-codes", label: "🏷️ Discount Codes" },
+  { id: "auctions", label: "🔨 Auctions" },
 ];
 
 /** Sections a supervisor can see (subset of full admin). */
@@ -6788,6 +6790,34 @@ export default function AdminPage() {
           </div>
         </Section>
       ) : null}
+
+      {activeSection === "auctions" ? (
+        <Section title="🔨 Auctions" description="Create and manage live auctions. Set starting prices, bid increments, reserve prices, and end dates. End or cancel auctions at any time.">
+          <AdminAuctionsInline />
+        </Section>
+      ) : null}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Auctions inline component
+// ─────────────────────────────────────────────────────────────────────────────
+function AdminAuctionsInline() {
+  // Lazy-load the auctions management page component via dynamic import equivalent:
+  // We inline a simple redirect to /admin/auctions for a clean separation.
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-[var(--ink-soft)]">
+        Manage your auctions — create new ones, edit details, end or cancel live auctions — all from the dedicated auction control panel.
+      </p>
+      <a
+        href="/admin/auctions"
+        className="inline-flex items-center gap-2 rounded-full bg-purple-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-purple-700 transition-colors"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
+        Open Auction Manager
+      </a>
     </div>
   );
 }
