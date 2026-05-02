@@ -16,7 +16,7 @@ import { useSyncBrowsingDataToProfile, useLoadUserBrowsingData } from "@/lib/use
 import type { FooterContent } from "@/lib/site-content-types";
 
 type StoreData = {
-  features?: { cart?: boolean };
+  features?: { cart?: boolean; activityToast?: boolean };
   storeName?: string;
   logoUrl?: string;
   footerText?: string;
@@ -33,6 +33,7 @@ export default function LayoutWrapper({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const cartCount = useCartCount();
   const [cartEnabled, setCartEnabled] = useState(true);
+  const [activityToastEnabled, setActivityToastEnabled] = useState(true);
   const [storeData, setStoreData] = useState<StoreData | null>(null);
   const { user } = useUser();
   
@@ -53,6 +54,7 @@ export default function LayoutWrapper({
         if (isActive) {
           if (data.features) {
             setCartEnabled(data.features.cart ?? true);
+            setActivityToastEnabled(data.features.activityToast ?? true);
           }
           setStoreData(data);
         }
@@ -128,7 +130,7 @@ export default function LayoutWrapper({
       {/* Live support chat widget — persists across all pages */}
       <LiveSupportChat />
       {/* Social proof activity toasts */}
-      <ActivityToast />
+      <ActivityToast enabled={activityToastEnabled} />
     </>
   );
 }

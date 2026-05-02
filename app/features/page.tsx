@@ -1,8 +1,52 @@
 import Link from "next/link";
 
+// ── SVG icons ─────────────────────────────────────────────────────────────────
+function ShoppingBagIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>;
+}
+function ZapIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+}
+function GavelIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>;
+}
+function GamepadIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>;
+}
+function WrenchIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>;
+}
+function TagIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>;
+}
+function CartIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6"/></svg>;
+}
+function CreditCardIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>;
+}
+function PackageIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+}
+function HeartIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>;
+}
+function UserIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+}
+function GiftIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>;
+}
+function StarIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>;
+}
+function HelpCircleIcon() {
+  return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+}
+
 type Feature = {
   href: string;
-  emoji: string;
+  icon: React.ReactNode;
   gradient: string;
   title: string;
   description: string;
@@ -13,7 +57,7 @@ type Feature = {
 const FEATURES: Feature[] = [
   {
     href: "/products",
-    emoji: "🛍️",
+    icon: <ShoppingBagIcon />,
     gradient: "from-orange-400 to-rose-500",
     title: "Shop Products",
     description:
@@ -23,7 +67,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/flash-sale",
-    emoji: "⚡",
+    icon: <ZapIcon />,
     gradient: "from-yellow-400 to-orange-500",
     title: "Flash Sale",
     description:
@@ -33,17 +77,17 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/auctions",
-    emoji: "🔨",
-    gradient: "from-purple-500 to-indigo-600",
+    icon: <GavelIcon />,
+    gradient: "from-[var(--brand)] to-[var(--brand-deep)]",
     title: "Live Auctions",
     description:
       "Place bids on exclusive items in real-time. The highest bidder wins when the timer runs out.",
     badge: "New",
-    badgeColor: "bg-purple-100 text-purple-700",
+    badgeColor: "bg-orange-100 text-[var(--brand-deep)]",
   },
   {
     href: "/deals",
-    emoji: "🎯",
+    icon: <GamepadIcon />,
     gradient: "from-emerald-400 to-teal-600",
     title: "Deals Hub",
     description:
@@ -53,7 +97,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/services",
-    emoji: "🔧",
+    icon: <WrenchIcon />,
     gradient: "from-blue-400 to-cyan-600",
     title: "Pro Services",
     description:
@@ -61,7 +105,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/black-friday",
-    emoji: "🏷️",
+    icon: <TagIcon />,
     gradient: "from-gray-800 to-gray-950",
     title: "Black Friday",
     description:
@@ -71,7 +115,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/cart",
-    emoji: "🛒",
+    icon: <CartIcon />,
     gradient: "from-sky-400 to-blue-500",
     title: "Smart Cart",
     description:
@@ -79,7 +123,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/checkout",
-    emoji: "💳",
+    icon: <CreditCardIcon />,
     gradient: "from-green-400 to-emerald-600",
     title: "Checkout",
     description:
@@ -87,7 +131,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/orders",
-    emoji: "📦",
+    icon: <PackageIcon />,
     gradient: "from-amber-400 to-orange-500",
     title: "Order Tracking",
     description:
@@ -95,7 +139,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/wishlist",
-    emoji: "❤️",
+    icon: <HeartIcon />,
     gradient: "from-pink-400 to-rose-500",
     title: "Wishlist",
     description:
@@ -103,15 +147,15 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/profile",
-    emoji: "👤",
-    gradient: "from-violet-400 to-purple-600",
+    icon: <UserIcon />,
+    gradient: "from-[var(--brand)] to-[var(--brand-deep)]",
     title: "My Profile",
     description:
       "Manage your account, set a custom avatar, update preferences, and view your order history.",
   },
   {
     href: "/referral",
-    emoji: "🎁",
+    icon: <GiftIcon />,
     gradient: "from-fuchsia-400 to-pink-600",
     title: "Referral Program",
     description:
@@ -121,7 +165,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/reviews",
-    emoji: "⭐",
+    icon: <StarIcon />,
     gradient: "from-yellow-300 to-amber-500",
     title: "Reviews",
     description:
@@ -129,7 +173,7 @@ const FEATURES: Feature[] = [
   },
   {
     href: "/faqs",
-    emoji: "💡",
+    icon: <HelpCircleIcon />,
     gradient: "from-lime-400 to-green-600",
     title: "FAQs",
     description:
@@ -144,7 +188,7 @@ export default function FeaturesPage() {
       <section className="relative overflow-hidden rounded-2xl bg-[var(--ink)] px-6 py-14 text-center sm:px-10 sm:py-20">
         {/* decorative orbs */}
         <span className="pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-[var(--brand)] opacity-20 blur-3xl" />
-        <span className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-purple-500 opacity-15 blur-3xl" />
+        <span className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-[var(--brand-deep)] opacity-15 blur-3xl" />
 
         <div className="relative z-10 space-y-4">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white/80 backdrop-blur-sm">
@@ -221,9 +265,9 @@ export default function FeaturesPage() {
               <div className="flex items-start justify-between gap-3">
                 {/* icon orb */}
                 <div
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${feat.gradient} text-2xl shadow-md`}
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${feat.gradient} text-white shadow-md`}
                 >
-                  {feat.emoji}
+                  {feat.icon}
                 </div>
 
                 {feat.badge && (

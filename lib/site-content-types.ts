@@ -165,6 +165,7 @@ export type SiteFeatures = {
   cart: boolean;
   checkout: boolean;
   dealsHub: boolean;
+  activityToast: boolean;
 };
 
 export type LocationDeliveryFee = {

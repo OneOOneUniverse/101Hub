@@ -247,6 +247,7 @@ function sanitizeFeatures(value: unknown, fallback: SiteFeatures): SiteFeatures 
     cart: toBoolean(candidate.cart, fallback.cart),
     checkout: toBoolean(candidate.checkout, fallback.checkout),
     dealsHub: toBoolean(candidate.dealsHub, fallback.dealsHub),
+    activityToast: toBoolean(candidate.activityToast, fallback.activityToast ?? true),
   };
 }
 

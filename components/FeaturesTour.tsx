@@ -5,55 +5,41 @@ import Link from "next/link";
 
 const SEEN_KEY = "101hub-features-seen";
 
+// ── Mini SVG icons ────────────────────────────────────────────────────────────
+function IcoBag() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>;
+}
+function IcoZap() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+}
+function IcoGamepad() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>;
+}
+function IcoTag() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>;
+}
+function IcoWrench() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>;
+}
+function IcoUsers() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>;
+}
+function IcoHeart() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>;
+}
+function IcoPackage() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+}
+
 const FEATURES = [
-  {
-    emoji: "🛍️",
-    title: "Shop Products",
-    desc: "Browse gadgets, fashion, home essentials and more.",
-    href: "/products",
-  },
-  {
-    emoji: "⚡",
-    title: "Flash Sale",
-    desc: "Limited-time deals at massive discounts. New drops daily.",
-    href: "/flash-sale",
-  },
-  {
-    emoji: "🎮",
-    title: "Deals Hub & Games",
-    desc: "Play spin wheel, scratch cards & trivia to earn discount points.",
-    href: "/deals",
-  },
-  {
-    emoji: "🏪",
-    title: "Special Stores",
-    desc: "Curated collections with fixed store prices — add direct to cart.",
-    href: "/deals",
-  },
-  {
-    emoji: "🛠️",
-    title: "Professional Services",
-    desc: "Book device setup, installation, repairs and more.",
-    href: "/services",
-  },
-  {
-    emoji: "👥",
-    title: "Referral Rewards",
-    desc: "Invite friends and earn cashback rewards on every purchase they make.",
-    href: "/referral",
-  },
-  {
-    emoji: "❤️",
-    title: "Wishlist",
-    desc: "Save items to buy later — accessible from any device when signed in.",
-    href: "/wishlist",
-  },
-  {
-    emoji: "📦",
-    title: "Order Tracking",
-    desc: "Track your orders in real time from your profile.",
-    href: "/orders",
-  },
+  { icon: <IcoBag />, title: "Shop Products", desc: "Browse gadgets, fashion, home essentials and more.", href: "/products" },
+  { icon: <IcoZap />, title: "Flash Sale", desc: "Limited-time deals at massive discounts. New drops daily.", href: "/flash-sale" },
+  { icon: <IcoGamepad />, title: "Deals Hub & Games", desc: "Play spin wheel, scratch cards & trivia to earn discount points.", href: "/deals" },
+  { icon: <IcoTag />, title: "Special Stores", desc: "Curated collections with fixed store prices — add direct to cart.", href: "/deals" },
+  { icon: <IcoWrench />, title: "Professional Services", desc: "Book device setup, installation, repairs and more.", href: "/services" },
+  { icon: <IcoUsers />, title: "Referral Rewards", desc: "Invite friends and earn cashback rewards on every purchase they make.", href: "/referral" },
+  { icon: <IcoHeart />, title: "Wishlist", desc: "Save items to buy later — accessible from any device when signed in.", href: "/wishlist" },
+  { icon: <IcoPackage />, title: "Order Tracking", desc: "Track your orders in real time from your profile.", href: "/orders" },
 ];
 
 export default function FeaturesTour() {
@@ -100,7 +86,7 @@ export default function FeaturesTour() {
         <div className="ft-grid">
           {FEATURES.map((f) => (
             <Link key={f.title} href={f.href} className="ft-card" onClick={dismiss}>
-              <span className="ft-emoji">{f.emoji}</span>
+              <span className="ft-icon">{f.icon}</span>
               <div>
                 <p className="ft-name">{f.title}</p>
                 <p className="ft-desc">{f.desc}</p>
@@ -165,7 +151,7 @@ export default function FeaturesTour() {
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #a78bfa;
+          color: #ff6b35;
           margin: 0 0 0.3rem;
         }
 
@@ -217,16 +203,17 @@ export default function FeaturesTour() {
           cursor: pointer;
         }
         .ft-card:hover {
-          background: rgba(124, 58, 237, 0.1);
-          border-color: rgba(167, 139, 250, 0.25);
+          background: rgba(255, 107, 53, 0.08);
+          border-color: rgba(255, 107, 53, 0.3);
           transform: translateY(-2px);
         }
 
-        .ft-emoji {
-          font-size: 1.5rem;
+        .ft-icon {
+          font-size: 1.15rem;
           flex-shrink: 0;
           line-height: 1;
-          margin-top: 0.05rem;
+          margin-top: 0.1rem;
+          color: #ff6b35;
         }
 
         .ft-name {
@@ -254,17 +241,17 @@ export default function FeaturesTour() {
           padding: 0.6rem 1.6rem;
           border: none;
           border-radius: 99px;
-          background: linear-gradient(135deg, #7c3aed, #6366f1);
+          background: linear-gradient(135deg, #ff6b35, #d94020);
           color: #fff;
           font-size: 0.82rem;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+          box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
           transition: transform 0.2s, box-shadow 0.2s;
         }
         .ft-got-it:hover {
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+          box-shadow: 0 6px 20px rgba(255, 107, 53, 0.45);
         }
 
         @media (max-width: 500px) {

@@ -15,7 +15,8 @@
     "wishlist": true,
     "reviews": true,
     "cart": true,
-    "checkout": true
+    "checkout": true,
+    "activityToast": true
   },
   "home": {
     "badge": "Shop + Expert Services",

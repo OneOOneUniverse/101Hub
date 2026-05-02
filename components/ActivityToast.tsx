@@ -140,14 +140,15 @@ function IconFor({ type, color }: { type: ToastType; color: string }) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function ActivityToast() {
+export default function ActivityToast({ enabled = true }: { enabled?: boolean }) {
   const [toast, setToast] = useState<Activity | null>(null);
   const [visible, setVisible] = useState(false);
   const idRef = useRef(0);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Don't show on server or on admin pages
+  // Don't show on server or on admin pages, or when disabled by admin
+  if (!enabled) return null;
   if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
     return null;
   }

@@ -174,10 +174,10 @@ export default function AuctionDetailClient({ id }: { id: number }) {
   if (notFound || !auction) {
     return (
       <main className="mx-auto max-w-5xl px-3 py-12 sm:px-4 text-center space-y-4">
-        <svg className="mx-auto" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
+        <svg className="mx-auto" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
         <h1 className="text-2xl font-black text-[var(--ink)]">Auction Not Found</h1>
         <p className="text-sm text-[var(--ink-soft)]">This auction may have been removed.</p>
-        <Link href="/auctions" className="inline-block rounded-full bg-purple-600 px-6 py-2 text-sm font-bold text-white hover:bg-purple-700">
+        <Link href="/auctions" className="inline-block rounded-full bg-[var(--brand)] px-6 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)]">
           ← Back to Auctions
         </Link>
       </main>
@@ -195,7 +195,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
       {/* Back */}
       <Link
         href="/auctions"
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--ink-soft)] hover:text-purple-700 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--ink-soft)] hover:text-[var(--brand)] transition-colors"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -208,7 +208,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
         <div className="space-y-4">
           {/* Image */}
           <div className="panel relative overflow-hidden rounded-2xl">
-            <div className="relative h-64 sm:h-80 bg-gradient-to-br from-purple-50 to-indigo-100">
+            <div className="relative h-64 sm:h-80 bg-gradient-to-br from-orange-50 to-amber-100">
               {auction.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -218,14 +218,14 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
                 </div>
               )}
 
               {/* Status overlay */}
               {!isEnded && countdown && (
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-purple-900/80 to-transparent p-4">
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-purple-200">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/80">
                     {countdown.urgent ? "Ending Soon!" : "Time Remaining"}
                   </p>
                   <div className="flex gap-2">
@@ -241,7 +241,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                   <div className="text-center">
                     <p className="text-3xl font-black text-white">Auction Ended</p>
                     {auction.winner_name && (
-                      <p className="mt-1 text-sm font-semibold text-purple-200">
+                      <p className="mt-1 text-sm font-semibold text-orange-300">
                         Winner: {auction.winner_name}
                       </p>
                     )}
@@ -259,13 +259,13 @@ export default function AuctionDetailClient({ id }: { id: number }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-purple-50 border border-purple-100 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-purple-500">Starting Price</p>
-                <p className="text-base font-black text-purple-800">GHS {auction.starting_price.toFixed(2)}</p>
+              <div className="rounded-xl bg-orange-50 border border-orange-100 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--brand)]">Starting Price</p>
+                <p className="text-base font-black text-[var(--brand-deep)]">GHS {auction.starting_price.toFixed(2)}</p>
               </div>
-              <div className="rounded-xl bg-purple-50 border border-purple-100 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-purple-500">Bid Increment</p>
-                <p className="text-base font-black text-purple-800">+ GHS {auction.min_increment.toFixed(2)}</p>
+              <div className="rounded-xl bg-orange-50 border border-orange-100 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--brand)]">Bid Increment</p>
+                <p className="text-base font-black text-[var(--brand-deep)]">+ GHS {auction.min_increment.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -278,16 +278,16 @@ export default function AuctionDetailClient({ id }: { id: number }) {
             className={`rounded-2xl p-6 text-center ${
               isEnded
                 ? "bg-gray-100 border border-gray-200"
-                : "bg-gradient-to-br from-purple-600 to-indigo-700 shadow-lg shadow-purple-200"
+                : "bg-gradient-to-br from-[var(--ink)] to-[#1a1a2e] shadow-lg shadow-black/20"
             }`}
           >
-            <p className={`text-xs font-bold uppercase tracking-widest ${isEnded ? "text-gray-500" : "text-purple-200"}`}>
+            <p className={`text-xs font-bold uppercase tracking-widest ${isEnded ? "text-gray-500" : "text-white/70"}`}>
               {auction.current_bid > 0 ? "Current Bid" : "Starting Price"}
             </p>
             <p className={`text-4xl font-black mt-1 ${isEnded ? "text-gray-700" : "text-white"}`}>
               GHS {displayPrice.toFixed(2)}
             </p>
-            <p className={`mt-1 text-xs font-semibold ${isEnded ? "text-gray-400" : "text-purple-200"}`}>
+            <p className={`mt-1 text-xs font-semibold ${isEnded ? "text-gray-400" : "text-white/60"}`}>
               {auction.bid_count} bid{auction.bid_count !== 1 ? "s" : ""} placed
             </p>
             {!isEnded && (
@@ -370,7 +370,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-full bg-purple-600 py-3 text-sm font-black text-white hover:bg-purple-700 disabled:opacity-60 transition-all active:scale-95 shadow-md"
+                  className="w-full rounded-full bg-[var(--brand)] py-3 text-sm font-black text-white hover:bg-[var(--brand-deep)] disabled:opacity-60 transition-all active:scale-95 shadow-md"
                 >
                   {submitting ? "Placing Bid…" : (
                     <span className="flex items-center justify-center gap-2">
@@ -395,7 +395,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
               </p>
               <Link
                 href="/auctions"
-                className="inline-block rounded-full bg-purple-600 px-5 py-2 text-xs font-bold text-white hover:bg-purple-700"
+                className="inline-block rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)]"
               >
                 See More Auctions
               </Link>
@@ -416,7 +416,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                 key={bid.id}
                 className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm ${
                   idx === 0
-                    ? "bg-purple-50 border border-purple-200"
+                    ? "bg-orange-50 border border-orange-200"
                     : "bg-[var(--surface)] border border-black/5"
                 }`}
               >
@@ -436,7 +436,7 @@ export default function AuctionDetailClient({ id }: { id: number }) {
                     </p>
                   </div>
                 </div>
-                <span className={`font-black ${idx === 0 ? "text-purple-700 text-base" : "text-[var(--ink)]"}`}>
+                <span className={`font-black ${idx === 0 ? "text-[var(--brand)] text-base" : "text-[var(--ink)]"}`}>
                   GHS {Number(bid.amount).toFixed(2)}
                 </span>
               </div>

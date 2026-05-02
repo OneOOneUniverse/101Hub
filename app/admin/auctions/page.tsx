@@ -12,7 +12,7 @@ export default async function AdminAuctionsRoute() {
   return (
     <main className="mx-auto max-w-5xl px-3 py-8 sm:px-4 sm:py-10">
       <div className="mb-5 flex items-center gap-2 text-xs text-[var(--ink-soft)]">
-        <Link href="/admin" className="hover:text-purple-700 font-semibold transition-colors">
+        <Link href="/admin" className="hover:text-[var(--brand)] font-semibold transition-colors">
           ← Admin Dashboard
         </Link>
       </div>

@@ -44,10 +44,10 @@ function AuctionCard({ a }: { a: Auction }) {
   return (
     <Link
       href={`/auctions/${a.id}`}
-      className="group panel relative flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_-12px_rgba(139,92,246,0.25)] hover:border-purple-300/40"
+      className="group panel relative flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_-12px_rgba(255,107,53,0.22)] hover:border-[var(--brand)]/30"
     >
       {/* Image / placeholder */}
-      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-purple-50 to-indigo-100">
+      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-orange-50 to-amber-100">
         {a.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -68,7 +68,7 @@ function AuctionCard({ a }: { a: Auction }) {
               ? "bg-gray-800 text-white"
               : countdown?.urgent
               ? "bg-red-500 text-white animate-pulse"
-              : "bg-purple-600 text-white"
+              : "bg-[var(--brand)] text-white"
           }`}
         >
           {isEnded ? "Ended" : "Live"}
@@ -83,7 +83,7 @@ function AuctionCard({ a }: { a: Auction }) {
 
       {/* Body */}
       <div className="flex flex-1 flex-col gap-3 p-4">
-        <h3 className="line-clamp-2 text-sm font-black leading-snug text-[var(--ink)] group-hover:text-purple-700 transition-colors">
+        <h3 className="line-clamp-2 text-sm font-black leading-snug text-[var(--ink)] group-hover:text-[var(--brand)] transition-colors">
           {a.title}
         </h3>
 
@@ -94,20 +94,20 @@ function AuctionCard({ a }: { a: Auction }) {
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--ink-soft)]">
                 {a.current_bid > 0 ? "Current Bid" : "Starting Price"}
               </p>
-              <p className="text-xl font-black text-purple-700">
+              <p className="text-xl font-black text-[var(--brand)]">
                 GHS {displayPrice.toFixed(2)}
               </p>
             </div>
             {!isEnded && countdown && (
               <div
                 className={`rounded-xl px-3 py-1.5 text-center ${
-                  countdown.urgent ? "bg-red-50 border border-red-200" : "bg-purple-50 border border-purple-200"
+                  countdown.urgent ? "bg-red-50 border border-red-200" : "bg-orange-50 border border-orange-200"
                 }`}
               >
-                <p className={`text-[10px] font-semibold ${countdown.urgent ? "text-red-600" : "text-purple-600"}`}>
+                <p className={`text-[10px] font-semibold ${countdown.urgent ? "text-red-600" : "text-[var(--brand)]"`}>
                   Ends in
                 </p>
-                <p className={`font-mono text-sm font-black tabular-nums ${countdown.urgent ? "text-red-700" : "text-purple-700"}`}>
+                <p className={`font-mono text-sm font-black tabular-nums ${countdown.urgent ? "text-red-700" : "text-[var(--brand)]"}`}>
                   {countdown.h > 0
                     ? `${countdown.h}h ${countdown.m}m`
                     : `${String(countdown.m).padStart(2, "0")}:${String(countdown.s).padStart(2, "0")}`}
@@ -122,7 +122,7 @@ function AuctionCard({ a }: { a: Auction }) {
           </div>
 
           {!isEnded && (
-            <div className="rounded-lg bg-purple-600 py-2 text-center text-xs font-bold text-white transition-all group-hover:bg-purple-700">
+            <div className="rounded-lg bg-[var(--brand)] py-2 text-center text-xs font-bold text-white transition-all group-hover:bg-[var(--brand-deep)]">
               Place a Bid →
             </div>
           )}
@@ -164,9 +164,9 @@ export default function AuctionsPage() {
   return (
     <main className="mx-auto max-w-6xl px-3 py-8 sm:px-4 sm:py-12 space-y-8">
       {/* Header */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-700 via-indigo-700 to-purple-900 px-6 py-10 sm:px-10 sm:py-14">
-        <span className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-purple-400 opacity-20 blur-3xl" />
-        <span className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-indigo-300 opacity-15 blur-3xl" />
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--ink)] via-[#1a1a2e] to-[var(--ink)] px-6 py-10 sm:px-10 sm:py-14">
+        <span className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-[var(--brand)] opacity-20 blur-3xl" />
+        <span className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-[var(--brand-deep)] opacity-15 blur-3xl" />
         <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-white/80 backdrop-blur-sm">
@@ -203,8 +203,8 @@ export default function AuctionsPage() {
             onClick={() => setFilter(f)}
             className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all capitalize ${
               filter === f
-                ? "bg-purple-600 text-white shadow"
-                : "bg-[var(--surface-strong)] border border-black/10 text-[var(--ink-soft)] hover:border-purple-300"
+                ? "bg-[var(--brand)] text-white shadow"
+                : "bg-[var(--surface-strong)] border border-black/10 text-[var(--ink-soft)] hover:border-[var(--brand)]/40"
             }`}
           >
             {f === "all" ? "All Auctions" : f === "active" ? "🟢 Active" : "🔴 Ended"}
@@ -226,7 +226,7 @@ export default function AuctionsPage() {
           <p className="text-sm text-[var(--ink-soft)]">
             Check back soon — new items go live regularly.
           </p>
-          <Link href="/products" className="rounded-full bg-purple-600 px-6 py-2 text-sm font-bold text-white hover:bg-purple-700">
+          <Link href="/products" className="rounded-full bg-[var(--brand)] px-6 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)]">
             Browse Products Instead
           </Link>
         </div>
@@ -248,13 +248,13 @@ export default function AuctionsPage() {
             { step: "3", icon: "trophy", title: "Win & Collect", desc: "If you're the highest bidder when time runs out, you win!" },
           ].map(({ step, icon, title, desc }) => (
             <div key={step} className="flex gap-4 items-start">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-[var(--brand)]">
                 {icon === "eye" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                 {icon === "bid" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>}
                 {icon === "trophy" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 000 5H6"/><path d="M18 9h1.5a2.5 2.5 0 010 5H18"/><path d="M4 22h16"/><path d="M10 22v-5"/><path d="M14 22v-5"/><path d="M6 2v7a6 6 0 0012 0V2"/></svg>}
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-purple-500 mb-0.5">Step {step}</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand)] mb-0.5">Step {step}</p>
                 <p className="text-sm font-bold text-[var(--ink)]">{title}</p>
                 <p className="text-xs text-[var(--ink-soft)] mt-0.5">{desc}</p>
               </div>
