@@ -287,7 +287,8 @@ type AdminSectionId =
   | "reviews"
   | "popup"
   | "discount-codes"
-  | "auctions";
+  | "auctions"
+  | "vendors";
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
@@ -317,6 +318,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "popup", label: "Announcement Popup" },
   { id: "discount-codes", label: "Discount Codes" },
   { id: "auctions", label: "Auctions" },
+  { id: "vendors", label: "Vendors" },
 ];
 
 /** Sections a supervisor can see (subset of full admin). */
@@ -6857,6 +6859,11 @@ export default function AdminPage() {
           <AdminAuctionsInline />
         </Section>
       ) : null}
+      {activeSection === "vendors" ? (
+        <Section title="Vendors" description="Review vendor applications and approve or reject submitted products and services.">
+          <AdminVendorsPanel />
+        </Section>
+      ) : null}
     </div>
   );
 }
@@ -6879,6 +6886,280 @@ function AdminAuctionsInline() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4l5 5-9.5 9.5-5-5z"/><line x1="3" y1="21" x2="9.5" y2="14.5"/></svg>
         Open Auction Manager
       </a>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Vendors Panel
+// ─────────────────────────────────────────────────────────────────────────────
+
+type VendorApplication = {
+  id: string;
+  user_id: string;
+  user_email: string;
+  business_name: string;
+  description: string;
+  phone: string;
+  location: string;
+  category: string;
+  website: string | null;
+  status: "pending" | "approved" | "rejected";
+  admin_notes: string | null;
+  created_at: string;
+};
+
+type VendorItem = {
+  id: string;
+  vendor_id: string;
+  vendor_name: string;
+  name: string;
+  description: string;
+  price: number;
+  category?: string;
+  turnaround?: string;
+  stock?: number;
+  image: string | null;
+  status: "pending" | "approved" | "rejected";
+  admin_notes: string | null;
+  created_at: string;
+};
+
+function AdminVendorsPanel() {
+  const [tab, setTab] = useState<"applications" | "products" | "services">("applications");
+  const [applications, setApplications] = useState<VendorApplication[]>([]);
+  const [products, setProducts] = useState<VendorItem[]>([]);
+  const [services, setServices] = useState<VendorItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    void loadData();
+  }, [tab]);
+
+  async function loadData() {
+    setLoading(true);
+    setMessage("");
+    try {
+      if (tab === "applications") {
+        const res = await fetch("/api/admin/vendors", { cache: "no-store" });
+        const data = (await res.json()) as { applications?: VendorApplication[]; error?: string };
+        if (res.ok) setApplications(data.applications ?? []);
+      } else {
+        const res = await fetch(`/api/admin/vendor-products?type=${tab}`, { cache: "no-store" });
+        const data = (await res.json()) as { items?: VendorItem[]; error?: string };
+        if (res.ok) {
+          if (tab === "products") setProducts(data.items ?? []);
+          else setServices(data.items ?? []);
+        }
+      }
+    } catch { /* silent */ } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updateApplication(id: string, status: "approved" | "rejected") {
+    setActionLoading(id);
+    setMessage("");
+    try {
+      const res = await fetch("/api/admin/vendors", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status, adminNotes: notes[id] ?? "" }),
+      });
+      if (res.ok) {
+        setApplications((prev) =>
+          prev.map((a) => (a.id === id ? { ...a, status, admin_notes: notes[id] ?? a.admin_notes } : a))
+        );
+        setMessage(`Application ${status}.`);
+      }
+    } catch { /* silent */ } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function updateItem(id: string, type: "products" | "services", status: "approved" | "rejected") {
+    setActionLoading(id);
+    setMessage("");
+    try {
+      const res = await fetch("/api/admin/vendor-products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, type, status, adminNotes: notes[id] ?? "" }),
+      });
+      if (res.ok) {
+        const setter = type === "products" ? setProducts : setServices;
+        setter((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, status, admin_notes: notes[id] ?? item.admin_notes } : item))
+        );
+        setMessage(`Item ${status}.`);
+      }
+    } catch { /* silent */ } finally {
+      setActionLoading(null);
+    }
+  }
+
+  const pendingApps = applications.filter((a) => a.status === "pending").length;
+  const pendingItems =
+    [...products, ...services].filter((i) => i.status === "pending").length;
+
+  return (
+    <div className="space-y-4">
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-xl bg-black/5 p-1">
+        {(["applications", "products", "services"] as const).map((t) => {
+          const count = t === "applications" ? pendingApps : t === "products" ? products.filter((p) => p.status === "pending").length : services.filter((s) => s.status === "pending").length;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`relative flex-1 rounded-lg py-2 text-xs font-bold transition ${tab === t ? "bg-white text-[var(--brand-deep)] shadow-sm" : "text-[var(--ink-soft)] hover:text-[var(--ink)]"}`}
+            >
+              {t === "applications" ? "Applications" : t === "products" ? "Products" : "Services"}
+              {count > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {message && <p className="text-sm font-semibold text-emerald-700">{message}</p>}
+
+      {loading ? (
+        <p className="text-sm text-[var(--ink-soft)]">Loading…</p>
+      ) : (
+        <>
+          {/* Applications */}
+          {tab === "applications" && (
+            <div className="space-y-3">
+              {applications.length === 0 ? (
+                <p className="text-sm text-[var(--ink-soft)]">No vendor applications yet.</p>
+              ) : (
+                applications.map((app) => (
+                  <article key={app.id} className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm space-y-3">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div>
+                        <p className="font-bold text-[var(--brand-deep)]">{app.business_name}</p>
+                        <p className="text-xs text-[var(--ink-soft)]">{app.user_email} · {app.phone} · {app.location}</p>
+                        <p className="text-xs text-[var(--ink-soft)]">Category: {app.category}</p>
+                        {app.website && <p className="text-xs text-[var(--ink-soft)]">Website: {app.website}</p>}
+                        <p className="mt-1 text-sm text-[var(--ink)]">{app.description}</p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${app.status === "approved" ? "bg-green-100 text-green-700" : app.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+                        {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-[var(--brand-deep)]">Admin Notes (optional)</label>
+                      <input
+                        value={notes[app.id] ?? app.admin_notes ?? ""}
+                        onChange={(e) => setNotes((prev) => ({ ...prev, [app.id]: e.target.value }))}
+                        placeholder="Reason for rejection or notes…"
+                        className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs outline-none focus:border-[var(--brand)]"
+                      />
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        disabled={actionLoading === app.id || app.status === "approved"}
+                        onClick={() => void updateApplication(app.id, "approved")}
+                        className="rounded-full bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {actionLoading === app.id ? "Saving…" : "Approve"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={actionLoading === app.id || app.status === "rejected"}
+                        onClick={() => void updateApplication(app.id, "rejected")}
+                        className="rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Reject
+                      </button>
+                      <span className="text-xs text-[var(--ink-soft)] self-center">
+                        Applied {new Date(app.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Products or Services */}
+          {(tab === "products" || tab === "services") && (
+            <div className="space-y-3">
+              {(tab === "products" ? products : services).length === 0 ? (
+                <p className="text-sm text-[var(--ink-soft)]">No {tab} submitted by vendors yet.</p>
+              ) : (
+                (tab === "products" ? products : services).map((item) => (
+                  <article key={item.id} className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      {item.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.image} alt={item.name} className="h-14 w-14 rounded-lg object-cover border border-black/10 shrink-0" />
+                      ) : (
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-black/5 text-2xl">{tab === "products" ? "📦" : "🛠"}</div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          <div>
+                            <p className="font-bold text-[var(--brand-deep)]">{item.name}</p>
+                            <p className="text-xs text-[var(--ink-soft)]">
+                              by {item.vendor_name} · GHS {item.price.toFixed(2)}
+                              {item.category ? ` · ${item.category}` : ""}
+                              {item.turnaround ? ` · ${item.turnaround}` : ""}
+                              {item.stock !== undefined ? ` · Stock: ${item.stock}` : ""}
+                            </p>
+                            <p className="mt-1 text-sm text-[var(--ink)]">{item.description}</p>
+                          </div>
+                          <span className={`rounded-full px-3 py-1 text-xs font-bold shrink-0 ${item.status === "approved" ? "bg-green-100 text-green-700" : item.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+                            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <input
+                        value={notes[item.id] ?? item.admin_notes ?? ""}
+                        onChange={(e) => setNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                        placeholder="Admin notes (optional)…"
+                        className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs outline-none focus:border-[var(--brand)]"
+                      />
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          disabled={actionLoading === item.id || item.status === "approved"}
+                          onClick={() => void updateItem(item.id, tab, "approved")}
+                          className="rounded-full bg-green-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {actionLoading === item.id ? "Saving…" : "Approve"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={actionLoading === item.id || item.status === "rejected"}
+                          onClick={() => void updateItem(item.id, tab, "rejected")}
+                          className="rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Reject
+                        </button>
+                        <span className="text-xs text-[var(--ink-soft)] self-center">
+                          {new Date(item.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -144,6 +144,11 @@ export default function GenNavbar({
                   Admin
                 </Link>
               )}
+              {!isAdmin && (
+                <Link href="/vendor/dashboard" onClick={() => setProfileOpen(false)} className="gen-profile-item">
+                  Vendor Dashboard
+                </Link>
+              )}
               <button
                 className="gen-profile-item gen-logout-btn"
                 onClick={() => { setProfileOpen(false); void handleLogout(); }}
