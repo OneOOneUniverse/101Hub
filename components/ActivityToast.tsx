@@ -100,7 +100,8 @@ function rand<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Icon Badge ───────────────────────────────────────────────────────────────
+function IconFor({ type, color }: { type: ToastType; color: string }) {
   return (
     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${color.replace("text-", "bg-").replace("700", "100")} ${color}`}>
       {type === "purchase" && <ShoppingBagIcon />}
