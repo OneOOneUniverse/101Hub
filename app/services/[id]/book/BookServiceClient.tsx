@@ -549,7 +549,7 @@ export default function BookServiceClient() {
             {/* Payment details from store */}
             {content?.providerPaymentDetails && (() => {
               const pd = content.providerPaymentDetails!;
-              const providers: Array<{ key: keyof typeof pd; label: string; icon: string; color: string }> = [
+              const providers: Array<{ key: keyof typeof pd; label: string; dotColor: string }> = [
                 { key: "mtn", label: "MTN MoMo", dotColor: "#fbbf24" },
                 { key: "telecel", label: "Telecel Cash", dotColor: "#ef4444" },
                 { key: "at", label: "AirtelTigo Money", dotColor: "#3b82f6" },
