@@ -34,6 +34,7 @@ import {
   type ProviderPaymentDetails,
   type AnnouncementPopup,
   type DiscountCode,
+  type ActivityToastConfig,
 } from "@/lib/site-content-types";
 import { getSiteContentFromDb, saveSiteContentToDb } from "@/lib/site-content-db";
 
@@ -248,6 +249,42 @@ function sanitizeFeatures(value: unknown, fallback: SiteFeatures): SiteFeatures 
     checkout: toBoolean(candidate.checkout, fallback.checkout),
     dealsHub: toBoolean(candidate.dealsHub, fallback.dealsHub),
     activityToast: toBoolean(candidate.activityToast, fallback.activityToast ?? true),
+  };
+}
+
+const DEFAULT_ACTIVITY_TOAST_CONFIG: ActivityToastConfig = {
+  enabled: true,
+  displayDuration: 5000,
+  minInterval: 12,
+  maxInterval: 30,
+  types: {
+    purchase: true,
+    signup: true,
+    service: true,
+    review: true,
+    view: true,
+    wishlist: true,
+    bid: true,
+  },
+};
+
+function sanitizeActivityToastConfig(value: unknown): ActivityToastConfig {
+  const c = typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+  const types = typeof c.types === "object" && c.types !== null ? c.types as Record<string, unknown> : {};
+  return {
+    enabled: typeof c.enabled === "boolean" ? c.enabled : DEFAULT_ACTIVITY_TOAST_CONFIG.enabled,
+    displayDuration: Math.max(1000, Math.min(30000, Number(c.displayDuration) || DEFAULT_ACTIVITY_TOAST_CONFIG.displayDuration)),
+    minInterval: Math.max(3, Math.min(300, Number(c.minInterval) || DEFAULT_ACTIVITY_TOAST_CONFIG.minInterval)),
+    maxInterval: Math.max(5, Math.min(600, Number(c.maxInterval) || DEFAULT_ACTIVITY_TOAST_CONFIG.maxInterval)),
+    types: {
+      purchase: typeof types.purchase === "boolean" ? types.purchase : true,
+      signup: typeof types.signup === "boolean" ? types.signup : true,
+      service: typeof types.service === "boolean" ? types.service : true,
+      review: typeof types.review === "boolean" ? types.review : true,
+      view: typeof types.view === "boolean" ? types.view : true,
+      wishlist: typeof types.wishlist === "boolean" ? types.wishlist : true,
+      bid: typeof types.bid === "boolean" ? types.bid : true,
+    },
   };
 }
 
@@ -776,6 +813,7 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
     ...(Array.isArray(candidate.discountCodes) && {
       discountCodes: candidate.discountCodes.map((c) => sanitizeDiscountCode(c)),
     }),
+    activityToastConfig: sanitizeActivityToastConfig(candidate.activityToastConfig ?? {}),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };
 }

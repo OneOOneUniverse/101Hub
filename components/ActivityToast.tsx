@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ActivityToastConfig } from "@/lib/site-content-types";
 
 // ── SVG Icons ───────────────────────────────────────────────────────────────
 function ShoppingBagIcon() {
@@ -99,33 +100,7 @@ function rand<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generate(id: number): Activity {
-  const type = rand<ToastType>(["purchase", "purchase", "signup", "service", "review", "wishlist", "bid", "view"]);
-  const name = rand(NAMES);
-  const city = rand(CITIES);
-
-  switch (type) {
-    case "purchase":
-      return { id, type, message: `${name} just ordered`, sub: `${rand(PRODUCTS)} · ${city}`, icon: "purchase", bg: "bg-emerald-50 border-emerald-200", color: "text-emerald-700" };
-    case "signup":
-      return { id, type, message: `${name} just joined`, sub: `New member from ${city}`, icon: "signup", bg: "bg-blue-50 border-blue-200", color: "text-blue-700" };
-    case "service":
-      return { id, type, message: `${name} booked`, sub: `${rand(SERVICES)} · ${city}`, icon: "service", bg: "bg-orange-50 border-orange-200", color: "text-orange-700" };
-    case "review":
-      return { id, type, message: `${name} left a 5-star review`, sub: `${rand(PRODUCTS)}`, icon: "review", bg: "bg-yellow-50 border-yellow-200", color: "text-yellow-700" };
-    case "wishlist":
-      return { id, type, message: `${name} saved to wishlist`, sub: `${rand(PRODUCTS)} · ${city}`, icon: "wishlist", bg: "bg-rose-50 border-rose-200", color: "text-rose-700" };
-    case "bid":
-      return { id, type, message: `${name} placed a bid`, sub: `Live auction · ${city}`, icon: "bid", bg: "bg-orange-50 border-orange-200", color: "text-orange-700" };
-    case "view":
-    default: {
-      const n = Math.floor(Math.random() * 28) + 5;
-      return { id, type, message: `${n} people browsing`, sub: "Active right now", icon: "view", bg: "bg-slate-50 border-slate-200", color: "text-slate-700" };
-    }
-  }
-}
-
-function IconFor({ type, color }: { type: ToastType; color: string }) {
+// ── Component ────────────────────────────────────────────────────────────────
   return (
     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${color.replace("text-", "bg-").replace("700", "100")} ${color}`}>
       {type === "purchase" && <ShoppingBagIcon />}
@@ -140,7 +115,13 @@ function IconFor({ type, color }: { type: ToastType; color: string }) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function ActivityToast({ enabled = true }: { enabled?: boolean }) {
+export default function ActivityToast({ config }: { config?: ActivityToastConfig | null }) {
+  const enabled = config?.enabled ?? true;
+  const displayDuration = config?.displayDuration ?? 5000;
+  const minInterval = (config?.minInterval ?? 12) * 1000;
+  const maxInterval = (config?.maxInterval ?? 30) * 1000;
+  const enabledTypes = config?.types ?? { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true };
+
   const [toast, setToast] = useState<Activity | null>(null);
   const [visible, setVisible] = useState(false);
   const idRef = useRef(0);
@@ -153,22 +134,52 @@ export default function ActivityToast({ enabled = true }: { enabled?: boolean })
     return null;
   }
 
+  const allowedTypes = (Object.keys(enabledTypes) as ToastType[]).filter((t) => enabledTypes[t as keyof typeof enabledTypes]);
+
+  function generateFiltered(id: number): Activity | null {
+    if (allowedTypes.length === 0) return null;
+    const type = rand(allowedTypes);
+    const name = rand(NAMES);
+    const city = rand(CITIES);
+
+    switch (type) {
+      case "purchase":
+        return { id, type, message: `${name} just ordered`, sub: `${rand(PRODUCTS)} · ${city}`, icon: "purchase", bg: "bg-emerald-50 border-emerald-200", color: "text-emerald-700" };
+      case "signup":
+        return { id, type, message: `${name} just joined`, sub: `New member from ${city}`, icon: "signup", bg: "bg-blue-50 border-blue-200", color: "text-blue-700" };
+      case "service":
+        return { id, type, message: `${name} booked`, sub: `${rand(SERVICES)} · ${city}`, icon: "service", bg: "bg-orange-50 border-orange-200", color: "text-orange-700" };
+      case "review":
+        return { id, type, message: `${name} left a 5-star review`, sub: `${rand(PRODUCTS)}`, icon: "review", bg: "bg-yellow-50 border-yellow-200", color: "text-yellow-700" };
+      case "wishlist":
+        return { id, type, message: `${name} saved to wishlist`, sub: `${rand(PRODUCTS)} · ${city}`, icon: "wishlist", bg: "bg-rose-50 border-rose-200", color: "text-rose-700" };
+      case "bid":
+        return { id, type, message: `${name} placed a bid`, sub: `Live auction · ${city}`, icon: "bid", bg: "bg-orange-50 border-orange-200", color: "text-orange-700" };
+      case "view":
+      default: {
+        const n = Math.floor(Math.random() * 28) + 5;
+        return { id, type, message: `${n} people browsing`, sub: "Active right now", icon: "view", bg: "bg-slate-50 border-slate-200", color: "text-slate-700" };
+      }
+    }
+  }
+
   function showNext() {
     idRef.current += 1;
-    setToast(generate(idRef.current));
+    const next = generateFiltered(idRef.current);
+    if (!next) return;
+    setToast(next);
     setVisible(true);
 
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => {
       setVisible(false);
-      // Schedule next after hide animation
       if (showTimer.current) clearTimeout(showTimer.current);
       showTimer.current = setTimeout(showNext, randomInterval());
-    }, 5_000);
+    }, displayDuration);
   }
 
   function randomInterval() {
-    return Math.floor(Math.random() * 18_000) + 12_000; // 12–30 s
+    return Math.floor(Math.random() * (maxInterval - minInterval)) + minInterval;
   }
 
   useEffect(() => {

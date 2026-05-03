@@ -13,10 +13,11 @@ import ActivityToast from "@/components/ActivityToast";
 import MarqueeBar from "@/components/MarqueeBar";
 import { useCartCount } from "@/lib/use-cart-count";
 import { useSyncBrowsingDataToProfile, useLoadUserBrowsingData } from "@/lib/use-sync-browsing-data";
-import type { FooterContent } from "@/lib/site-content-types";
+import type { FooterContent, ActivityToastConfig } from "@/lib/site-content-types";
 
 type StoreData = {
   features?: { cart?: boolean; activityToast?: boolean };
+  activityToastConfig?: ActivityToastConfig;
   storeName?: string;
   logoUrl?: string;
   footerText?: string;
@@ -33,7 +34,7 @@ export default function LayoutWrapper({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const cartCount = useCartCount();
   const [cartEnabled, setCartEnabled] = useState(true);
-  const [activityToastEnabled, setActivityToastEnabled] = useState(true);
+  const [activityToastConfig, setActivityToastConfig] = useState<ActivityToastConfig | null>(null);
   const [storeData, setStoreData] = useState<StoreData | null>(null);
   const { user } = useUser();
   
@@ -54,7 +55,18 @@ export default function LayoutWrapper({
         if (isActive) {
           if (data.features) {
             setCartEnabled(data.features.cart ?? true);
-            setActivityToastEnabled(data.features.activityToast ?? true);
+          }
+          if (data.activityToastConfig) {
+            setActivityToastConfig(data.activityToastConfig);
+          } else {
+            // fallback: use features.activityToast flag
+            setActivityToastConfig({
+              enabled: data.features?.activityToast ?? true,
+              displayDuration: 5000,
+              minInterval: 12,
+              maxInterval: 30,
+              types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true },
+            });
           }
           setStoreData(data);
         }
@@ -130,7 +142,7 @@ export default function LayoutWrapper({
       {/* Live support chat widget — persists across all pages */}
       <LiveSupportChat />
       {/* Social proof activity toasts */}
-      <ActivityToast enabled={activityToastEnabled} />
+      <ActivityToast config={activityToastConfig} />
     </>
   );
 }

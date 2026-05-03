@@ -27,6 +27,7 @@ import {
   type TriviaQuestion,
   type SpecialStore,
   type DiscountCode,
+  type ActivityToastConfig,
 } from "@/lib/site-content-types";
 import PendingPaymentsDashboard from "@/components/PendingPaymentsDashboard";
 import ActiveOrdersDashboard from "@/components/ActiveOrdersDashboard";
@@ -1026,6 +1027,7 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "features" ? (
+        <>
         <Section
           title="Feature Switches"
           description="Turn key site experiences on or off without editing code."
@@ -1054,6 +1056,65 @@ export default function AdminPage() {
           ))}
         </div>
         </Section>
+
+        {/* ActivityToast detailed config */}
+        <Section title="Activity Toast Settings" description="Fine-tune the social proof toast that shows recent purchases, signups and activity to visitors.">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Field label="Display duration (ms)">
+              <input
+                type="number"
+                min={1000}
+                max={30000}
+                step={500}
+                value={content.activityToastConfig?.displayDuration ?? 5000}
+                onChange={(e) => setContent({ ...content, activityToastConfig: { ...(content.activityToastConfig ?? { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } }), displayDuration: Math.max(1000, Number(e.target.value) || 5000) } })}
+                className={inputClassName()}
+              />
+            </Field>
+            <Field label="Min interval (seconds)">
+              <input
+                type="number"
+                min={3}
+                max={300}
+                value={content.activityToastConfig?.minInterval ?? 12}
+                onChange={(e) => setContent({ ...content, activityToastConfig: { ...(content.activityToastConfig ?? { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } }), minInterval: Math.max(3, Number(e.target.value) || 12) } })}
+                className={inputClassName()}
+              />
+            </Field>
+            <Field label="Max interval (seconds)">
+              <input
+                type="number"
+                min={5}
+                max={600}
+                value={content.activityToastConfig?.maxInterval ?? 30}
+                onChange={(e) => setContent({ ...content, activityToastConfig: { ...(content.activityToastConfig ?? { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } }), maxInterval: Math.max(5, Number(e.target.value) || 30) } })}
+                className={inputClassName()}
+              />
+            </Field>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[var(--brand-deep)] mb-3">Toast types to show</p>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {(["purchase", "signup", "service", "review", "view", "wishlist", "bid"] as const).map((type) => {
+                const cfg = content.activityToastConfig;
+                const isOn = cfg?.types?.[type] ?? true;
+                const defaultCfg: ActivityToastConfig = { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } };
+                return (
+                  <label key={type} className="flex items-center justify-between rounded-xl border border-black/10 bg-white px-3 py-2 shadow-sm">
+                    <span className="text-sm font-semibold capitalize text-[var(--ink)]">{type}</span>
+                    <input
+                      type="checkbox"
+                      checked={isOn}
+                      onChange={(e) => setContent({ ...content, activityToastConfig: { ...(cfg ?? defaultCfg), types: { ...(cfg?.types ?? defaultCfg.types), [type]: e.target.checked } } })}
+                      className="h-4 w-4 accent-[var(--brand)]"
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </Section>
+        </>
       ) : null}
 
       {activeSection === "store" ? (

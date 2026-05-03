@@ -155,6 +155,27 @@ export type BlackFridayContent = {
   backgroundVideo?: string;
 };
 
+export type ActivityToastConfig = {
+  /** Show/hide the toast entirely */
+  enabled: boolean;
+  /** How long each toast is visible (milliseconds, default 5000) */
+  displayDuration: number;
+  /** Min seconds between toasts (default 12) */
+  minInterval: number;
+  /** Max seconds between toasts (default 30) */
+  maxInterval: number;
+  /** Which toast types to show */
+  types: {
+    purchase: boolean;
+    signup: boolean;
+    service: boolean;
+    review: boolean;
+    view: boolean;
+    wishlist: boolean;
+    bid: boolean;
+  };
+};
+
 export type SiteFeatures = {
   promoSlider: boolean;
   flashSale: boolean;
@@ -454,5 +475,6 @@ export type SiteContent = {
   dealsHub: DealsHubContent;
   announcementPopup?: AnnouncementPopup;
   discountCodes?: DiscountCode[];
+  activityToastConfig?: ActivityToastConfig;
   updatedAt: string;
 };
