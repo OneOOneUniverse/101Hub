@@ -59,7 +59,7 @@ export function useAdminOrderUpdates() {
           try {
             addNotification(
               'order',
-              '📦 New Order!',
+              'New Order!',
               `Order #${order.order_ref} confirmed. Amount: ₵${order.total}`,
               { orderRef: order.order_ref }
             );
@@ -100,7 +100,7 @@ export function useAdminPendingPayments() {
         try {
           addNotification(
             'payment',
-            '💳 Payment Review Needed',
+            'Payment Review Needed',
             `Order #${payment.order_ref} awaiting payment verification`,
             { orderRef: payment.order_ref }
           );
@@ -137,7 +137,7 @@ export function useAdminServiceRequests() {
         try {
           addNotification(
             'service',
-            '🔧 New Service Request',
+            'New Service Request',
             `${request.package_name} - ${request.issue}`,
             { ticketRef: request.ticket_ref }
           );
@@ -175,9 +175,9 @@ export function useCustomerOrderUpdates(orderRef: string) {
       channelRef.current = subscribeToOrderStatus(orderRef, (newStatus, order) => {
         try {
           const statusMessages: Record<string, string> = {
-            confirmed: '✅ Your order has been confirmed!',
-            in_transit: '🚚 Your order is on the way!',
-            delivered: '📦 Your order has been delivered!',
+            confirmed: 'Your order has been confirmed!',
+            in_transit: 'Your order is on the way!',
+            delivered: 'Your order has been delivered!',
             completed: '⭐ Order completed. Thank you for shopping!',
           };
 
@@ -221,7 +221,7 @@ export function useCustomerOrderMessages(orderRef: string) {
         try {
           addNotification(
             'message',
-            `💬 Message from 101 Hub`,
+            `Message from 101 Hub`,
             message.message,
             { orderRef, messageId: message.id }
           );

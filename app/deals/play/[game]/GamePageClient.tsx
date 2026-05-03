@@ -41,11 +41,41 @@ type Theme = {
   particles: string[];
 };
 
+const GAME_ICONS: Record<string, React.ReactNode> = {
+  spin: (
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="2" x2="12" y2="6"/>
+      <line x1="12" y1="18" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="6" y2="12"/>
+      <line x1="18" y1="12" x2="22" y2="12"/>
+      <circle cx="12" cy="12" r="2" fill="currentColor"/>
+    </svg>
+  ),
+  scratch: (
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01"/>
+      <line x1="6" y1="12" x2="10" y2="12"/>
+      <line x1="14" y1="12" x2="18" y2="12"/>
+      <line x1="6" y1="16" x2="18" y2="16"/>
+    </svg>
+  ),
+  trivia: (
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2"/>
+    </svg>
+  ),
+};
+
+
 const THEMES: Record<"spin" | "scratch" | "trivia", Theme> = {
   spin: {
-    emoji: "🎡",
+    emoji: "spin",
     label: "Spin the Wheel",
-    tagline: "🎰 Test your luck — spin to win big!",
+    tagline: "Test your luck — spin to win big!",
     bg: "#0f0a1a",
     bgGlow1: "rgba(124,58,237,0.28)",
     bgGlow2: "rgba(245,158,11,0.14)",
@@ -58,12 +88,12 @@ const THEMES: Record<"spin" | "scratch" | "trivia", Theme> = {
     progressFill: "linear-gradient(90deg, #7c3aed, #f59e0b, #fbbf24)",
     toastGrad: "linear-gradient(135deg, #f59e0b, #dc2626)",
     overTitle: "No Spins Left!",
-    particles: ["✦", "⭐", "✨", "🌟", "✦", "⭐", "✨", "✦", "🌟", "✨"],
+    particles: ["◆", "◇", "●", "○", "◆", "◇", "●", "◆", "○", "◇"],
   },
   scratch: {
-    emoji: "🎟️",
+    emoji: "scratch",
     label: "Scratch Card",
-    tagline: "💎 Scratch away — fortune awaits!",
+    tagline: "Scratch away — fortune awaits!",
     bg: "#080f0a",
     bgGlow1: "rgba(16,185,129,0.22)",
     bgGlow2: "rgba(245,158,11,0.1)",
@@ -76,12 +106,12 @@ const THEMES: Record<"spin" | "scratch" | "trivia", Theme> = {
     progressFill: "linear-gradient(90deg, #059669, #10b981, #34d399)",
     toastGrad: "linear-gradient(135deg, #10b981, #059669)",
     overTitle: "Cards Finished!",
-    particles: ["💎", "🪙", "🔮", "💚", "💎", "🌿", "🪙", "💎", "🔮", "💚"],
+    particles: ["◆", "●", "▲", "◇", "◆", "▪", "●", "◆", "▲", "◇"],
   },
   trivia: {
-    emoji: "🧠",
+    emoji: "trivia",
     label: "Daily Trivia",
-    tagline: "⚡ Think fast — prove your knowledge!",
+    tagline: "Think fast — prove your knowledge!",
     bg: "#020813",
     bgGlow1: "rgba(6,182,212,0.2)",
     bgGlow2: "rgba(59,130,246,0.14)",
@@ -94,7 +124,7 @@ const THEMES: Record<"spin" | "scratch" | "trivia", Theme> = {
     progressFill: "linear-gradient(90deg, #3b82f6, #06b6d4, #38bdf8)",
     toastGrad: "linear-gradient(135deg, #06b6d4, #3b82f6)",
     overTitle: "Session Complete!",
-    particles: ["❓", "💡", "⚡", "🌌", "❓", "✦", "💡", "⚡", "🌟", "❓"],
+    particles: ["?", "●", "◆", "▲", "?", "○", "●", "◆", "▪", "?"],
   },
 };
 
@@ -282,7 +312,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
                 <div className="gp-art-pulse gp-art-pulse-1" />
                 <div className="gp-art-pulse gp-art-pulse-2" />
                 <div className="gp-art-circle">
-                  <span className="gp-art-emoji">{theme.emoji}</span>
+                  <span className="gp-art-emoji">{GAME_ICONS[theme.emoji] ?? theme.emoji}</span>
                 </div>
               </div>
               <h1 className="gp-title">{gameConfig.title}</h1>
@@ -292,7 +322,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
               {isSignedIn && maxAttempts > 0 && status && (
                 <div className="gp-attempts-panel">
                   <div className="gp-attempts-top">
-                    <span className="gp-panel-label">⚡ Attempts Available</span>
+                    <span className="gp-panel-label">Attempts Available</span>
                     <span className="gp-panel-count">
                       {attemptsLeft === null ? "∞" : attemptsLeft}
                       <span className="gp-panel-of"> / {maxAttempts}</span>
@@ -316,7 +346,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
                     {attemptsLeft === 0
                       ? "No attempts remaining"
                       : attemptsLeft === 1
-                        ? "⚠️ Last attempt — make it count!"
+                        ? "Last attempt — make it count!"
                         : `${attemptsLeft} attempt${(attemptsLeft ?? 0) !== 1 ? "s" : ""} remaining`}
                   </p>
                 </div>
@@ -376,7 +406,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
 
             {showPrize && prizeMessage && (
               <div className={`gp-prize ${prizeType === "win" ? "gp-prize--win" : "gp-prize--loss"}`}>
-                <span className="gp-prize-icon">{prizeType === "win" ? "🎉" : "😅"}</span>
+                <span className="gp-prize-icon">{prizeType === "win" ? <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M6 9H4a2 2 0 01-2-2V5h4"/><path d="M18 9h2a2 2 0 002-2V5h-4"/><path d="M12 17c-2.67 0-8-1.34-8-4V5h16v8c0 2.66-5.33 4-8 4z"/><path d="M12 17v4"/><path d="M8 21h8"/></svg> : <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2"/><line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="2"/></svg>}</span>
                 <div className="gp-prize-body">
                   <span className="gp-prize-label">{prizeType === "win" ? "You won!" : "No prize"}</span>
                   <span className="gp-prize-value">{prizeMessage}</span>
@@ -398,7 +428,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
 
             {showPrize && status && (status.attemptsLeft === null || (status.attemptsLeft ?? 0) > 0) && (
               <button className="gp-retry" onClick={handleRetry}>
-                <span>🔄</span> Try Again
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="inline-block mr-1"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Try Again
                 {status.attemptsLeft !== null && status.attemptsLeft > 0 && (
                   <span className="gp-retry-badge">{status.attemptsLeft} left</span>
                 )}
@@ -411,7 +441,7 @@ export default function GamePageClient({ game, dealsHub }: Props) {
         {!loading && gamePhase === "gameover" && (
           <div className="gp-over">
             <div className="gp-over-glow" />
-            <div className="gp-over-icon">{status?.onCooldown ? "⏳" : "🚫"}</div>
+            <div className="gp-over-icon">{status?.onCooldown ? <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> : <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>}</div>
             <div className="gp-over-badge">GAME OVER</div>
             <h2 className="gp-over-title">{status?.onCooldown ? "Come Back Later" : theme.overTitle}</h2>
             <p className="gp-over-desc">

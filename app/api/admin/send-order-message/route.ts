@@ -99,7 +99,7 @@ export async function POST(request: Request) {
         await notifyUser(
           clerkId,
           'message',
-          '💬 New Message on Your Order',
+          'New Message on Your Order',
           `Admin sent a message about order ${orderRef}: "${message.slice(0, 80)}${message.length > 80 ? '…' : ''}"`,
           { order_ref: orderRef, link: '/orders' },
         );

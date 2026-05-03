@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from "react";
 
+// SVG icons
+function ChatBubbleIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>; }
+function MailIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>; }
+function TargetIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>; }
+function StarIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>; }
+function TrashIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>; }
+function AlertIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>; }
+function InboxIcon() { return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>; }
+
+
 type OrderMessage = {
   id: number;
   orderRef: string;
@@ -28,10 +38,6 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
 
   useEffect(() => {
     void loadMessages();
-    const interval = setInterval(() => {
-      void loadMessages();
-    }, 20000);
-    return () => clearInterval(interval);
   }, [orderRef]);
 
   async function loadMessages() {
@@ -103,11 +109,9 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
         className="w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-sm font-bold text-white hover:shadow-lg transition"
       >
         <div className="flex items-center justify-between">
-          <span>💬 {messages.length} Message{messages.length !== 1 ? "s" : ""}</span>
+          <span className="flex items-center gap-1.5"><ChatBubbleIcon /> {messages.length} Message{messages.length !== 1 ? "s" : ""}</span>
           {highlightedCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/30 px-2 py-0.5 text-xs font-bold">
-              ⭐ {highlightedCount}
-            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/30 px-2 py-0.5 text-xs font-bold"><StarIcon /> {highlightedCount}</span>
           )}
         </div>
       </button>
@@ -120,7 +124,7 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">💬</span>
+            <ChatBubbleIcon />
             <h3 className="font-bold">Messages & Updates</h3>
           </div>
           {isCompact && (
@@ -128,7 +132,7 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
               onClick={() => setIsExpanded(false)}
               className="text-xl leading-none hover:bg-white/20 rounded px-2 py-1"
             >
-              ✕
+              ×
             </button>
           )}
         </div>
@@ -141,7 +145,7 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
 
       {error && (
         <div className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 font-medium">
-          ❌ {error}
+          <span className="inline-flex items-center gap-1"><AlertIcon /> {error}</span>
         </div>
       )}
 
@@ -149,12 +153,12 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
       <div className="space-y-2 overflow-y-auto max-h-80 p-4">
         {loading && messages.length === 0 ? (
           <div className="text-center py-8 text-purple-600">
-            <div className="animate-spin text-2xl mb-2">⏳</div>
+            <svg className="animate-spin mx-auto mb-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
             <p className="text-sm text-purple-600">Loading messages...</p>
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-8 text-purple-500">
-            <p className="text-2xl mb-2">📭</p>
+            <InboxIcon />
             <p className="text-sm">No messages yet. Send your first update!</p>
           </div>
         ) : (
@@ -170,10 +174,10 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-purple-900 flex items-center gap-1.5">
-                    {msg.messageType === "update" && "📬"}
-                    {msg.messageType === "milestone" && "🎯"}
-                    {msg.messageType === "custom" && "💬"}
-                    {msg.isHighlighted && "⭐"}
+                    {msg.messageType === "update" && <MailIcon />}
+                    {msg.messageType === "milestone" && <TargetIcon />}
+                    {msg.messageType === "custom" && <ChatBubbleIcon />}
+                    {msg.isHighlighted && <StarIcon />}
                     <span className="capitalize">{msg.messageType}</span>
                   </p>
                   <p className="mt-1.5 text-purple-900 break-words">{msg.message}</p>
@@ -186,7 +190,7 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
                   className="ml-2 text-xs px-2 py-1 text-red-600 hover:bg-red-100 hover:text-red-900 rounded transition font-bold shrink-0"
                   title="Delete message"
                 >
-                  🗑
+                  <TrashIcon />
                 </button>
               </div>
             </div>
@@ -224,9 +228,9 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
                 onChange={(e) => setMessageType(e.target.value as any)}
                 className="w-full rounded-lg border-2 border-purple-200 bg-white px-2 py-2 text-xs outline-none transition focus:border-purple-500"
               >
-                <option value="update">📬 Update</option>
-                <option value="milestone">🎯 Milestone</option>
-                <option value="custom">💬 Custom</option>
+                <option value="update">Update</option>
+                <option value="milestone">Milestone</option>
+                <option value="custom">Custom</option>
               </select>
             </div>
 
@@ -238,7 +242,7 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
                   onChange={(e) => setIsHighlighted(e.target.checked)}
                   className="rounded accent-purple-600"
                 />
-                <span className="font-bold text-purple-900">⭐ Highlight</span>
+                <span className="font-bold text-purple-900"><StarIcon /> Highlight</span>
               </label>
             </div>
           </div>
@@ -250,12 +254,12 @@ export default function OrderMessaging({ orderRef, isCompact = false }: OrderMes
           >
             {sending ? (
               <span className="inline-flex items-center gap-2">
-                <span className="animate-spin">⏳</span>
+                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
                 Sending...
               </span>
             ) : (
               <span className="inline-flex items-center gap-2">
-                <span>✈️</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 Send Message to Customer
               </span>
             )}

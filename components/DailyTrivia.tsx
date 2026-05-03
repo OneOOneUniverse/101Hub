@@ -3,6 +3,10 @@
 import { useState, useCallback } from "react";
 import type { TriviaQuestion } from "@/lib/site-content-types";
 
+function BrainIcon() {
+  return <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--brand)]"><path d="M9.5 2A2.5 2.5 0 007 4.5v.085A4 4 0 004 8.5a4 4 0 001.208 2.862A4.5 4.5 0 0010 19.5h4a4.5 4.5 0 004.792-8.138A4 4 0 0020 8.5a4 4 0 00-3-3.916V4.5A2.5 2.5 0 0014.5 2h-5z"/><line x1="12" y1="7" x2="12" y2="14"/><path d="M9 10h6"/></svg>;
+}
+
 type Props = {
   questions: TriviaQuestion[];
 };
@@ -72,7 +76,7 @@ export default function DailyTrivia({ questions }: Props) {
   if (limitReached || answeredIds.size >= questions.length) {
     return (
       <div className="rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface-strong)] p-6 text-center space-y-3">
-        <p className="text-4xl">🧠</p>
+        <BrainIcon />
         <p className="text-lg font-bold text-[var(--brand-deep)]">All done for today!</p>
         <p className="text-sm text-[var(--ink-soft)]">
           You earned <span className="font-bold text-[var(--brand)]">{totalEarned} points</span> from trivia today. Come back tomorrow!

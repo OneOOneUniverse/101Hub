@@ -314,7 +314,7 @@ export default function OrderTrackingPage() {
                 ? "✓ Verified"
                 : order.paymentStatus === "rejected"
                 ? "✕ Rejected"
-                : "⏳ Pending Review"}
+                : "Pending Review"}
             </span>
           </div>
         </div>
@@ -421,7 +421,7 @@ export default function OrderTrackingPage() {
               onClick={() => setShowConfirmDelivery(true)}
               className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors"
             >
-              ✅ I&apos;ve Received My Order
+              I&apos;ve Received My Order
             </button>
           ) : (
             <div className="rounded-xl bg-emerald-100 border border-emerald-300 p-4 space-y-3">
@@ -548,13 +548,13 @@ export default function OrderTrackingPage() {
             href="tel:+233548656980"
             className="rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 transition-colors"
           >
-            📞 Call +233 548656980
+            Call +233 548656980
           </a>
           <a
             href="mailto:josephsakyi247@gmail.com"
             className="rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 transition-colors"
           >
-            ✉️ Email Support
+            Email Support
           </a>
         </div>
       </div>

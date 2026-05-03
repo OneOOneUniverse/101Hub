@@ -67,7 +67,7 @@ function SummaryCard({
 }: {
   label: string;
   value: string | number;
-  icon: string;
+  icon: React.ReactNode;
   color: string;
 }) {
   return (
@@ -76,7 +76,7 @@ function SummaryCard({
       style={{ borderLeftColor: color, borderLeftWidth: 4 }}
     >
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{icon}</span>
+        <span className="text-2xl" style={{ color }}>{icon}</span>
         <div>
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p>
           <p className="text-2xl font-extrabold" style={{ color }}>
@@ -108,7 +108,7 @@ export default function AnalyticsDashboard() {
       }
     };
     void fetchActive();
-    const iv = setInterval(() => void fetchActive(), 10_000);
+    const iv = setInterval(() => void fetchActive(), 60_000);
     return () => clearInterval(iv);
   }, []);
 
@@ -177,7 +177,7 @@ export default function AnalyticsDashboard() {
       {/* Period selector */}
       <section className="panel p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h2 className="text-lg font-extrabold text-[var(--brand-deep)]">📊 Analytics Dashboard</h2>
+        <h2 className="text-lg font-extrabold text-[var(--brand-deep)]">Analytics Dashboard</h2>
           <div className="flex gap-2">
             {[7, 14, 30, 90].map((d) => (
               <button
@@ -213,13 +213,13 @@ export default function AnalyticsDashboard() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard label="Visitors" value={data.summary.totalUniqueVisitors.toLocaleString()} icon="👤" color="#3b82f6" />
-        <SummaryCard label="Signups" value={data.summary.totalSignups.toLocaleString()} icon="✍️" color="#22c55e" />
-        <SummaryCard label="Orders" value={data.summary.totalOrders.toLocaleString()} icon="📦" color="#f59e0b" />
+        <SummaryCard label="Visitors" value={data.summary.totalUniqueVisitors.toLocaleString()} icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>} color="#3b82f6" />
+        <SummaryCard label="Signups" value={data.summary.totalSignups.toLocaleString()} icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>} color="#22c55e" />
+        <SummaryCard label="Orders" value={data.summary.totalOrders.toLocaleString()} icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>} color="#f59e0b" />
         <SummaryCard
           label="Revenue"
           value={`GHS ${data.summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon="💰"
+          icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>}
           color="#ef4444"
         />
       </div>
@@ -336,7 +336,7 @@ export default function AnalyticsDashboard() {
         <div className="grid gap-5 lg:grid-cols-2">
           {data.topProductViews.length > 0 && (
             <section className="panel p-5">
-              <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">🛍️ Top Products by Views</h3>
+              <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">Top Products by Views</h3>
               <div className="space-y-2">
                 {data.topProductViews.map((item, i) => {
                   const name = item.page.replace("/products/", "");
@@ -369,7 +369,7 @@ export default function AnalyticsDashboard() {
 
           {data.topServiceViews.length > 0 && (
             <section className="panel p-5">
-              <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">🔧 Top Services by Views</h3>
+              <h3 className="mb-4 text-sm font-bold text-[var(--brand-deep)]">Top Services by Views</h3>
               <div className="space-y-2">
                 {data.topServiceViews.map((item, i) => {
                   const name = item.page.replace("/services/", "");

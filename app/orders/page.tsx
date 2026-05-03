@@ -173,7 +173,7 @@ export default function OrderLookupPage() {
           href="tel:+233548656980"
           className="mt-3 inline-block rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
         >
-          📞 Call Support
+          Call Support
         </a>
       </section>
     </div>

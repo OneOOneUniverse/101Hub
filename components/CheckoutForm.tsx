@@ -593,14 +593,12 @@ export default function CheckoutForm() {
         <div className="rounded-lg bg-[var(--brand)]/5 px-4 py-3 text-sm space-y-1">
           <p className="font-bold text-[var(--brand)]">Need help?</p>
           <p>
-            📞{" "}
-            <a href={`tel:${result.storePhone.replace(/\s/g, "")}`} className="font-semibold hover:underline">
+                        <a href={`tel:${result.storePhone.replace(/\s/g, "")}`} className="font-semibold hover:underline">
               {result.storePhone}
             </a>
           </p>
           <p>
-            ✉️{" "}
-            <a href={`mailto:${result.storeEmail}`} className="font-semibold hover:underline">
+                        <a href={`mailto:${result.storeEmail}`} className="font-semibold hover:underline">
               {result.storeEmail}
             </a>
           </p>
@@ -611,7 +609,7 @@ export default function CheckoutForm() {
             href={`/orders/${result.orderRef}`}
             className="flex-1 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 text-center"
           >
-            📍 Track Order
+            Track Order
           </a>
           <a
             href="/products"
@@ -656,7 +654,7 @@ export default function CheckoutForm() {
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-30 animate-ping" />
                 <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl">
-                  📲
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                 </span>
               </div>
               <div>
@@ -702,7 +700,7 @@ export default function CheckoutForm() {
               {/* Success animation */}
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
                 <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl">
-                  🎉
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 </span>
               </div>
               <div>
@@ -728,7 +726,7 @@ export default function CheckoutForm() {
                 onClick={() => setIsWaitingForPayment(false)}
                 className="w-full rounded-full bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 transition-colors active:scale-95"
               >
-                📸 Upload Screenshot Now
+                Upload Screenshot Now
               </button>
               <button
                 type="button"
@@ -749,7 +747,7 @@ export default function CheckoutForm() {
       {draftRestored && !isWaitingForPayment && (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="text-xs text-amber-800 font-semibold">
-            💾 Your form was restored from where you left off.
+            Your form was restored from where you left off.
           </p>
           <button
             type="button"
@@ -775,7 +773,7 @@ export default function CheckoutForm() {
         {invalidProducts.length > 0 && (
           <div className="rounded-lg bg-red-50 border border-red-200 p-4 space-y-2">
             <p className="text-sm font-semibold text-red-900">
-              ⚠️ Cart Problem Detected
+              Cart Problem Detected
             </p>
             <p className="text-xs text-red-800">
               {invalidProducts.length} product(s) in your cart are no longer available and have been removed.
@@ -1169,7 +1167,7 @@ export default function CheckoutForm() {
           <div className="space-y-4 border-t border-black/10 pt-4">
             {/* Main Payment Amount */}
             <div className="rounded-lg bg-amber-50 p-4 border border-amber-200">
-              <p className="text-sm font-semibold text-amber-900 mb-1">💳 Payment Amount</p>
+              <p className="text-sm font-semibold text-amber-900 mb-1">Payment Amount</p>
               <p className="text-2xl font-black text-amber-900 mb-2">GHS {totals.total.toFixed(2)}</p>
               <p className="text-xs text-amber-700">Full payment required</p>
             </div>
@@ -1180,39 +1178,39 @@ export default function CheckoutForm() {
                 {
                   id: "mtn" as const,
                   name: "MTN MoMo",
-                  emoji: "🟡",
+                  dotColor: "#f59e0b",
                   defaults: [
-                    { label: "MoMo Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
-                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
-                    { label: "Network", value: "MTN Mobile Money", icon: "🏦" },
+                    { label: "MoMo Number", value: MANUAL_PAYMENT_NUMBER, icon: "phone" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "user" },
+                    { label: "Network", value: "MTN Mobile Money", icon: "bank" },
                   ],
                 },
                 {
                   id: "telecel" as const,
                   name: "Telecel",
-                  emoji: "🔴",
+                  dotColor: "#ef4444",
                   defaults: [
-                    { label: "Telecel Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
-                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
-                    { label: "Network", value: "Telecel Cash", icon: "🏦" },
+                    { label: "Telecel Number", value: MANUAL_PAYMENT_NUMBER, icon: "phone" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "user" },
+                    { label: "Network", value: "Telecel Cash", icon: "bank" },
                   ],
                 },
                 {
                   id: "at" as const,
                   name: "AT Money",
-                  emoji: "🔵",
+                  dotColor: "#3b82f6",
                   defaults: [
-                    { label: "AT Number", value: MANUAL_PAYMENT_NUMBER, icon: "📱" },
-                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
-                    { label: "Network", value: "AT Money (AirtelTigo)", icon: "🏦" },
+                    { label: "AT Number", value: MANUAL_PAYMENT_NUMBER, icon: "phone" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "user" },
+                    { label: "Network", value: "AT Money (AirtelTigo)", icon: "bank" },
                   ],
                 },
                 {
                   id: "bank" as const,
                   name: "Bank",
-                  emoji: "🏛️",
+                  dotColor: "#6b7280",
                   defaults: [
-                    { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
+                    { label: "Account Name", value: "101 Hub Technologies", icon: "user" },
                   ],
                 },
               ];
@@ -1245,7 +1243,7 @@ export default function CheckoutForm() {
                           {logo ? (
                             <img src={logo} alt={p.name} className="w-5 h-5 object-contain rounded" />
                           ) : (
-                            <span>{p.emoji}</span>
+                            <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: p.dotColor }} />
                           )}
                           {p.name}
                         </button>
@@ -1259,7 +1257,7 @@ export default function CheckoutForm() {
 
             {/* Step-by-step Walkthrough */}
             <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
-              <p className="text-sm font-semibold text-blue-900 mb-3">📋 Payment Steps</p>
+              <p className="text-sm font-semibold text-blue-900 mb-3">Payment Steps</p>
               <div className="space-y-4">
                 {content?.paymentWalkthrough && content.paymentWalkthrough.length > 0 ? (
                   // Display admin-configured walkthrough
@@ -1357,7 +1355,7 @@ export default function CheckoutForm() {
 
             {/* Go Pay Now CTA */}
             <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-4 text-white shadow-md">
-              <p className="text-sm font-bold mb-1">Ready to pay? 💸</p>
+              <p className="text-sm font-bold mb-1">Ready to pay?</p>
               <p className="text-xs text-emerald-100 mb-3">
                 Open your banking / MoMo app, send{" "}
                 <span className="font-black">GHS {totals.total.toFixed(2)}</span>, take a screenshot, then come back here to upload it.
@@ -1370,7 +1368,7 @@ export default function CheckoutForm() {
                 }}
                 className="w-full rounded-full bg-white text-emerald-700 font-black text-sm py-2.5 hover:bg-emerald-50 transition-colors active:scale-95"
               >
-                🚀 Go Pay Now — I'll come back with screenshot
+                Go Pay Now — I'll come back with screenshot
               </button>
             </div>
 
@@ -1378,7 +1376,7 @@ export default function CheckoutForm() {
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <label htmlFor="payment-proof" className="mb-2 block">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="inline-block w-5 h-5 rounded-full bg-red-600 text-white text-xs font-bold flex items-center justify-center">📸</span>
+                  <span className="inline-block w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
                   <span className="text-sm font-bold text-red-900">Screenshot Upload Required <span className="text-red-600">*</span></span>
                 </div>
                 <p className="text-xs text-red-800">This is mandatory to verify your payment</p>
@@ -1424,7 +1422,7 @@ export default function CheckoutForm() {
             {/* Info Box */}
             <div className="rounded-lg bg-gray-50 p-3 border border-gray-200">
               <p className="text-xs text-gray-700">
-                <span className="font-semibold">💡 Tip:</span> Include your order reference in the transfer memo if possible. This helps us verify your payment even faster.
+                <span className="font-semibold">Tip:</span> Include your order reference in the transfer memo if possible. This helps us verify your payment even faster.
               </p>
             </div>
           </div>
@@ -1457,7 +1455,7 @@ export default function CheckoutForm() {
           <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-lg">✨</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600 shrink-0" aria-hidden="true"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-emerald-900 truncate">
                     {activeReward.tierName} Reward
@@ -1498,7 +1496,7 @@ export default function CheckoutForm() {
           <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50 p-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-lg">🎁</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-violet-600 shrink-0" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-violet-900 truncate">
                     {dealsReward.label}
@@ -1538,7 +1536,7 @@ export default function CheckoutForm() {
           {appliedCode ? (
             <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-3 py-2">
               <span className="flex items-center gap-1.5 text-xs font-bold text-green-800">
-                🏷️ {appliedCode.code} — {appliedCode.description}
+                {appliedCode.code} — {appliedCode.description}
               </span>
               <button
                 type="button"
@@ -1598,7 +1596,7 @@ export default function CheckoutForm() {
             {rewardApplied && activeReward && totals.rewardDiscount > 0 && (
               <div className="mt-1 flex items-center justify-between text-emerald-700">
                 <span className="flex items-center gap-1 text-xs">
-                  ✨ {activeReward.tierName} ({activeReward.discountPercent}% off)
+                  {activeReward.tierName} ({activeReward.discountPercent}% off)
                 </span>
                 <span className="font-semibold">−GHS {totals.rewardDiscount.toFixed(2)}</span>
               </div>
@@ -1606,7 +1604,7 @@ export default function CheckoutForm() {
             {dealsRewardApplied && dealsReward && totals.dealsDiscount > 0 && (
               <div className="mt-1 flex items-center justify-between text-violet-700">
                 <span className="flex items-center gap-1 text-xs">
-                  🎁 {dealsReward.label}
+                  {dealsReward.label}
                 </span>
                 <span className="font-semibold">−GHS {totals.dealsDiscount.toFixed(2)}</span>
               </div>
@@ -1614,7 +1612,7 @@ export default function CheckoutForm() {
             {appliedCode && totals.codeDiscount > 0 && (
               <div className="mt-1 flex items-center justify-between text-green-700">
                 <span className="flex items-center gap-1 text-xs">
-                  🏷️ Code: {appliedCode.code}
+                  Code: {appliedCode.code}
                   <button
                     type="button"
                     onClick={() => { setAppliedCode(null); setDiscountCodeInput(""); }}
@@ -1630,7 +1628,7 @@ export default function CheckoutForm() {
               <span className="text-[var(--ink-soft)]">Delivery</span>
               <span className="font-semibold">
                 {rewardApplied && activeReward?.freeShipping
-                  ? "Free ✨"
+                  ? "Free"
                   : totals.effectiveDelivery === 0
                   ? "Free"
                   : `GHS ${totals.effectiveDelivery.toFixed(2)}`}

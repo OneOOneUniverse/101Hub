@@ -1,6 +1,23 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import type { ReactNode } from "react";
+
+// ── SVG icons ──────────────────────────────────────────────────────────────
+const ICON_MAP: Record<string, ReactNode> = {
+  "phone": <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
+  "user": <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  "bank": <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>,
+  "tag": <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+};
+function getIcon(iconStr: string): ReactNode {
+  if (iconStr === "📱" || iconStr === "📲" || iconStr === "phone") return ICON_MAP.phone;
+  if (iconStr === "👤" || iconStr === "👥" || iconStr === "user") return ICON_MAP.user;
+  if (iconStr === "🏦" || iconStr === "bank") return ICON_MAP.bank;
+  if (iconStr === "🔖" || iconStr === "tag") return ICON_MAP.tag;
+  // Fallback for anything else — return a simple circle/dot
+  return <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="currentColor" className="text-gray-300"/></svg>;
+}
 
 // ── Payment details config ──
 
@@ -18,10 +35,10 @@ type PaymentDetailsCardProps = {
 };
 
 const DEFAULT_FIELDS: PaymentField[] = [
-  { label: "Transaction/Phone Number", value: "0548656980", icon: "📱" },
-  { label: "Account Name", value: "101 Hub Technologies", icon: "👤" },
-  { label: "Bank Name", value: "MTN Mobile Money", icon: "🏦" },
-  { label: "Payment Reference", value: "", icon: "🔖" }, // dynamically set per order
+  { label: "Transaction/Phone Number", value: "0548656980", icon: "phone" },
+  { label: "Account Name", value: "101 Hub Technologies", icon: "user" },
+  { label: "Bank Name", value: "MTN Mobile Money", icon: "bank" },
+  { label: "Payment Reference", value: "", icon: "tag" }, // dynamically set per order
 ];
 
 // ── Copy hook ──
@@ -79,7 +96,7 @@ export default function PaymentDetailsCard({
               style={isCopied ? { borderColor: "#22c55e", backgroundColor: "#f0fdf4" } : {}}
             >
               {/* Icon */}
-              <span className="text-lg shrink-0">{field.icon}</span>
+              <span className="text-[var(--ink-soft)] shrink-0">{getIcon(field.icon)}</span>
 
               {/* Label & Value */}
               <div className="flex-1 min-w-0">

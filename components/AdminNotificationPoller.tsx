@@ -37,7 +37,7 @@ export default function AdminNotificationPoller() {
             const diff = paymentCount - prevRef.current.payments;
             addNotification(
               'payment',
-              '💳 New Payment To Review',
+              'New Payment To Review',
               `${diff} new payment${diff > 1 ? 's' : ''} waiting for approval`
             );
           }
@@ -45,7 +45,7 @@ export default function AdminNotificationPoller() {
             const diff = serviceCount - prevRef.current.services;
             addNotification(
               'service',
-              '🔧 New Service Request',
+              'New Service Request',
               `${diff} new service request${diff > 1 ? 's' : ''} submitted`
             );
           }

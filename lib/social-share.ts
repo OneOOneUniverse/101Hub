@@ -24,10 +24,10 @@ export interface ShareOptions {
  * Format an attractive product share message
  */
 export function formatProductShareMessage(options: ShareOptions): string {
-  let message = `✨ ${options.title}\n`;
+  let message = `${options.title}\n`;
   
   if (options.price) {
-    message += `💰 ${options.price}`;
+    message += `${options.price}`;
     if (options.discount && options.discount > 0) {
       message += ` (-${options.discount}% OFF)`;
     }
@@ -38,7 +38,7 @@ export function formatProductShareMessage(options: ShareOptions): string {
     message += `\n${options.description}\n`;
   }
   
-  message += `\n🛍️ Shop at 101Hub: ${options.url}`;
+  message += `\nShop at 101Hub: ${options.url}`;
   return message;
 }
 
@@ -177,7 +177,7 @@ export const shareablePlatforms = [
   {
     id: "whatsapp" as const,
     name: "WhatsApp",
-    icon: "💬",
+    icon: "W",
     getUrl: getWhatsAppShareUrl,
   },
   {
@@ -201,13 +201,13 @@ export const shareablePlatforms = [
   {
     id: "telegram" as const,
     name: "Telegram",
-    icon: "✈",
+    icon: "T",
     getUrl: getTelegramShareUrl,
   },
   {
     id: "email" as const,
     name: "Email",
-    icon: "✉",
+    icon: "@",
     getUrl: getEmailShareUrl,
   },
 ];

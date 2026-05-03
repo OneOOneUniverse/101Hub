@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 
-const EMOJI_PAIRS = ["🍎", "🍊", "🍋", "🍇", "🍓", "🎮", "🎯", "🏆"];
+const EMOJI_PAIRS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 type Card = { id: number; emoji: string; flipped: boolean; matched: boolean };
 
@@ -181,7 +181,7 @@ export default function MemoryMatch() {
   if (phase === "claimed") {
     return (
       <div className="text-center py-10 space-y-4">
-        <p className="text-5xl">🏆</p>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--brand)]"><path d="M6 9H4a2 2 0 01-2-2V5h4"/><path d="M18 9h2a2 2 0 002-2V5h-4"/><path d="M12 17c-2.67 0-8-1.34-8-4V5h16v8c0 2.66-5.33 4-8 4z"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
         <p className="text-xl font-black text-[var(--brand-deep)]">You won!</p>
         <p className="text-2xl font-bold text-[var(--brand)]">+{pointsEarned} Points</p>
         <p className="text-sm text-[var(--ink-soft)]">
@@ -199,14 +199,14 @@ export default function MemoryMatch() {
   if (phase === "won") {
     return (
       <div className="text-center py-8 space-y-4">
-        <p className="text-5xl">🎉</p>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--brand)]"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <p className="text-xl font-black text-[var(--brand-deep)]">All matched in {moves} moves!</p>
         {msg && <p className="text-sm text-red-500">{msg}</p>}
         <button
           onClick={claimPoints}
           className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
         >
-          Claim Points 🎁
+          Claim Points
         </button>
         {!isSignedIn && <p className="text-xs text-[var(--ink-soft)]">Sign in to save points</p>}
       </div>

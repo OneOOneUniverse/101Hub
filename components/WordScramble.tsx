@@ -3,6 +3,35 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 
+function LettersIcon({ size = 40, pulse = false }: { size?: number; pulse?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`mx-auto text-[var(--brand)] ${pulse ? "animate-pulse" : ""}`} aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M8 12h3m0 0h3m-3 0V9m0 3v3" />
+    </svg>
+  );
+}
+function TrophyIcon({ size = 48 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-[var(--brand)]" aria-hidden="true">
+      <path d="M6 9H4a2 2 0 01-2-2V5h4" />
+      <path d="M18 9h2a2 2 0 002-2V5h-4" />
+      <path d="M6 5h12v7a6 6 0 01-12 0V5z" />
+      <path d="M9 21v-3a3 3 0 016 0v3" />
+      <path d="M7 21h10" />
+    </svg>
+  );
+}
+function XCircleIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="15" y1="9" x2="9" y2="15" />
+      <line x1="9" y1="9" x2="15" y2="15" />
+    </svg>
+  );
+}
+
 export default function WordScramble() {
   const { isSignedIn } = useUser();
   // Session state — word lives on the server, never in the browser
@@ -109,7 +138,7 @@ export default function WordScramble() {
   if (phase === "loading") {
     return (
       <div className="text-center py-10 space-y-3">
-        <p className="text-4xl animate-pulse">🔤</p>
+        <LettersIcon size={40} pulse />
         <p className="text-sm text-[var(--ink-soft)]">Loading word…</p>
       </div>
     );
@@ -118,7 +147,7 @@ export default function WordScramble() {
   if (phase === "limit") {
     return (
       <div className="text-center py-10 space-y-3">
-        <p className="text-4xl">🔤</p>
+        <LettersIcon size={40} />
         <p className="text-lg font-bold text-[var(--brand-deep)]">Daily limit reached!</p>
         <p className="text-sm text-[var(--ink-soft)]">Come back tomorrow for new words.</p>
       </div>
@@ -128,7 +157,7 @@ export default function WordScramble() {
   if (phase === "claimed") {
     return (
       <div className="text-center py-10 space-y-4">
-        <p className="text-5xl">🎉</p>
+        <TrophyIcon size={48} />
         <p className="text-xl font-black text-[var(--brand-deep)]">Points Claimed!</p>
         <p className="text-2xl font-bold text-[var(--brand)]">+{pointsEarned} Points</p>
         <p className="text-sm text-[var(--ink-soft)]">
@@ -137,9 +166,9 @@ export default function WordScramble() {
         {(playsLeft === null || playsLeft > 0) && (
           <button
             onClick={startNewGame}
-            className="rounded-full border border-[var(--brand)] px-6 py-2.5 text-sm font-bold text-[var(--brand)] transition hover:bg-[var(--brand)]/10"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--brand)] px-6 py-2.5 text-sm font-bold text-[var(--brand)] transition hover:bg-[var(--brand)]/10"
           >
-            Play Again 🔤
+            <LettersIcon size={14} /> Play Again
           </button>
         )}
       </div>
@@ -190,7 +219,7 @@ export default function WordScramble() {
       </div>
 
       {wrongHint && (
-        <p className="text-sm text-center text-red-500 font-semibold">❌ Not quite — try again!</p>
+        <p className="inline-flex items-center gap-1.5 text-sm text-center text-red-500 font-semibold"><XCircleIcon size={15} /> Not quite — try again!</p>
       )}
 
       {playsLeft !== null && (

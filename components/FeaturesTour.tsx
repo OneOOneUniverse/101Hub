@@ -72,7 +72,7 @@ export default function FeaturesTour() {
         {/* Header */}
         <div className="ft-head">
           <div>
-            <p className="ft-eyebrow">✦ Welcome to 101 Hub</p>
+            <p className="ft-eyebrow">Welcome to 101 Hub</p>
             <h2 className="ft-title">Everything you can do here</h2>
           </div>
           <button className="ft-close" onClick={dismiss} aria-label="Close">

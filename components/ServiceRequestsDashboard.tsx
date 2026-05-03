@@ -2,6 +2,44 @@
 
 import { useEffect, useState } from "react";
 
+// ── SVG Icons ──────────────────────────────────────────────────────────────
+function ClockIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+}
+function CheckCircleIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+}
+function XCircleIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>;
+}
+function PartyIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>;
+}
+function UserIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+}
+function PhoneIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.64A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.93a16 16 0 006.16 6.16l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>;
+}
+function CalendarIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+}
+function TimeIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+}
+function WrenchIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>;
+}
+function AlertIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+}
+function MessageIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>;
+}
+function AssignedIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>;
+}
+
 type ServiceRequest = {
   id: number;
   ticket_ref: string;
@@ -18,20 +56,20 @@ type ServiceRequest = {
 
 type StatusKey = "pending" | "approved" | "declined" | "completed" | "assigned" | "cancelled";
 
-const STATUS_CONFIG: Record<StatusKey, { bg: string; text: string; emoji: string; label: string }> = {
-  pending:   { bg: "bg-yellow-100", text: "text-yellow-800", emoji: "⏳", label: "Pending" },
-  approved:  { bg: "bg-blue-100",   text: "text-blue-800",   emoji: "✅", label: "Approved" },
-  declined:  { bg: "bg-red-100",    text: "text-red-800",    emoji: "✗",  label: "Declined" },
-  completed: { bg: "bg-green-100",  text: "text-green-800",  emoji: "🎉", label: "Completed" },
-  assigned:  { bg: "bg-indigo-100", text: "text-indigo-800", emoji: "👤", label: "Assigned" },
-  cancelled: { bg: "bg-gray-100",   text: "text-gray-800",   emoji: "❌", label: "Cancelled" },
+const STATUS_CONFIG: Record<StatusKey, { bg: string; text: string; icon: React.ReactNode; label: string }> = {
+  pending:   { bg: "bg-yellow-100", text: "text-yellow-800", icon: <ClockIcon />,    label: "Pending" },
+  approved:  { bg: "bg-blue-100",   text: "text-blue-800",   icon: <CheckCircleIcon />, label: "Approved" },
+  declined:  { bg: "bg-red-100",    text: "text-red-800",    icon: <XCircleIcon />,  label: "Declined" },
+  completed: { bg: "bg-green-100",  text: "text-green-800",  icon: <PartyIcon />,   label: "Completed" },
+  assigned:  { bg: "bg-indigo-100", text: "text-indigo-800", icon: <AssignedIcon />, label: "Assigned" },
+  cancelled: { bg: "bg-gray-100",   text: "text-gray-800",   icon: <XCircleIcon />, label: "Cancelled" },
 };
 
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status as StatusKey] ?? STATUS_CONFIG.pending;
   return (
     <span className={`inline-flex items-center gap-1 rounded-full ${cfg.bg} px-2.5 py-1 text-xs font-bold ${cfg.text}`}>
-      {cfg.emoji} {cfg.label}
+      {cfg.icon} {cfg.label}
     </span>
   );
 }
@@ -119,7 +157,7 @@ export default function ServiceRequestsDashboard() {
 
       {/* Header */}
       <div className="panel p-5 sm:p-6">
-        <h2 className="text-2xl font-black text-[var(--brand-deep)]">🔧 Service Requests</h2>
+        <h2 className="text-2xl font-black text-[var(--brand-deep)] flex items-center gap-2"><WrenchIcon /> Service Requests</h2>
         <p className="mt-1 text-sm text-[var(--ink-soft)]">
           Manage incoming service bookings — approve, decline, or mark complete.
         </p>
@@ -173,7 +211,7 @@ export default function ServiceRequestsDashboard() {
       {!loading && filtered.length === 0 && (
         <div className="panel p-6 text-center text-[var(--ink-soft)]">
           {filter === "all"
-            ? "✅ No service requests yet"
+            ? "No service requests yet"
             : `No ${filter} requests`}
         </div>
       )}
@@ -210,21 +248,21 @@ export default function ServiceRequestsDashboard() {
                 {/* Customer info grid */}
                 <div className="grid gap-2 sm:grid-cols-2 text-sm mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">👤</span>
+                    <UserIcon />
                     <span className="font-semibold text-[var(--ink)]">{req.customer_name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-base">📞</span>
+                    <PhoneIcon />
                     <a href={`tel:${req.customer_phone}`} className="text-blue-600 font-medium hover:underline">
                       {req.customer_phone}
                     </a>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-base">📅</span>
+                    <CalendarIcon />
                     <span className="text-[var(--ink)]">{formatDate(req.requested_date)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-base">🕐</span>
+                    <TimeIcon />
                     <span className="text-[var(--ink)]">{req.preferred_time || "Not specified"}</span>
                   </div>
                 </div>
@@ -245,7 +283,7 @@ export default function ServiceRequestsDashboard() {
                       onClick={() => setProofModal(req.payment_proof!)}
                     />
                     <div>
-                      <p className="text-xs font-semibold text-green-700">✅ Payment proof attached</p>
+                      <p className="text-xs font-semibold text-green-700 flex items-center gap-1"><CheckCircleIcon /> Payment proof attached</p>
                       <button
                         type="button"
                         onClick={() => setProofModal(req.payment_proof!)}
@@ -256,7 +294,7 @@ export default function ServiceRequestsDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <p className="mb-3 text-xs font-semibold text-red-600">⚠️ No payment proof uploaded</p>
+                  <p className="mb-3 text-xs font-semibold text-red-600 flex items-center gap-1"><AlertIcon /> No payment proof uploaded</p>
                 )}
 
                 {/* Timestamp */}
@@ -279,14 +317,14 @@ export default function ServiceRequestsDashboard() {
                         disabled={isUpdating}
                         className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                       >
-                        {isUpdating ? "..." : "✅ Approve"}
+                        {isUpdating ? "..." : <span className="flex items-center gap-1"><CheckCircleIcon /> Approve</span>}
                       </button>
                       <button
                         onClick={() => updateStatus(req.ticket_ref, "declined")}
                         disabled={isUpdating}
                         className="rounded-lg bg-red-100 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-200 disabled:opacity-50 transition-colors"
                       >
-                        {isUpdating ? "..." : "✗ Decline"}
+                        {isUpdating ? "..." : <span className="flex items-center gap-1"><XCircleIcon /> Decline</span>}
                       </button>
                     </>
                   )}
@@ -296,7 +334,7 @@ export default function ServiceRequestsDashboard() {
                       disabled={isUpdating}
                       className="rounded-lg bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                     >
-                      {isUpdating ? "..." : "🎉 Mark Complete"}
+                      {isUpdating ? "..." : <span className="flex items-center gap-1"><PartyIcon /> Mark Complete</span>}
                     </button>
                   )}
                   {/* WhatsApp quick message */}
@@ -308,7 +346,7 @@ export default function ServiceRequestsDashboard() {
                     rel="noopener noreferrer"
                     className="rounded-lg bg-green-100 px-4 py-2 text-xs font-bold text-green-700 hover:bg-green-200 transition-colors"
                   >
-                    💬 WhatsApp
+                    <span className="flex items-center gap-1"><MessageIcon /> WhatsApp</span>
                   </a>
                 </div>
               </article>

@@ -73,7 +73,7 @@ export async function POST(request: Request) {
           await notifyUser(
             clerkId,
             'payment',
-            '✅ Payment Verified!',
+            'Payment Verified!',
             `Your payment for order ${orderRef} has been confirmed. We're preparing your order!`,
             { order_ref: orderRef, link: '/orders' },
           );
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
           await notifyUser(
             clerkId,
             'payment',
-            '⚠️ Payment Issue',
+            'Payment Issue',
             `We couldn't verify your payment for order ${orderRef}.${body.reason ? ` Reason: ${body.reason}` : ''} Please contact us.`,
             { order_ref: orderRef, link: '/orders' },
           );

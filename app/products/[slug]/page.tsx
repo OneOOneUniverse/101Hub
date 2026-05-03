@@ -166,17 +166,17 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
 
             <div className="rounded-xl border border-black/10 bg-white p-3 sm:p-4">
               {isOnSale && (
-                <div className={`mb-3 flex items-center justify-between rounded-lg px-3 py-2 ${hasProductDiscount ? "bg-purple-50" : "bg-red-50"}`}>
-                  <p className={`text-xs font-bold ${hasProductDiscount ? "text-purple-700" : "text-red-700"}`}>
-                    {hasProductDiscount ? "💜 Product Discount" : "🔥 Flash Sale"}
+                <div className={`mb-3 flex items-center justify-between rounded-lg px-3 py-2 ${hasProductDiscount ? "bg-[var(--brand)]/10" : "bg-red-50"}`}>
+                  <p className={`text-xs font-bold ${hasProductDiscount ? "text-[var(--brand-deep)]" : "text-red-700"}`}>
+                    {hasProductDiscount ? "Product Discount" : "Flash Sale"}
                   </p>
-                  <p className={`text-sm font-black ${hasProductDiscount ? "text-purple-600" : "text-red-600"}`}>-{totalDiscount}%</p>
+                  <p className={`text-sm font-black ${hasProductDiscount ? "text-[var(--brand-deep)]" : "text-red-600"}`}>-{totalDiscount}%</p>
                 </div>
               )}
               <div className="flex items-center justify-between">
                 <p className="text-xs text-[var(--ink-soft)] sm:text-sm">Price</p>
                 <div>
-                  <p className={`text-xl font-black sm:text-2xl ${isOnSale ? (hasProductDiscount ? "text-purple-600" : "text-red-600") : ""}`}>
+                  <p className={`text-xl font-black sm:text-2xl ${isOnSale ? (hasProductDiscount ? "text-[var(--brand-deep)]" : "text-red-600") : ""}`}>
                     GHS {displayPrice.toFixed(2)}
                   </p>
                   {isOnSale && (

@@ -26,8 +26,6 @@ export default function ViewCounter({ page }: { page: string }) {
     };
 
     void fetchCount();
-    const interval = setInterval(() => void fetchCount(), 30_000);
-    return () => clearInterval(interval);
   }, [page]);
 
   if (!data) return null;

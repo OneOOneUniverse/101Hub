@@ -1,7 +1,26 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { useUser } from '@clerk/nextjs';
+
+function NOrderIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>; }
+function NChatIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>; }
+function NWrenchIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>; }
+function NCardIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>; }
+function NCheckIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>; }
+function NBellIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>; }
+function NInfoIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>; }
+
+const ICON_MAP: Record<string, ReactNode> = {
+  order: <NOrderIcon />,
+  message: <NChatIcon />,
+  service: <NWrenchIcon />,
+  payment: <NCardIcon />,
+  status_update: <NCheckIcon />,
+  promo: <NBellIcon />,
+  system: <NInfoIcon />,
+};
 
 interface DbNotification {
   id: string;
@@ -14,16 +33,6 @@ interface DbNotification {
   read: boolean;
   created_at: string;
 }
-
-const ICON_MAP: Record<string, string> = {
-  order: '📦',
-  message: '💬',
-  service: '🔧',
-  payment: '💳',
-  status_update: '✅',
-  promo: '🎉',
-  system: 'ℹ️',
-};
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -231,7 +240,9 @@ export default function NotificationBell() {
                   }}
                   disabled={pushState === 'denied'}
                 >
-                  {pushState === 'granted' ? '🔔' : '🔕'}
+                  {pushState === 'granted'
+                    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="1" y1="1" x2="23" y2="23"/><path d="M17.47 17.47A6 6 0 006 8c0 1.92-.39 3.58-1.01 4.96M5.74 5.74A6 6 0 0118 8c0 4.02.77 6.37 1.69 7.83M10.34 21.66a2 2 0 003.32 0"/></svg>}
                 </button>
               )}
               {unreadCount > 0 && (
@@ -250,7 +261,7 @@ export default function NotificationBell() {
           {showPushBanner && pushState !== 'granted' && pushState !== 'unsupported' && (
             <div className="notif-push-banner">
               <div className="notif-push-banner-text">
-                <span style={{ fontSize: '16px' }}>🔔</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" aria-hidden="true"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
                 <span>Get notified about orders, messages & updates even when you&apos;re not on the site</span>
               </div>
               <div className="notif-push-banner-actions">
@@ -274,7 +285,7 @@ export default function NotificationBell() {
                   className={`notif-item${n.read ? '' : ' notif-unread'}`}
                   onClick={() => handleNotificationClick(n)}
                 >
-                  <span className="notif-icon">{ICON_MAP[n.type] ?? 'ℹ️'}</span>
+                  <span className="notif-icon">{ICON_MAP[n.type] ?? <NInfoIcon />}</span>
                   <div className="notif-content">
                     <span className="notif-title">{n.title}</span>
                     <span className="notif-msg">{n.message}</span>

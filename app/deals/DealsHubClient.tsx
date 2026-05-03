@@ -6,6 +6,20 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import type { DealsHubContent, Product } from "@/lib/site-content-types";
 
+// Game icons
+const GAME_ICONS: Record<string, React.ReactNode> = {
+  spin: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>,
+  scratch: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>,
+  trivia: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  memory: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="3" width="9" height="9" rx="1"/><rect x="13" y="3" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg>,
+  lucky: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>,
+  scramble: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="6" width="4" height="12" rx="1"/><rect x="10" y="6" width="4" height="12" rx="1"/><rect x="18" y="6" width="4" height="12" rx="1"/><path d="M6 12h4M14 12h4"/></svg>,
+};
+const GiftIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>;
+const SparkleIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+const StoreIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+const GamepadIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1" fill="currentColor"/><circle cx="17" cy="13" r="1" fill="currentColor"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>;
+
 // Variant accent palette for game cards
 const GAME_ACCENTS: Record<string, { border: string; shadow: string; glow: string }> = {
   violet:  { border: "rgba(139,92,246,0.45)",  shadow: "rgba(124,58,237,0.22)",  glow: "#8b5cf6" },
@@ -64,7 +78,7 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
       if (!res.ok) {
         setRedeemMsg(data.error ?? "Failed to claim");
       } else {
-        setRedeemMsg(`✅ Claimed GHS ${data.discountCedis} discount! Apply it at checkout.`);
+        setRedeemMsg(`Claimed GHS ${data.discountCedis} discount! Apply it at checkout.`);
         refreshPoints();
         refreshActiveReward();
       }
@@ -106,14 +120,14 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
   }, [nextStore, prevStore]);
 
   // Flat game list with variant colours
-  type GameEntry = { id: string; emoji: string; name: string; desc: string; route: string; pts: number | null; variant: string };
+  type GameEntry = { id: string; name: string; desc: string; route: string; pts: number | null; variant: string };
   const games: GameEntry[] = [
-    dealsHub.spinWheel.enabled && { id: "spin", emoji: "🎡", name: dealsHub.spinWheel.title, desc: dealsHub.spinWheel.description, route: "/deals/play/spin", pts: null, variant: "violet" },
-    dealsHub.scratchCard.enabled && { id: "scratch", emoji: "🎟️", name: dealsHub.scratchCard.title, desc: dealsHub.scratchCard.description, route: "/deals/play/scratch", pts: null, variant: "rose" },
-    dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && { id: "trivia", emoji: "🧠", name: dealsHub.trivia.title, desc: dealsHub.trivia.description, route: "/deals/play/trivia", pts: null, variant: "amber" },
-    (dealsHub.memoryMatch?.enabled ?? true) && { id: "memory", emoji: "🃏", name: dealsHub.memoryMatch?.title ?? "Memory Match", desc: dealsHub.memoryMatch?.description ?? "Flip cards and match all pairs to win points!", route: "/deals/play/memory", pts: dealsHub.memoryMatch?.pointsReward ?? 75, variant: "indigo" },
-    (dealsHub.luckyNumber?.enabled ?? true) && { id: "lucky", emoji: "🎲", name: dealsHub.luckyNumber?.title ?? "Lucky Number", desc: dealsHub.luckyNumber?.description ?? "Guess the secret number to win points!", route: "/deals/play/lucky", pts: dealsHub.luckyNumber?.pointsReward ?? 50, variant: "emerald" },
-    (dealsHub.wordScramble?.enabled ?? true) && { id: "scramble", emoji: "🔤", name: dealsHub.wordScramble?.title ?? "Word Scramble", desc: dealsHub.wordScramble?.description ?? "Unscramble the mystery word to win points!", route: "/deals/play/scramble", pts: dealsHub.wordScramble?.pointsReward ?? 60, variant: "cyan" },
+    dealsHub.spinWheel.enabled && { id: "spin", name: dealsHub.spinWheel.title, desc: dealsHub.spinWheel.description, route: "/deals/play/spin", pts: null, variant: "violet" },
+    dealsHub.scratchCard.enabled && { id: "scratch", name: dealsHub.scratchCard.title, desc: dealsHub.scratchCard.description, route: "/deals/play/scratch", pts: null, variant: "rose" },
+    dealsHub.trivia.enabled && dealsHub.trivia.questions.length > 0 && { id: "trivia", name: dealsHub.trivia.title, desc: dealsHub.trivia.description, route: "/deals/play/trivia", pts: null, variant: "amber" },
+    (dealsHub.memoryMatch?.enabled ?? true) && { id: "memory", name: dealsHub.memoryMatch?.title ?? "Memory Match", desc: dealsHub.memoryMatch?.description ?? "Flip cards and match all pairs to win points!", route: "/deals/play/memory", pts: dealsHub.memoryMatch?.pointsReward ?? 75, variant: "indigo" },
+    (dealsHub.luckyNumber?.enabled ?? true) && { id: "lucky", name: dealsHub.luckyNumber?.title ?? "Lucky Number", desc: dealsHub.luckyNumber?.description ?? "Guess the secret number to win points!", route: "/deals/play/lucky", pts: dealsHub.luckyNumber?.pointsReward ?? 50, variant: "emerald" },
+    (dealsHub.wordScramble?.enabled ?? true) && { id: "scramble", name: dealsHub.wordScramble?.title ?? "Word Scramble", desc: dealsHub.wordScramble?.description ?? "Unscramble the mystery word to win points!", route: "/deals/play/scramble", pts: dealsHub.wordScramble?.pointsReward ?? 60, variant: "cyan" },
   ].filter(Boolean) as GameEntry[];
 
   return (
@@ -123,7 +137,7 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
         <div className="dh-hero-glow-a" />
         <div className="dh-hero-glow-b" />
         <div className="dh-hero-inner">
-          <div className="dh-chip">✦ Exclusive Deals Zone</div>
+          <div className="dh-chip">Exclusive Deals Zone</div>
           <h1 className="dh-h1">{dealsHub.title}</h1>
           <p className="dh-lead">{dealsHub.description}</p>
 
@@ -165,7 +179,7 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
           <div className="dh-reward-card">
             {activeReward ? (
               <div className="dh-ar">
-                <span className="dh-ar-icon">✨</span>
+                <span className="dh-ar-icon"><SparkleIcon /></span>
                 <div className="dh-ar-body">
                   <p className="dh-ar-title">{activeReward.label}</p>
                   <p className="dh-ar-sub">Ready to use at checkout</p>
@@ -175,7 +189,7 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
             ) : minRedeem > 0 ? (
               <div className="dh-claim">
                 <div className="dh-claim-top">
-                  <span className="dh-claim-icon">🎁</span>
+                  <span className="dh-claim-icon"><GiftIcon /></span>
                   <div>
                     <p className="dh-claim-title">Claim Your Reward</p>
                     <p className="dh-claim-sub">Reach {minRedeem.toLocaleString()} pts to unlock a discount</p>
@@ -202,7 +216,7 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
       {/* ── SPECIAL STORES ── */}
       {enabledStores.length > 0 && (
         <section className="dh-section">
-          <div className="dh-sec-eyebrow">🏪 Special Stores</div>
+          <div className="dh-sec-eyebrow"><StoreIcon /> Special Stores</div>
           <h2 className="dh-sec-h2">Browse Curated Collections</h2>
 
           <div className="dh-slider-row">
@@ -257,7 +271,7 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
 
       {/* ── GAMES ── */}
       <section className="dh-section">
-        <div className="dh-sec-eyebrow">🎮 Games &amp; Rewards</div>
+        <div className="dh-sec-eyebrow"><GamepadIcon /> Games &amp; Rewards</div>
         <h2 className="dh-sec-h2">Play to Earn Points</h2>
 
         {!isSignedIn && (
@@ -272,7 +286,7 @@ export default function DealsHubClient({ dealsHub, products: _products }: Props)
             <button key={g.id} className="dh-gc" onClick={() => router.push(g.route)}
               style={{ "--ga": GAME_ACCENTS[g.variant]?.border, "--gs": GAME_ACCENTS[g.variant]?.shadow, "--gg": GAME_ACCENTS[g.variant]?.glow } as React.CSSProperties}>
               <span className="dh-gc-num">0{idx + 1}</span>
-              <span className="dh-gc-emoji">{g.emoji}</span>
+              <span className="dh-gc-emoji">{GAME_ICONS[g.id]}</span>
               <h3 className="dh-gc-name">{g.name}</h3>
               <p className="dh-gc-desc">{g.desc}</p>
               {g.pts !== null && <span className="dh-gc-pts">+{g.pts} pts</span>}

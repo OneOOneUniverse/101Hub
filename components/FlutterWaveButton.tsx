@@ -163,7 +163,7 @@ export default function FlutterWaveButton({
     <>
       {loadError && (
         <div className="mb-3 rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-700">
-          <p className="font-semibold">⚠️ {loadError}</p>
+          <p className="font-semibold">{loadError}</p>
           {!showManualFallback && (
             <button
               onClick={() => {
@@ -180,7 +180,7 @@ export default function FlutterWaveButton({
       
       {showManualFallback ? (
         <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700">
-          <p className="font-semibold">💡 Fallback: Use Manual Payment</p>
+          <p className="font-semibold">Fallback: Use Manual Payment</p>
           <p className="mt-1 text-xs">Flutterwave is temporarily unavailable. Please go back and select "Manual Transfer (Upload Proof)" instead.</p>
           <button
             onClick={() => onPaymentFailure("Flutterwave unavailable - using manual payment instead")}

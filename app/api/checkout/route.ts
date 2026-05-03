@@ -287,7 +287,7 @@ export async function POST(request: Request) {
   try {
     await notifyAdmins(
       'order',
-      '📦 New Order Received',
+      'New Order Received',
       `${body.customerName} placed order ${orderRef} (GHS ${total.toFixed(2)}) — Awaiting payment verification`,
       { order_ref: orderRef, link: '/admin' },
     );
@@ -299,7 +299,7 @@ export async function POST(request: Request) {
       await notifyUser(
         clerkUser.id,
         'order',
-        '🎉 Order Confirmed!',
+        'Order Confirmed!',
         `Your order ${orderRef} has been received. We'll notify you when it's on its way!`,
         { order_ref: orderRef, link: '/orders' },
       );

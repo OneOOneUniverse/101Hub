@@ -65,10 +65,16 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-const REACTION_LABELS: Record<string, string> = {
-  like: "👍",
-  helpful: "💡",
-  love: "❤️",
+const REACTION_ICONS: Record<string, React.ReactNode> = {
+  like: (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+  ),
+  helpful: (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+  ),
+  love: (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+  ),
 };
 
 export default function ReviewCard({ review, isAdmin, onDeleted }: Props) {
@@ -245,7 +251,7 @@ export default function ReviewCard({ review, isAdmin, onDeleted }: Props) {
                 : "bg-white border-black/10 text-[var(--ink-soft)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
             } disabled:opacity-50`}
           >
-            <span>{REACTION_LABELS[type]}</span>
+            <span>{REACTION_ICONS[type]}</span>
             <span>{reactionCounts[type] ?? 0}</span>
           </button>
         ))}

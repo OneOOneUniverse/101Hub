@@ -30,7 +30,7 @@ function statusBadge(status: string) {
     );
   return (
     <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-900">
-      🎉 Confirmed
+      Order Confirmed
     </span>
   );
 }
@@ -125,7 +125,7 @@ export default function ActiveOrdersDashboard() {
 
       {!loading && orders.length === 0 && (
         <p className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-700">
-          ✅ No active orders at the moment
+          No active orders at the moment
         </p>
       )}
 
@@ -146,9 +146,9 @@ export default function ActiveOrdersDashboard() {
                   <p className="text-sm text-[var(--ink-soft)]">{order.customerPhone}</p>
                   <p className="text-xs text-[var(--ink-soft)] mt-0.5">{order.customerAddress}</p>
                   <p className="font-mono text-xs text-blue-800 mt-1">{order.orderRef}</p>
-                  <p className="text-xs text-blue-700 mt-1.5">📅 Order: {formatOrderDate(order.createdAt)}</p>
+                  <p className="text-xs text-blue-700 mt-1.5">Order: {formatOrderDate(order.createdAt)}</p>
                   {order.estimatedDeliveryDate && (
-                    <p className="text-xs text-emerald-700 font-semibold">🚚 Est. Delivery: {formatEstimatedDelivery(order.estimatedDeliveryDate)}</p>
+                    <p className="text-xs text-emerald-700 font-semibold">Est. Delivery: {formatEstimatedDelivery(order.estimatedDeliveryDate)}</p>
                   )}
                 </div>
                 <div className="text-right shrink-0">
@@ -161,7 +161,7 @@ export default function ActiveOrdersDashboard() {
                   onClick={() => setEstimateModal({ orderRef: order.orderRef, value: order.estimatedDeliveryDate || "" })}
                   className="flex-1 rounded-full bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700"
                 >
-                  ⏱️ Set Delivery Est.
+                  Set Delivery Est.
                 </button>
                 <button
                   onClick={() => void updateStatus(order.orderRef, "in_transit")}
@@ -174,7 +174,7 @@ export default function ActiveOrdersDashboard() {
                   href={`tel:${order.customerPhone.replace(/\D/g, "")}`}
                   className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 text-center"
                 >
-                  📞 Call Customer
+                  Call Customer
                 </a>
               </div>
 
@@ -204,9 +204,9 @@ export default function ActiveOrdersDashboard() {
                   <p className="text-sm text-[var(--ink-soft)]">{order.customerPhone}</p>
                   <p className="text-xs text-[var(--ink-soft)] mt-0.5">{order.customerAddress}</p>
                   <p className="font-mono text-xs text-cyan-800 mt-1">{order.orderRef}</p>
-                  <p className="text-xs text-cyan-700 mt-1.5">📅 Order: {formatOrderDate(order.createdAt)}</p>
+                  <p className="text-xs text-cyan-700 mt-1.5">Order: {formatOrderDate(order.createdAt)}</p>
                   {order.estimatedDeliveryDate && (
-                    <p className="text-xs text-emerald-700 font-semibold">🚚 Est. Delivery: {formatEstimatedDelivery(order.estimatedDeliveryDate)}</p>
+                    <p className="text-xs text-emerald-700 font-semibold">Est. Delivery: {formatEstimatedDelivery(order.estimatedDeliveryDate)}</p>
                   )}
                 </div>
                 <div className="text-right shrink-0">
@@ -226,7 +226,7 @@ export default function ActiveOrdersDashboard() {
                   href={`tel:${order.customerPhone.replace(/\D/g, "")}`}
                   className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 text-center"
                 >
-                  📞 Call Customer
+                  Call Customer
                 </a>
               </div>
 

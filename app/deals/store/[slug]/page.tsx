@@ -92,7 +92,7 @@ export default async function SpecialStorePage({ params }: Props) {
       {(store.ownerName || store.ownerPhone || store.ownerEmail || store.ownerWhatsapp || store.ownerInstagram || store.ownerFacebook || store.ownerWebsite || store.ownerLocation) && (
         <section className="rounded-2xl border border-black/8 bg-white shadow-sm p-5">
           <h2 className="text-sm font-black text-[var(--brand-deep)] mb-4 flex items-center gap-2">
-            <span className="text-base">🏷️</span> About This Store
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> About This Store
           </h2>
           <div className="flex flex-wrap items-start gap-4">
             {/* Owner identity */}
@@ -210,7 +210,7 @@ export default async function SpecialStorePage({ params }: Props) {
       {/* Products grid */}
       {storeProducts.length === 0 ? (
         <div className="text-center py-16 space-y-3">
-          <p className="text-4xl">📦</p>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--ink-soft)]"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           <p className="text-lg font-bold text-[var(--ink-soft)]">
             No products in this store yet.
           </p>

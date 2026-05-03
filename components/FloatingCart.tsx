@@ -214,7 +214,7 @@ export default function FloatingCart({
                 }}
                 className="w-full rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50 transition mb-4"
               >
-                🗑️ Clear Cart
+                Clear Cart
               </button>
               {details.items.map((item) => (
               <div

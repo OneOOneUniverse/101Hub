@@ -233,7 +233,7 @@ export default function FlashSaleTimer({
             }}
           >
             <span style={{ fontSize: "1.8rem", fontWeight: 900, lineHeight: 1 }}>
-              {eyebrow.match(/\d+/)?.[0] ?? "⚡"}
+              {eyebrow.match(/\d+/)?.[0] ?? "!"}
             </span>
             <span
               style={{

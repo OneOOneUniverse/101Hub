@@ -269,7 +269,7 @@ export default function BookServiceClient() {
             <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-2xl space-y-5">
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-30 animate-ping" />
-                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl">📲</span>
+                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
               </div>
               <div>
                 <h2 className="text-xl font-black text-gray-900">Waiting for you…</h2>
@@ -299,7 +299,7 @@ export default function BookServiceClient() {
           ) : (
             <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-2xl space-y-5">
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
-                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl">🎉</span>
+                <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
               </div>
               <div>
                 <h2 className="text-xl font-black text-gray-900">Welcome back!</h2>
@@ -322,7 +322,7 @@ export default function BookServiceClient() {
                 onClick={() => setIsWaitingForPayment(false)}
                 className="w-full rounded-full bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 transition-colors active:scale-95"
               >
-                📸 Upload Screenshot Now
+                Upload Screenshot Now
               </button>
               <button
                 type="button"
@@ -339,7 +339,7 @@ export default function BookServiceClient() {
       {/* ── Draft-restored banner ────────────────────────────────────────────── */}
       {draftRestored && !isWaitingForPayment && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-xs text-amber-800 font-semibold">💾 Your form was restored from where you left off.</p>
+          <p className="text-xs text-amber-800 font-semibold">Your form was restored from where you left off.</p>
           <button
             type="button"
             onClick={() => {
@@ -473,10 +473,10 @@ export default function BookServiceClient() {
                 <label htmlFor="time" className="mb-1 block text-xs font-semibold sm:text-sm">Preferred Time</label>
                 <select id="time" required value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)} className="input-styled text-sm">
                   <option value="">-- Select a time --</option>
-                  <option value="Morning">🌅 Morning (8 AM – 12 PM)</option>
-                  <option value="Afternoon">☀️ Afternoon (12 PM – 4 PM)</option>
-                  <option value="Evening">🌙 Evening (4 PM – 8 PM)</option>
-                  <option value="Flexible">🔄 Flexible (Any time)</option>
+                  <option value="Morning">Morning (8 AM – 12 PM)</option>
+                  <option value="Afternoon">Afternoon (12 PM – 4 PM)</option>
+                  <option value="Evening">Evening (4 PM – 8 PM)</option>
+                  <option value="Flexible">Flexible (Any time)</option>
                 </select>
               </div>
             </div>
@@ -521,7 +521,7 @@ export default function BookServiceClient() {
             </button>
 
             {submitError && (
-              <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">❌ {submitError}</p>
+              <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">{submitError}</p>
             )}
           </div>
         )}
@@ -550,10 +550,10 @@ export default function BookServiceClient() {
             {content?.providerPaymentDetails && (() => {
               const pd = content.providerPaymentDetails!;
               const providers: Array<{ key: keyof typeof pd; label: string; icon: string; color: string }> = [
-                { key: "mtn", label: "MTN MoMo", icon: "🟡", color: "#fbbf24" },
-                { key: "telecel", label: "Telecel Cash", icon: "🔴", color: "#ef4444" },
-                { key: "at", label: "AirtelTigo Money", icon: "🔵", color: "#3b82f6" },
-                { key: "bank", label: "Bank Transfer", icon: "🏦", color: "#6b7280" },
+                { key: "mtn", label: "MTN MoMo", dotColor: "#fbbf24" },
+                { key: "telecel", label: "Telecel Cash", dotColor: "#ef4444" },
+                { key: "at", label: "AirtelTigo Money", dotColor: "#3b82f6" },
+                { key: "bank", label: "Bank Transfer", dotColor: "#6b7280" },
               ];
               const activeProviders = providers.filter((p) => pd[p.key] && pd[p.key]!.length > 0);
               if (!activeProviders.length) return null;
@@ -562,14 +562,14 @@ export default function BookServiceClient() {
                   <p className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wide">Pay via</p>
                   {activeProviders.map((prov) => (
                     <div key={prov.key} className="rounded-xl border border-black/10 bg-white overflow-hidden">
-                      <div className="flex items-center gap-2 px-4 py-2 border-b border-black/5" style={{ background: `${prov.color}15` }}>
-                        <span>{prov.icon}</span>
+                      <div className="flex items-center gap-2 px-4 py-2 border-b border-black/5" style={{ background: `${prov.dotColor}22` }}>
+                        <span className="w-3 h-3 rounded-full inline-block shrink-0" style={{ backgroundColor: prov.dotColor }} />
                         <p className="text-sm font-bold text-[var(--ink)]">{prov.label}</p>
                       </div>
                       <div className="divide-y divide-black/5">
                         {pd[prov.key]!.map((field, idx) => (
                           <div key={idx} className="flex items-center justify-between px-4 py-2.5">
-                            <p className="text-xs text-[var(--ink-soft)]">{field.icon} {field.label}</p>
+                            <p className="text-xs text-[var(--ink-soft)]">{field.label}</p>
                             <p className="text-sm font-bold text-[var(--ink)] select-all">{field.value}</p>
                           </div>
                         ))}
@@ -584,12 +584,12 @@ export default function BookServiceClient() {
             {!content?.providerPaymentDetails && content?.manualPaymentDetails && content.manualPaymentDetails.length > 0 && (
               <div className="rounded-xl border border-black/10 bg-white overflow-hidden">
                 <div className="px-4 py-2 border-b border-black/5 bg-[var(--base-light)]">
-                  <p className="text-sm font-bold text-[var(--ink)]">💳 Payment Details</p>
+                  <p className="text-sm font-bold text-[var(--ink)]">Payment Details</p>
                 </div>
                 <div className="divide-y divide-black/5">
                   {content.manualPaymentDetails.map((field, idx) => (
                     <div key={idx} className="flex items-center justify-between px-4 py-2.5">
-                      <p className="text-xs text-[var(--ink-soft)]">{field.icon} {field.label}</p>
+                      <p className="text-xs text-[var(--ink-soft)]">{field.label}</p>
                       <p className="text-sm font-bold text-[var(--ink)] select-all">{field.value}</p>
                     </div>
                   ))}
@@ -599,7 +599,7 @@ export default function BookServiceClient() {
 
             {/* Go Pay Now CTA */}
             <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-4 text-white shadow-md">
-              <p className="text-sm font-bold mb-1">Ready to pay? 💸</p>
+              <p className="text-sm font-bold mb-1">Ready to pay?</p>
               <p className="text-xs text-emerald-100 mb-3">
                 Open your banking / MoMo app, send{" "}
                 <span className="font-black">₵{selectedPrice.toFixed(2)}</span>, take a screenshot, then come back here to upload it.
@@ -609,7 +609,7 @@ export default function BookServiceClient() {
                 onClick={() => { setIsWaitingForPayment(true); setPaymentWaitingReturned(false); }}
                 className="w-full rounded-full bg-white text-emerald-700 font-black text-sm py-2.5 hover:bg-emerald-50 transition-colors active:scale-95"
               >
-                🚀 Go Pay Now — I'll come back with screenshot
+                Go Pay Now — I'll come back with screenshot
               </button>
             </div>
 
@@ -659,7 +659,7 @@ export default function BookServiceClient() {
             </div>
 
             {submitError && (
-              <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">❌ {submitError}</p>
+              <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg">{submitError}</p>
             )}
 
             <button

@@ -18,7 +18,7 @@ export default async function LuckyNumberPage() {
           Back to Deals
         </Link>
         <div className="text-center mb-6">
-          <p className="text-5xl mb-2">🎲</p>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto mb-2 text-[var(--brand)]"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/></svg>
           <h1 className="text-2xl font-black text-[var(--brand-deep)]">Lucky Number</h1>
           <p className="text-sm text-[var(--ink-soft)] mt-1">Guess the secret number in 5 tries to earn 50 points!</p>
         </div>

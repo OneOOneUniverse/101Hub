@@ -272,7 +272,7 @@ export default function LiveSupportChat() {
           {/* Header */}
           <div className="bg-[var(--brand)] text-white px-4 py-3 flex items-center gap-3 shrink-0">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">
-              💬
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold leading-tight">101 Hub Support</p>
@@ -311,7 +311,7 @@ export default function LiveSupportChat() {
               onSubmit={handleCredentialsSubmit}
               className="flex-1 overflow-y-auto px-4 py-5 space-y-3 bg-gray-50"
             >
-              <p className="text-sm font-bold text-[var(--ink)]">👋 Before we start…</p>
+              <p className="text-sm font-bold text-[var(--ink)]">Before we start…</p>
               <p className="text-xs text-gray-500">Please enter your details so we can assist you better.</p>
 
               <div>
@@ -369,7 +369,7 @@ export default function LiveSupportChat() {
               <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-gray-50">
                 {messages.length === 0 && (
                   <p className="text-center text-xs text-gray-400 mt-8">
-                    👋 Hi {userInfo.name}! How can we help you today?
+                    Hi {userInfo.name}! How can we help you today?
                   </p>
                 )}
 

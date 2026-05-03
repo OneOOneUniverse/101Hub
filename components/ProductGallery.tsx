@@ -111,7 +111,7 @@ export default function ProductGallery({ productName, images, videos }: ProductG
           </div>
         ) : (
           <div className="text-center text-xs text-[var(--ink-soft)] px-3 py-2 rounded-lg bg-[var(--surface)] border border-black/5">
-            <p>📸 Only one image available</p>
+            <p>Only one image available</p>
             <p className="text-[10px] mt-0.5">Additional product photos coming soon</p>
           </div>
         )}

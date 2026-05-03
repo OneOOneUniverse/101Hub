@@ -64,7 +64,7 @@ export default function StoreShareButton({ storeName, storeDescription, storeSlu
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const storeUrl = `${baseUrl}/deals/store/${storeSlug}`;
 
-  const shareText = `${emoji ? emoji + " " : "🏪 "}Check out ${storeName} on 101Hub!\n${storeDescription ? storeDescription + "\n" : ""}👉 ${storeUrl}`;
+  const shareText = `${emoji ? emoji + " " : ""}Check out ${storeName} on 101Hub!\n${storeDescription ? storeDescription + "\n" : ""}👉 ${storeUrl}`;
 
   const handleNativeShare = async () => {
     if (isWebShareAvailable()) {

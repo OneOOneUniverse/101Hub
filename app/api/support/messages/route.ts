@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     if (role === "customer") {
       // Notify admin that a customer sent a support message
       const preview = (content ?? "Image").slice(0, 80);
-      await notifyAdmins("message", "💬 New Support Message", preview, {
+      await notifyAdmins("message", "New Support Message", preview, {
         chatId,
         link: "/admin?tab=support",
       });
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
 
       if (chat?.user_id) {
         const preview = (content ?? "Image").slice(0, 80);
-        await notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
+        await notifyUser(chat.user_id, "message", "Support Reply", preview, {
           chatId,
           link: "/",
         });

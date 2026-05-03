@@ -67,9 +67,9 @@ export async function POST(request: Request) {
 
   if (clerkId) {
     const statusLabels: Record<string, string> = {
-      in_transit: '🚚 Your order is on the way!',
-      delivered: '📬 Your order has been delivered!',
-      completed: '✅ Your order is complete!',
+      in_transit: 'Your order is on the way!',
+      delivered: 'Your order has been delivered!',
+      completed: 'Your order is complete!',
     };
     const statusMessages: Record<string, string> = {
       in_transit: `Order ${body.orderRef} is now in transit. Keep an eye out for your delivery!`,

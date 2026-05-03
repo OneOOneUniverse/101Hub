@@ -3,6 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useNotifications } from "@/components/NotificationProvider";
 
+function ChatIcon() {
+  return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>;
+}
+function MailIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
+}
+function MilestoneIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>;
+}
+function StarIcon() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+}
+
 type CustomerMessage = {
   id: number;
   message: string;
@@ -36,7 +49,7 @@ export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessage
             const newest = fetched[0];
             addNotification(
               'message',
-              '💬 New message from 101 Hub',
+              'New message from 101 Hub',
               newest?.message ?? 'You have a new update on your order'
             );
           }
@@ -50,10 +63,6 @@ export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessage
     }
 
     void loadMessages();
-    const interval = setInterval(() => {
-      void loadMessages();
-    }, 30000);
-    return () => clearInterval(interval);
   }, [orderRef, addNotification]);
 
   if (loading && messages.length === 0) {
@@ -68,7 +77,7 @@ export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessage
     <section className="panel p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
       <div className="mb-4">
         <h2 className="text-xl font-bold text-purple-900 flex items-center gap-2">
-          <span className="text-2xl">💬</span>
+          <ChatIcon />
           Order Updates from Store
         </h2>
         <p className="text-xs text-purple-600 mt-1">{messages.length} message{messages.length !== 1 ? "s" : ""}</p>
@@ -87,10 +96,10 @@ export default function CustomerOrderMessages({ orderRef }: CustomerOrderMessage
             <div className="flex items-start gap-3">
               <div className="flex-1">
                 <p className="font-bold text-sm text-purple-900 flex items-center gap-1.5">
-                  {msg.messageType === "update" && "📬"}
-                  {msg.messageType === "milestone" && "🎯"}
-                  {msg.messageType === "custom" && "💬"}
-                  {msg.isHighlighted && "⭐"}
+                  {msg.messageType === "update" && <MailIcon />}
+                  {msg.messageType === "milestone" && <MilestoneIcon />}
+                  {msg.messageType === "custom" && <ChatIcon />}
+                  {msg.isHighlighted && <StarIcon />}
                   <span className="capitalize">{msg.messageType}</span>
                 </p>
                 <p className="mt-2 text-sm text-gray-800 break-words">{msg.message}</p>

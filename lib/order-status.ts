@@ -34,15 +34,15 @@ export interface OrderData {
 
 export function getOrderStatusLabel(status: OrderStatus): string {
   const labels: Record<OrderStatus, string> = {
-    payment_pending: "⏳ Waiting for Payment",
-    payment_pending_admin_review: "🔍 We Got Your Payment",
-    payment_verified: "✅ Payment Confirmed",
-    payment_rejected: "❌ Payment Issue",
-    confirmed: "🎉 Order Confirmed",
-    in_transit: "🚚 On the Way",
-    delivered: "📦 Delivered",
-    completed: "✅ Complete",
-    cancelled: "❌ Cancelled",
+    payment_pending: "Waiting for Payment",
+    payment_pending_admin_review: "We Got Your Payment",
+    payment_verified: "Payment Confirmed",
+    payment_rejected: "Payment Issue",
+    confirmed: "Order Confirmed",
+    in_transit: "On the Way",
+    delivered: "Delivered",
+    completed: "Complete",
+    cancelled: "Cancelled",
   };
   return labels[status] || status;
 }

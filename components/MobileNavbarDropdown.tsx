@@ -34,8 +34,8 @@ export default function MobileNavbarDropdown({
               {features.services ? (
                 <Link className="hover:text-[var(--brand-deep)] px-4 py-2" href="/services">Services</Link>
               ) : null}
-              <Link className="hover:text-[var(--brand-deep)] px-4 py-2" href="/orders">📦 Track Order</Link>
-              <Link className="hover:text-[var(--brand-deep)] px-4 py-2" href="/reviews">⭐ Reviews</Link>
+              <Link className="hover:text-[var(--brand-deep)] px-4 py-2" href="/orders">Track Order</Link>
+              <Link className="hover:text-[var(--brand-deep)] px-4 py-2" href="/reviews">Reviews</Link>
               {features.wishlist ? (
                 <Link className="hover:text-[var(--brand-deep)] px-4 py-2" href="/wishlist">Wishlist</Link>
               ) : null}

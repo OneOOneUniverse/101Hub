@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { shareablePlatforms, copyToClipboard, type ShareOptions } from "@/lib/social-share";
 
+function ShareIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>;
+}
+function LinkIcon() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>;
+}
+function CheckIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>;
+}
+
 interface ProductCardShareProps {
   productName: string;
   productDescription?: string;
@@ -86,7 +96,7 @@ export default function ProductCardShare({
           title="Share product"
           aria-label="Share product"
         >
-          📤
+          <ShareIcon />
         </button>
 
         {isOpen && (
@@ -108,7 +118,7 @@ export default function ProductCardShare({
                   className="w-full px-3 py-2 text-center text-sm hover:bg-[var(--brand)]/5 transition-colors"
                   title="Copy link"
                 >
-                  {copied ? "✓" : "🔗"}
+                  {copied ? <CheckIcon /> : <LinkIcon />}
                 </button>
               </div>
             </div>
@@ -131,7 +141,7 @@ export default function ProductCardShare({
           title="Share product"
           aria-label="Share product"
         >
-          <span>📤</span>
+          <span><ShareIcon /></span>
           <span className="hidden sm:inline">Share</span>
         </button>
 
@@ -158,7 +168,7 @@ export default function ProductCardShare({
                     copied ? "bg-green-50 text-green-700" : "hover:bg-[var(--brand)]/5"
                   }`}
                 >
-                  {copied ? "✓ Copied" : "🔗 Link"}
+                  {copied ? <><CheckIcon /> Copied</> : <><LinkIcon /> Link</>}
                 </button>
               </div>
             </div>
@@ -181,7 +191,7 @@ export default function ProductCardShare({
         title="Share product"
         aria-label="Share product"
       >
-        <span>📤</span>
+        <span><ShareIcon /></span>
         <span>Share</span>
       </button>
 
@@ -208,7 +218,7 @@ export default function ProductCardShare({
                   copied ? "bg-green-50 text-green-700" : "hover:bg-[var(--brand)]/5"
                 }`}
               >
-                {copied ? "✓ Link Copied" : "🔗 Copy Link"}
+                  {copied ? <><CheckIcon /> Link Copied</> : <><LinkIcon /> Copy Link</>}
               </button>
             </div>
           </div>

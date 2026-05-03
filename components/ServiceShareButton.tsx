@@ -9,6 +9,16 @@ import {
   type ShareOptions,
 } from "@/lib/social-share";
 
+function ShareIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>;
+}
+function LinkIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>;
+}
+function CheckIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>;
+}
+
 interface ServiceShareButtonProps {
   serviceId: string;
   serviceName: string;
@@ -92,7 +102,7 @@ export default function ServiceShareButton({
           title="Share this service"
           aria-label="Share this service"
         >
-          📤
+          <ShareIcon />
         </button>
 
         {isOpen && (
@@ -113,7 +123,7 @@ export default function ServiceShareButton({
                   onClick={handleCopyLink}
                   className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors ${copied ? "bg-green-50 text-green-700" : "hover:bg-[var(--brand)]/5"}`}
                 >
-                  <span>{copied ? "✓" : "🔗"}</span>
+                  <span>{copied ? <CheckIcon /> : <LinkIcon />}</span>
                   <span>{copied ? "Copied!" : "Copy Link"}</span>
                 </button>
               </div>
@@ -132,7 +142,7 @@ export default function ServiceShareButton({
         className="inline-flex items-center gap-2 rounded-full border border-[var(--brand)] px-4 py-2 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 transition-colors sm:px-5 sm:py-2.5 sm:text-sm"
         aria-label="Share this service"
       >
-        <span>📤</span>
+        <ShareIcon />
         <span>Share</span>
       </button>
 
@@ -168,7 +178,7 @@ export default function ServiceShareButton({
                 copied ? "bg-green-50 text-green-700" : "hover:bg-[var(--brand)]/5"
               }`}
             >
-              <span className="text-lg">{copied ? "✓" : "🔗"}</span>
+              <span className="text-lg">{copied ? <CheckIcon /> : <LinkIcon />}</span>
               <span>{copied ? "Link Copied!" : "Copy Link"}</span>
             </button>
           </div>

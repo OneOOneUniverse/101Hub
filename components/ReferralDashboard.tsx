@@ -2,6 +2,50 @@
 
 import { useEffect, useState, useCallback } from "react";
 
+// ── SVG Icons ──────────────────────────────────────────────────────────────
+function TargetIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
+}
+function UploadIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
+}
+function TrophyIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9H4a2 2 0 01-2-2V5h4"/><path d="M18 9h2a2 2 0 002-2V5h-4"/><path d="M6 5h12v7a6 6 0 01-12 0V5z"/><path d="M9 21v-3a3 3 0 016 0v3"/><path d="M7 21h10"/></svg>;
+}
+function GiftIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>;
+}
+function SparkleIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+}
+function PartyIcon() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>;
+}
+function RefreshIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>;
+}
+function PackageIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+}
+function LockIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>;
+}
+function InfoIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>;
+}
+function TagIcon() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>;
+}
+function UsersIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>;
+}
+function BarChartIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+}
+function CheckSvg() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>;
+}
+
 type Tier = {
   id: number;
   name: string;
@@ -59,11 +103,11 @@ type RewardStatus = {
 };
 
 const TIER_THEMES = [
-  { emoji: "🥉", from: "#cd7f32", to: "#8B4513", grid: "rgba(205,127,50,0.08)", dark: "#3d2510", mid: "#5c3a1a" },
-  { emoji: "🥈", from: "#d1d5db", to: "#6b7280", grid: "rgba(192,192,192,0.08)", dark: "#2a2d33", mid: "#3f4349" },
-  { emoji: "🥇", from: "#fbbf24", to: "#b45309", grid: "rgba(251,191,36,0.08)", dark: "#3b2e07", mid: "#5c480e" },
-  { emoji: "💎", from: "#a78bfa", to: "#6d28d9", grid: "rgba(167,139,250,0.08)", dark: "#1e1040", mid: "#2d1a5c" },
-  { emoji: "👑", from: "#f472b6", to: "#be185d", grid: "rgba(244,114,182,0.08)", dark: "#3b0825", mid: "#5c0f39" },
+  { from: "#cd7f32", to: "#8B4513", grid: "rgba(205,127,50,0.08)", dark: "#3d2510", mid: "#5c3a1a" },
+  { from: "#d1d5db", to: "#6b7280", grid: "rgba(192,192,192,0.08)", dark: "#2a2d33", mid: "#3f4349" },
+  { from: "#fbbf24", to: "#b45309", grid: "rgba(251,191,36,0.08)", dark: "#3b2e07", mid: "#5c480e" },
+  { from: "#a78bfa", to: "#6d28d9", grid: "rgba(167,139,250,0.08)", dark: "#1e1040", mid: "#2d1a5c" },
+  { from: "#f472b6", to: "#be185d", grid: "rgba(244,114,182,0.08)", dark: "#3b0825", mid: "#5c0f39" },
 ];
 
 export default function ReferralDashboard() {
@@ -464,7 +508,7 @@ export default function ReferralDashboard() {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                🎯 Referral Program
+                <span className="inline-flex items-center gap-1.5"><TargetIcon /> Referral Program</span>
               </h2>
               <span
                 className="inline-flex items-center gap-1.5 text-sm font-bold px-3.5 py-1 rounded-full text-white"
@@ -533,8 +577,8 @@ export default function ReferralDashboard() {
 
       {/* ── Referral Link Card ── */}
       <div className="panel p-5 sm:p-6">
-        <h3 className="font-semibold text-[var(--ink)] mb-3">
-          📤 Your Referral Link
+        <h3 className="font-semibold text-[var(--ink)] mb-3 flex items-center gap-2">
+          <UploadIcon /> Your Referral Link
         </h3>
         <div className="flex items-center gap-2">
           <input
@@ -558,7 +602,7 @@ export default function ReferralDashboard() {
 
       {/* ── Tier Roadmap (horizontal, bronze-inspired 3D cards) ── */}
       <div className="panel p-5 sm:p-6">
-        <h3 className="font-semibold text-[var(--ink)] mb-4">🏆 Tier Roadmap</h3>
+        <h3 className="font-semibold text-[var(--ink)] mb-4 flex items-center gap-2"><TrophyIcon /> Tier Roadmap</h3>
         <div className="ref-tier-grid">
           {tiers.map((tier, idx) => {
             const unlocked = totalPoints >= tier.min_points;
@@ -618,7 +662,7 @@ export default function ReferralDashboard() {
                           }}
                         />
                         <div className="tier-hex-inner">
-                          {unlocked ? "✓" : t.emoji}
+                          {unlocked ? <CheckSvg /> : <span style={{ fontSize: "0.75rem", fontWeight: 900, color: t.from }}>{idx + 1}</span>}
                         </div>
                       </div>
 
@@ -681,10 +725,10 @@ export default function ReferralDashboard() {
       {rewardStatus && (
         <div className="panel p-5 sm:p-6">
           <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
-            <h3 className="font-semibold text-[var(--ink)]">
-              🎁 Claim Your Rewards
+            <h3 className="font-semibold text-[var(--ink)] flex items-center gap-2">
+              <GiftIcon /> Claim Your Rewards
             </h3>
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-purple-100 text-purple-700">
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-orange-100 text-[var(--brand-deep)]">
               Cycle {rewardStatus.currentCycle}
             </span>
           </div>
@@ -693,7 +737,7 @@ export default function ReferralDashboard() {
           {rewardStatus.activeReward && (
             <div className="mb-4 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 p-4">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">✨</span>
+                <span className="text-[var(--brand)]"><SparkleIcon /></span>
                 <div className="flex-1">
                   <p className="text-sm font-bold text-emerald-900">
                     Active Reward: {rewardStatus.activeReward.tier_name} — {rewardStatus.activeReward.discount_percent}% off
@@ -727,9 +771,9 @@ export default function ReferralDashboard() {
 
           {/* Roadmap complete banner */}
           {rewardStatus.roadmapComplete && (
-            <div className="mb-4 rounded-lg bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 p-4 text-center">
-              <p className="text-lg font-black text-violet-900 mb-1">🎉 Roadmap Complete!</p>
-              <p className="text-sm text-violet-700 mb-3">
+            <div className="mb-4 rounded-lg bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 p-4 text-center">
+              <p className="text-lg font-black text-[var(--brand-deep)] mb-1 flex items-center justify-center gap-2"><PartyIcon /> Roadmap Complete!</p>
+              <p className="text-sm text-[var(--brand-deep)]/70 mb-3">
                 You&apos;ve claimed and used all tier rewards in Cycle {rewardStatus.currentCycle}. Start a new cycle to earn them again!
               </p>
               <button
@@ -740,9 +784,9 @@ export default function ReferralDashboard() {
                     claimReward(firstTier.tier.id, true);
                   }
                 }}
-                className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-[var(--brand)] hover:bg-[var(--brand-deep)] transition-colors"
               >
-                🔄 Start Cycle {rewardStatus.currentCycle + 1}
+                <span className="inline-flex items-center gap-1.5"><RefreshIcon /> Start Cycle {rewardStatus.currentCycle + 1}</span>
               </button>
             </div>
           )}
@@ -775,7 +819,7 @@ export default function ReferralDashboard() {
                       className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
                       style={{ backgroundColor: item.tier.badge_color }}
                     >
-                      {redeemed ? "✓" : claimed ? "📦" : "🎁"}
+                      {redeemed ? <CheckSvg /> : claimed ? <PackageIcon /> : <GiftIcon />}
                     </span>
                     <div>
                       <p className="text-sm font-bold text-[var(--ink)]">{item.tier.name}</p>
@@ -790,11 +834,11 @@ export default function ReferralDashboard() {
 
                   {redeemed ? (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 px-3 py-1.5 rounded-full bg-gray-200">
-                      ✓ Redeemed {claim?.order_ref ? `(${claim.order_ref})` : ""}
+                      <CheckSvg /> Redeemed {claim?.order_ref ? `(${claim.order_ref})` : ""}
                     </span>
                   ) : isActive ? (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 px-3 py-1.5 rounded-full bg-emerald-200">
-                      ✨ Active — Use at checkout
+                      <SparkleIcon /> Active — Use at checkout
                     </span>
                   ) : claimed ? (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 px-3 py-1.5 rounded-full bg-blue-200">
@@ -811,7 +855,7 @@ export default function ReferralDashboard() {
                     </button>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 px-3 py-1.5 rounded-full bg-gray-100">
-                      🔒 Need {item.tier.min_points} pts
+                      <LockIcon /> Need {item.tier.min_points} pts
                     </span>
                   )}
                 </div>
@@ -821,7 +865,7 @@ export default function ReferralDashboard() {
 
           {/* How it works */}
           <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
-            <p className="text-xs font-semibold text-blue-900 mb-2">💡 How Rewards Work</p>
+            <p className="text-xs font-semibold text-blue-900 mb-2 flex items-center gap-1"><InfoIcon /> How Rewards Work</p>
             <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
               <li>Claim one reward at a time from your unlocked tiers</li>
               <li>Apply it to your cart or checkout for a discount on your order</li>
@@ -835,8 +879,8 @@ export default function ReferralDashboard() {
       {/* ── Unlocked Discounts ── */}
       {unlockedDiscounts.length > 0 && (
         <div className="panel p-5 sm:p-6">
-          <h3 className="font-semibold text-[var(--ink)] mb-3">
-            🎁 Your Unlocked Discounts
+          <h3 className="font-semibold text-[var(--ink)] mb-3 flex items-center gap-2">
+            <GiftIcon /> Your Unlocked Discounts
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {unlockedDiscounts.map((d) => (
@@ -844,7 +888,7 @@ export default function ReferralDashboard() {
                 key={d.tierName}
                 className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200"
               >
-                <span className="text-2xl">🏷️</span>
+                <span className="text-[var(--brand)]"><TagIcon /></span>
                 <div>
                   <p className="text-sm font-semibold text-[var(--ink)]">
                     {d.discount}
@@ -861,8 +905,8 @@ export default function ReferralDashboard() {
       {/* ── Referred Friends List ── */}
       {referredUsers.length > 0 && (
         <div className="panel p-5 sm:p-6">
-          <h3 className="font-semibold text-[var(--ink)] mb-3">
-            👥 Friends You Referred
+          <h3 className="font-semibold text-[var(--ink)] mb-3 flex items-center gap-2">
+            <UsersIcon /> Friends You Referred
           </h3>
           <div className="space-y-2">
             {referredUsers.map((u, i) => (
@@ -905,8 +949,8 @@ export default function ReferralDashboard() {
       {/* ── Recent Click Activity ── */}
       {recentClicks.length > 0 && (
         <div className="panel p-5 sm:p-6">
-          <h3 className="font-semibold text-[var(--ink)] mb-3">
-            📊 Recent Link Activity
+          <h3 className="font-semibold text-[var(--ink)] mb-3 flex items-center gap-2">
+            <BarChartIcon /> Recent Link Activity
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -933,7 +977,7 @@ export default function ReferralDashboard() {
                           >
                             {isConverted
                               ? (click.converted_name?.[0] ?? "U").toUpperCase()
-                              : "👤"}
+                              : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
                           </span>
                           <span className={`font-medium ${
                             isConverted ? "text-[var(--ink)]" : "text-[var(--ink-soft)] italic"

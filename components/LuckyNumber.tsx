@@ -3,6 +3,64 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 
+function DiceIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--brand)]">
+      <rect x="2" y="2" width="20" height="20" rx="3"/>
+      <circle cx="8" cy="8" r="1.2" fill="currentColor"/>
+      <circle cx="16" cy="8" r="1.2" fill="currentColor"/>
+      <circle cx="12" cy="12" r="1.2" fill="currentColor"/>
+      <circle cx="8" cy="16" r="1.2" fill="currentColor"/>
+      <circle cx="16" cy="16" r="1.2" fill="currentColor"/>
+    </svg>
+  );
+}
+function TrophyIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--brand)]">
+      <path d="M6 9H4a2 2 0 01-2-2V5h4"/>
+      <path d="M18 9h2a2 2 0 002-2V5h-4"/>
+      <path d="M12 17c-2.67 0-8-1.34-8-4V5h16v8c0 2.66-5.33 4-8 4z"/>
+      <path d="M12 17v4"/>
+      <path d="M8 21h8"/>
+    </svg>
+  );
+}
+function TargetIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--brand)]">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="12" r="6"/>
+      <circle cx="12" cy="12" r="2"/>
+    </svg>
+  );
+}
+function SadIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto text-[var(--ink-soft)]">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M16 16s-1.5-2-4-2-4 2-4 2"/>
+      <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2"/>
+      <line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="2"/>
+    </svg>
+  );
+}
+function ArrowUpIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="inline-block">
+      <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+    </svg>
+  );
+}
+function ArrowDownIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="inline-block">
+      <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+    </svg>
+  );
+}
+
+
 export default function LuckyNumber() {
   const { isSignedIn } = useUser();
   // Session state — secret lives on the server, never in the browser
@@ -134,7 +192,7 @@ export default function LuckyNumber() {
   if (phase === "loading") {
     return (
       <div className="text-center py-10 space-y-3">
-        <p className="text-4xl animate-pulse">🎲</p>
+        <div className="py-2"><DiceIcon /></div>
         <p className="text-sm text-[var(--ink-soft)]">Starting game…</p>
       </div>
     );
@@ -143,7 +201,7 @@ export default function LuckyNumber() {
   if (phase === "limit") {
     return (
       <div className="text-center py-10 space-y-3">
-        <p className="text-4xl">🎲</p>
+        <div className="py-2"><DiceIcon /></div>
         <p className="text-lg font-bold text-[var(--brand-deep)]">Daily limit reached!</p>
         <p className="text-sm text-[var(--ink-soft)]">Come back tomorrow to play Lucky Number again.</p>
       </div>
@@ -153,7 +211,7 @@ export default function LuckyNumber() {
   if (phase === "claimed") {
     return (
       <div className="text-center py-10 space-y-4">
-        <p className="text-5xl">🎊</p>
+        <div className="py-2"><TrophyIcon /></div>
         <p className="text-xl font-black text-[var(--brand-deep)]">Points Claimed!</p>
         <p className="text-2xl font-bold text-[var(--brand)]">+{pointsEarned} Points</p>
         <p className="text-sm text-[var(--ink-soft)]">
@@ -161,7 +219,7 @@ export default function LuckyNumber() {
         </p>
         {(playsLeft === null || playsLeft > 0) && (
           <button onClick={startNewGame} className="rounded-full border border-[var(--brand)] px-6 py-2.5 text-sm font-bold text-[var(--brand)] transition hover:bg-[var(--brand)]/10">
-            Play Again 🎲
+            Play Again
           </button>
         )}
       </div>
@@ -171,7 +229,7 @@ export default function LuckyNumber() {
   if (phase === "won") {
     return (
       <div className="text-center py-8 space-y-4">
-        <p className="text-5xl">🎯</p>
+        <div className="py-2"><TargetIcon /></div>
         <p className="text-xl font-black text-[var(--brand-deep)]">Correct! You got it in {guesses.length} guess{guesses.length !== 1 ? "es" : ""}!</p>
         <p className="text-sm text-[var(--ink-soft)]">Great job!</p>
         {msg && <p className="text-sm text-red-500">{msg}</p>}
@@ -180,7 +238,7 @@ export default function LuckyNumber() {
           disabled={isClaiming}
           className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
         >
-          {isClaiming ? "Claiming…" : "Claim Points 🎁"}
+          {isClaiming ? "Claiming…" : "Claim Points"}
         </button>
       </div>
     );
@@ -189,7 +247,7 @@ export default function LuckyNumber() {
   if (phase === "lost") {
     return (
       <div className="text-center py-8 space-y-4">
-        <p className="text-5xl">😅</p>
+        <div className="py-2"><SadIcon /></div>
         <p className="text-xl font-black text-[var(--brand-deep)]">
           Out of guesses!{revealedSecret !== null ? ` It was ${revealedSecret}.` : ""}
         </p>
@@ -198,7 +256,7 @@ export default function LuckyNumber() {
           onClick={startNewGame}
           className="rounded-full bg-[var(--brand)] px-8 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90"
         >
-          Try Again 🎲
+          Try Again
         </button>
       </div>
     );
@@ -224,7 +282,7 @@ export default function LuckyNumber() {
                   : "bg-blue-50 border-blue-200 text-blue-700"
               }`}
             >
-              {g.num} {g.hint === "too_low" ? "📈 Too low" : "📉 Too high"}
+              {g.num} {g.hint === "too_low" ? <><ArrowUpIcon /> Too low</> : <><ArrowDownIcon /> Too high</>}
             </span>
           ))}
         </div>

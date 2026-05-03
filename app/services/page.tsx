@@ -87,16 +87,16 @@ function ServicesContent() {
                   <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
                   {service.images && service.images.length > 0 && (
                     <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
-                      📸 +{service.images.length}
+                      +{service.images.length} photos
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="relative mb-3 overflow-hidden rounded-lg border border-black/10 bg-[var(--base-light)] h-40 flex items-center justify-center">
-                  <span className="text-3xl">🔧</span>
+                  <span className="text-3xl text-[var(--ink-soft)]"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>
                   {service.images && service.images.length > 0 && (
                     <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
-                      📸 +{service.images.length}
+                      +{service.images.length} photos
                     </div>
                   )}
                 </div>
@@ -119,7 +119,7 @@ function ServicesContent() {
 
                 {service.providerName && (
                   <div className="mb-3 text-xs py-2 px-2 bg-[var(--base-light)] rounded text-[var(--ink-soft)]">
-                    <p className="font-semibold">👤 {service.providerName}</p>
+                    <p className="font-semibold">{service.providerName}</p>
                   </div>
                 )}
 

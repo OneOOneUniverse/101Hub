@@ -18,7 +18,7 @@ export default async function WordScramblePage() {
           Back to Deals
         </Link>
         <div className="text-center mb-6">
-          <p className="text-5xl mb-2">🔤</p>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mx-auto mb-2 text-[var(--brand)]"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
           <h1 className="text-2xl font-black text-[var(--brand-deep)]">Word Scramble</h1>
           <p className="text-sm text-[var(--ink-soft)] mt-1">Unscramble the mystery word to earn 60 points!</p>
         </div>

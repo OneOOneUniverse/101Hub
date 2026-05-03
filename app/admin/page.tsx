@@ -290,13 +290,13 @@ type AdminSectionId =
 
 const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
-  { id: "analytics", label: "📊 Analytics" },
+  { id: "analytics", label: "Analytics" },
   { id: "features", label: "Features" },
   { id: "store", label: "Store Basics" },
   { id: "homepage", label: "Homepage" },
   { id: "promo", label: "Promo Slider" },
   { id: "flash", label: "Flash Sale" },
-  { id: "black-friday", label: "🖤 Black Friday" },
+  { id: "black-friday", label: "Black Friday" },
   { id: "products", label: "Products" },
   { id: "categories", label: "Categories" },
   { id: "delivery", label: "Delivery" },
@@ -304,18 +304,18 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "payment-details", label: "Payment Details" },
   { id: "services", label: "Services" },
   { id: "payment-walkthrough", label: "Payment Walkthrough" },
-  { id: "support-chat", label: "💬 Support Chat" },
+  { id: "support-chat", label: "Support Chat" },
   { id: "footer", label: "Footer" },
   { id: "sms-templates", label: "SMS Templates" },
   { id: "sms", label: "Broadcast SMS" },
-  { id: "sms-arkesel", label: "📡 Arkesel SMS" },
-  { id: "broadcast-email", label: "📧 Broadcast Email" },
+  { id: "sms-arkesel", label: "Arkesel SMS" },
+  { id: "broadcast-email", label: "Broadcast Email" },
   { id: "faqs", label: "FAQs" },
-  { id: "deals-hub", label: "🎮 Deals Hub" },
-  { id: "reviews", label: "⭐ Reviews" },
-  { id: "popup", label: "📢 Announcement Popup" },
-  { id: "discount-codes", label: "🏷️ Discount Codes" },
-  { id: "auctions", label: "🔨 Auctions" },
+  { id: "deals-hub", label: "Deals Hub" },
+  { id: "reviews", label: "Reviews" },
+  { id: "popup", label: "Announcement Popup" },
+  { id: "discount-codes", label: "Discount Codes" },
+  { id: "auctions", label: "Auctions" },
 ];
 
 /** Sections a supervisor can see (subset of full admin). */
@@ -1133,7 +1133,7 @@ export default function AdminPage() {
         <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-bold text-[var(--brand-deep)]">📢 Marquee Alert Banner</p>
+              <p className="text-sm font-bold text-[var(--brand-deep)]">Marquee Alert Banner</p>
               <p className="mt-0.5 text-xs text-[var(--ink-soft)]">
                 Scrolling text banner shown across the top of the site for announcements, promos, etc.
               </p>
@@ -1163,7 +1163,7 @@ export default function AdminPage() {
                   marquee: { ...content.marquee, enabled: content.marquee?.enabled ?? false, text: e.target.value },
                 })
               }
-              placeholder="e.g. 🔥 Free delivery on all orders above GHS 200! Shop now →"
+              placeholder="e.g. Free delivery on all orders above GHS 200! Shop now →"
               className={inputClassName()}
             />
           </Field>
@@ -1324,7 +1324,7 @@ export default function AdminPage() {
         {/* Hero Desktop Videos */}
         <div className="space-y-3">
           <label className="block text-sm font-semibold text-[var(--brand-deep)]">
-            Hero Background Videos (Desktop) 🎬
+            Hero Background Videos (Desktop)
           </label>
           <p className="text-xs text-[var(--ink-soft)]">
             Multiple videos cycle automatically. Played muted &amp; looped behind the hero text. Falls back to the default video if empty.
@@ -1375,7 +1375,7 @@ export default function AdminPage() {
         {/* Hero Mobile Videos */}
         <div className="space-y-3">
           <label className="block text-sm font-semibold text-[var(--brand-deep)]">
-            Hero Background Videos (Mobile / Portrait) 📱
+            Hero Background Videos (Mobile / Portrait)
           </label>
           <p className="text-xs text-[var(--ink-soft)]">
             Portrait/vertical videos shown on mobile screens only. Falls back to the default mobile video if empty.
@@ -1426,7 +1426,7 @@ export default function AdminPage() {
         {/* Hero Background Image */}
         <div className="space-y-3">
           <label className="block text-sm font-semibold text-[var(--brand-deep)]">
-            Hero Background Image 🖼️
+            Hero Background Image 
           </label>
           <p className="text-xs text-[var(--ink-soft)]">
             Shown behind the hero text as a background. When a video is also set, this image is visible before the video loads. Recommended: 1920×1080px or wider.
@@ -1937,7 +1937,7 @@ export default function AdminPage() {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-lg font-black text-[var(--brand-deep)]">🎨 Background Media</h3>
+          <h3 className="text-lg font-black text-[var(--brand-deep)]">Background Media</h3>
           <p className="text-xs text-[var(--ink-soft)]">Upload an image or video/GIF to show behind the flash sale banner and page header. The gradient overlay keeps text readable.</p>
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Background image">
@@ -2001,7 +2001,7 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "black-friday" ? (
-        <Section title="🖤 Black Friday Promo" description="Configure the Black Friday banner and sale page — toggle it on from Features to show it on the homepage and products page.">
+        <Section title="Black Friday Promo" description="Configure the Black Friday banner and sale page — toggle it on from Features to show it on the homepage and products page.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Discount percentage">
             <input
@@ -2139,7 +2139,7 @@ export default function AdminPage() {
         </Field>
 
         <div className="space-y-3">
-          <h3 className="text-lg font-black text-[var(--brand-deep)]">🎨 Background Media</h3>
+          <h3 className="text-lg font-black text-[var(--brand-deep)]">Background Media</h3>
           <p className="text-xs text-[var(--ink-soft)]">Upload an image or video/GIF to show behind the Black Friday banner and page header.</p>
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Background image">
@@ -2165,7 +2165,7 @@ export default function AdminPage() {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-lg font-black text-[var(--brand-deep)]">🛍️ Featured Products</h3>
+          <h3 className="text-lg font-black text-[var(--brand-deep)]">Featured Products</h3>
           <p className="text-xs text-[var(--ink-soft)]">Select products to feature on the Black Friday sale page.</p>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {content.products.map((product, index) => {
@@ -2452,7 +2452,7 @@ export default function AdminPage() {
                   />
                   {product.discount ? (
                     <p className="mt-1 text-xs text-green-700">
-                      🏷️ Sale price: GHS {(product.price * ((100 - product.discount) / 100)).toFixed(2)} (saves GHS {(product.price * (product.discount / 100)).toFixed(2)})
+                      Sale price: GHS {(product.price * ((100 - product.discount) / 100)).toFixed(2)} (saves GHS {(product.price * (product.discount / 100)).toFixed(2)})
                     </p>
                   ) : null}
                 </Field>
@@ -2543,7 +2543,7 @@ export default function AdminPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <label className="block text-sm font-semibold text-[var(--brand-deep)]">Price Variants (Optional) 💰</label>
+                        <label className="block text-sm font-semibold text-[var(--brand-deep)]">Price Variants (Optional) </label>
                         <p className="text-xs text-[var(--ink-soft)] mt-0.5">Add size/length/weight options with different prices. Shown as selectable buttons on the product page.</p>
                       </div>
                       <button
@@ -2679,7 +2679,7 @@ export default function AdminPage() {
                     }}
                     productId={product.id}
                     productSlug={product.slug}
-                    label="Product Gallery Images (Variation/Detail Images) 🖼️"
+                    label="Product Gallery Images (Variation/Detail Images) "
                   />
                 </div>
 
@@ -2687,7 +2687,7 @@ export default function AdminPage() {
                 <div className="lg:col-span-2">
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-[var(--brand-deep)]">
-                      Product Videos (Optional) 🎬
+                      Product Videos (Optional)
                     </label>
                     <p className="text-xs text-[var(--ink-soft)]">
                       Upload or paste video URLs. Videos appear before images in the product gallery. Max 100 MB each.
@@ -2912,7 +2912,7 @@ export default function AdminPage() {
                     const max = Math.max(...prices);
                     const min = Math.min(...prices);
                     return min !== max ? (
-                      <p className="mt-1 text-xs text-[var(--ink-soft)]">⚡ Auto range from sub-services: ₵{min.toFixed(2)} – ₵{max.toFixed(2)}</p>
+                      <p className="mt-1 text-xs text-[var(--ink-soft)]">Auto range from sub-services: ₵{min.toFixed(2)} – ₵{max.toFixed(2)}</p>
                     ) : null;
                   })()}
                 </Field>
@@ -2979,7 +2979,7 @@ export default function AdminPage() {
                   }}
                   productId={service.id}
                   productSlug={service.id}
-                  label="Service Gallery Images (Additional Photos) 🖼️"
+                  label="Service Gallery Images (Additional Photos) "
                 />
               </div>
 
@@ -3742,7 +3742,7 @@ export default function AdminPage() {
             {content.deliverySettings.locationFees.filter((l) => !l.region).length > 0 && (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 shadow-sm overflow-hidden">
                 <div className="px-4 py-3">
-                  <p className="text-sm font-bold text-amber-900">⚠️ Unassigned Locations</p>
+                  <p className="text-sm font-bold text-amber-900">Unassigned Locations</p>
                   <p className="text-xs text-amber-700 mt-0.5">These locations have no region assigned. Edit them to assign a region or remove them.</p>
                 </div>
                 <div className="border-t border-amber-200 p-4 space-y-2">
@@ -3974,7 +3974,7 @@ export default function AdminPage() {
             </div>
 
             <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm font-bold text-blue-900 mb-1">ℹ️ Manual payment only</p>
+              <p className="text-sm font-bold text-blue-900 mb-1">Manual payment only</p>
               <p className="text-xs text-blue-800">This store uses manual bank/MoMo transfer as the only payment method. Customers upload a payment screenshot as proof and orders are verified by the admin.</p>
             </div>
           </div>
@@ -4220,7 +4220,7 @@ export default function AdminPage() {
                 }}
                 className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${smsTab === tab ? "bg-white text-[var(--brand-deep)] shadow-sm" : "text-[var(--ink-soft)] hover:text-[var(--ink)]"}`}
               >
-                {tab === "broadcast" ? "📢 Broadcast" : tab === "contacts" ? "👥 Contact List" : "✉️ Custom Send"}
+                {tab === "broadcast" ? "Broadcast" : tab === "contacts" ? "Contact List" : "Custom Send"}
               </button>
             ))}
           </div>
@@ -4275,7 +4275,7 @@ export default function AdminPage() {
                     disabled={importingContacts}
                     className="rounded-full border border-[var(--brand)] px-3 py-1.5 text-xs font-bold text-[var(--brand)] hover:bg-[var(--brand)] hover:text-white disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
-                    {importingContacts ? "Importing…" : "📥 Import from Orders"}
+                    {importingContacts ? "Importing…" : "Import from Orders"}
                   </button>
                 </div>
                 {importResult?.imported !== undefined ? (
@@ -4373,7 +4373,7 @@ export default function AdminPage() {
                   }}
                   className="flex w-full items-center justify-between text-sm font-semibold text-[var(--brand-deep)]"
                 >
-                  <span>👥 Add from Contacts</span>
+                  <span>Add from Contacts</span>
                   <span className="text-xs text-[var(--ink-soft)]">{customContactPickerOpen ? "▲ Hide" : "▼ Show"}</span>
                 </button>
                 {customContactPickerOpen ? (
@@ -4435,12 +4435,12 @@ export default function AdminPage() {
       {/* ── Arkesel SMS Broadcast ─────────────────────────────────────────── */}
       {activeSection === "sms-arkesel" ? (
         <Section
-          title="📡 Arkesel SMS Centre"
+          title="Arkesel SMS Centre"
           description="Send text messages via Arkesel. Broadcast to all customers, message your contact list, or send to custom numbers."
         >
           {/* Provider badge */}
           <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 mb-6">
-            <span className="text-2xl">📡</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.72 11 19.79 19.79 0 011.65 2.42 2 2 0 013.62.24h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
             <div>
               <p className="text-sm font-bold text-blue-800">Powered by Arkesel</p>
               <p className="text-xs text-blue-600">
@@ -4464,7 +4464,7 @@ export default function AdminPage() {
                 }}
                 className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${arkTab === tab ? "bg-white text-[var(--brand-deep)] shadow-sm" : "text-[var(--ink-soft)] hover:text-[var(--ink)]"}`}
               >
-                {tab === "broadcast" ? "📢 Broadcast" : tab === "contacts" ? "👥 Contact List" : "✉️ Custom Send"}
+                {tab === "broadcast" ? "Broadcast" : tab === "contacts" ? "Contact List" : "Custom Send"}
               </button>
             ))}
           </div>
@@ -4514,7 +4514,7 @@ export default function AdminPage() {
                     disabled={importingContacts}
                     className="rounded-full border border-[var(--brand)] px-3 py-1.5 text-xs font-bold text-[var(--brand)] hover:bg-[var(--brand)] hover:text-white disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
-                    {importingContacts ? "Importing…" : "📥 Import from Orders"}
+                    {importingContacts ? "Importing…" : "Import from Orders"}
                   </button>
                 </div>
                 {importResult?.imported !== undefined ? (
@@ -4609,7 +4609,7 @@ export default function AdminPage() {
                   }}
                   className="flex w-full items-center justify-between text-sm font-semibold text-[var(--brand-deep)]"
                 >
-                  <span>👥 Add from Contacts</span>
+                  <span>Add from Contacts</span>
                   <span className="text-xs text-[var(--ink-soft)]">{arkContactPickerOpen ? "▲ Hide" : "▼ Show"}</span>
                 </button>
                 {arkContactPickerOpen ? (
@@ -4677,7 +4677,7 @@ export default function AdminPage() {
 
       {activeSection === "support-chat" ? (
         <Section
-          title="💬 Live Support Chat"
+          title="Live Support Chat"
           description="View and respond to customer support conversations in real time."
         >
           <AdminSupportChats />
@@ -4691,17 +4691,17 @@ export default function AdminPage() {
         >
           {(
             [
-              { id: "mtn" as const, name: "MTN Mobile Money", emoji: "🟡", defaults: [{ label: "MoMo Number", value: "0548656980", icon: "📱" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Network", value: "MTN Mobile Money", icon: "🏦" }] },
-              { id: "telecel" as const, name: "Telecel Cash", emoji: "🔴", defaults: [{ label: "Telecel Number", value: "0548656980", icon: "📱" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Network", value: "Telecel Cash", icon: "🏦" }] },
-              { id: "at" as const, name: "AT Money", emoji: "🔵", defaults: [{ label: "AT Number", value: "0548656980", icon: "📱" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Network", value: "AT Money (AirtelTigo)", icon: "🏦" }] },
-              { id: "bank" as const, name: "Bank Transfer", emoji: "🏛️", defaults: [{ label: "Account Number", value: "", icon: "🔢" }, { label: "Account Name", value: "101 Hub Technologies", icon: "👤" }, { label: "Bank", value: "", icon: "🏦" }, { label: "Branch", value: "", icon: "📍" }] },
-            ] as Array<{ id: keyof ProviderPaymentDetails; name: string; emoji: string; defaults: ManualPaymentField[] }>
+              { id: "mtn" as const, name: "MTN Mobile Money", dotColor: "#f59e0b", defaults: [{ label: "MoMo Number", value: "0548656980", icon: "phone" }, { label: "Account Name", value: "101 Hub Technologies", icon: "user" }, { label: "Network", value: "MTN Mobile Money", icon: "bank" }] },
+              { id: "telecel" as const, name: "Telecel Cash", dotColor: "#ef4444", defaults: [{ label: "Telecel Number", value: "0548656980", icon: "phone" }, { label: "Account Name", value: "101 Hub Technologies", icon: "user" }, { label: "Network", value: "Telecel Cash", icon: "bank" }] },
+              { id: "at" as const, name: "AT Money", dotColor: "#3b82f6", defaults: [{ label: "AT Number", value: "0548656980", icon: "phone" }, { label: "Account Name", value: "101 Hub Technologies", icon: "user" }, { label: "Network", value: "AT Money (AirtelTigo)", icon: "bank" }] },
+              { id: "bank" as const, name: "Bank Transfer", dotColor: "#6b7280", defaults: [{ label: "Account Number", value: "", icon: "number" }, { label: "Account Name", value: "101 Hub Technologies", icon: "user" }, { label: "Bank", value: "", icon: "bank" }, { label: "Branch", value: "", icon: "location" }] },
+            ] as Array<{ id: keyof ProviderPaymentDetails; name: string; dotColor: string; defaults: ManualPaymentField[] }>
           ).map((provider) => {
             const fields: ManualPaymentField[] = content.providerPaymentDetails?.[provider.id] ?? provider.defaults;
             return (
               <div key={provider.id} className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm space-y-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">{provider.emoji}</span>
+                  <span className="w-4 h-4 rounded-full shrink-0 inline-block" style={{ backgroundColor: provider.dotColor }} />
                   <h3 className="text-base font-bold text-[var(--brand-deep)]">{provider.name}</h3>
                 </div>
 
@@ -4714,8 +4714,8 @@ export default function AdminPage() {
                       className="w-12 h-12 object-contain rounded-lg border border-black/10 bg-gray-50 p-1"
                     />
                   ) : (
-                    <div className="w-12 h-12 flex items-center justify-center rounded-lg border border-dashed border-black/20 bg-gray-50 text-2xl">
-                      {provider.emoji}
+                    <div className="w-12 h-12 flex items-center justify-center rounded-lg border border-dashed border-black/20 bg-gray-50">
+                      <span className="w-6 h-6 rounded-full" style={{ backgroundColor: provider.dotColor }} />
                     </div>
                   )}
                   <div className="flex flex-col gap-1">
@@ -4826,7 +4826,7 @@ export default function AdminPage() {
                   onClick={() => {
                     setContent((current) => {
                       if (!current) return current;
-                      const updated = [...fields, { label: "", value: "", icon: "💳" }];
+                      const updated = [...fields, { label: "", value: "", icon: "card" }];
                       return { ...current, providerPaymentDetails: { ...(current.providerPaymentDetails ?? {}), [provider.id]: updated } };
                     });
                   }}
@@ -4842,7 +4842,7 @@ export default function AdminPage() {
 
       {activeSection === "broadcast-email" ? (
         <Section
-          title="📧 Email Campaigns"
+          title="Email Campaigns"
           description="Send targeted email campaigns to all registered users. Pick a category to auto-apply a branded banner and use templates to fill in the content."
         >
           <div className="space-y-5">
@@ -4853,11 +4853,11 @@ export default function AdminPage() {
                 {(
                   [
                     { id: "new-product",  icon: "🆕", label: "New Product" },
-                    { id: "offer",        icon: "🏷️", label: "Special Offer" },
-                    { id: "flash-sale",   icon: "⚡", label: "Flash Sale" },
-                    { id: "event",        icon: "🎉", label: "Event / Launch" },
-                    { id: "announcement", icon: "📢", label: "Announcement" },
-                    { id: "general",      icon: "📬", label: "General" },
+                    { id: "offer",        icon: "tag", label: "Special Offer" },
+                    { id: "flash-sale",   icon: "flash", label: "Flash Sale" },
+                    { id: "event",        icon: "event", label: "Event / Launch" },
+                    { id: "announcement", icon: "announce", label: "Announcement" },
+                    { id: "general",      icon: "mailbox", label: "General" },
                   ] as const
                 ).map((cat) => (
                   <button
@@ -4888,7 +4888,7 @@ export default function AdminPage() {
                   {
                     label: "Flash Sale",
                     cat: "flash-sale" as const,
-                    subject: "⚡ FLASH SALE — Up to 50% Off Today Only!",
+                    subject: "FLASH SALE — Up to 50% Off Today Only!",
                     body: "Today only — we're running a <b>FLASH SALE</b> with incredible discounts across selected products!\n\n🔥 Up to <b>50% off</b> on select items\n⏰ Sale ends at midnight tonight\n\nDon't miss out — grab your favourites before time runs out!",
                     ctaLabel: "Shop the Flash Sale",
                     ctaUrl: "/flash-sale",
@@ -4896,7 +4896,7 @@ export default function AdminPage() {
                   {
                     label: "Exclusive Offer",
                     cat: "offer" as const,
-                    subject: "🏷️ Exclusive Offer — Just for You!",
+                    subject: "Exclusive Offer — Just for You!",
                     body: "As one of our valued customers, we're giving you an <b>exclusive offer</b> this week.\n\nUse the promo code at checkout to enjoy your special discount.\n\n<b>Limited time — offer expires soon!</b>",
                     ctaLabel: "Claim Your Offer",
                     ctaUrl: "/products",
@@ -4904,7 +4904,7 @@ export default function AdminPage() {
                   {
                     label: "Event / Launch",
                     cat: "event" as const,
-                    subject: "🎉 Big Event Happening at 101Hub!",
+                    subject: "Big Event Happening at 101Hub!",
                     body: "We have something special coming your way!\n\nJoin us for an exclusive event where we'll be showcasing new products, exciting deals, and much more.\n\n<b>Mark your calendar and be the first to know!</b>",
                     ctaLabel: "Learn More",
                     ctaUrl: "/",
@@ -5234,7 +5234,7 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "deals-hub" ? (
-        <Section title="🎮 Deals Hub" description="Manage special stores, games, points, and rewards.">
+        <Section title="Deals Hub" description="Manage special stores, games, points, and rewards.">
           {/* Master toggle & basic settings */}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm">
@@ -5294,7 +5294,7 @@ export default function AdminPage() {
           {/* ── Special Stores ── */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[var(--brand-deep)]">🏪 Special Stores</h3>
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">Special Stores</h3>
               <button
                 type="button"
                 onClick={() => {
@@ -5304,7 +5304,7 @@ export default function AdminPage() {
                     name: "New Store",
                     slug: id,
                     description: "",
-                    emoji: "🛍️",
+                    emoji: "",
                     bgColor: "#6366f1",
                     textColor: "#ffffff",
                     backgroundImage: "",
@@ -5461,7 +5461,7 @@ export default function AdminPage() {
 
                 {/* Owner / Brand Contact Info */}
                 <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-4 space-y-3">
-                  <p className="text-sm font-black text-[var(--brand-deep)]">🏷️ Store Owner / Brand Info</p>
+                  <p className="text-sm font-black text-[var(--brand-deep)]">Store Owner / Brand Info</p>
                   <div className="grid gap-3 md:grid-cols-2">
                     <Field label="Owner Name">
                       <input
@@ -5781,7 +5781,7 @@ export default function AdminPage() {
           {/* ── Spin the Wheel ── */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[var(--brand-deep)]">🎡 Spin the Wheel</h3>
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">Spin the Wheel</h3>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -5937,7 +5937,7 @@ export default function AdminPage() {
           {/* ── Scratch Card ── */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[var(--brand-deep)]">🎟️ Scratch Card</h3>
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">Scratch Card</h3>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -6032,7 +6032,7 @@ export default function AdminPage() {
           {/* ── Daily Trivia ── */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[var(--brand-deep)]">🧠 Daily Trivia</h3>
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">Daily Trivia</h3>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -6236,7 +6236,7 @@ export default function AdminPage() {
           {/* ── Lucky Number ── */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[var(--brand-deep)]">🎲 Lucky Number</h3>
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">Lucky Number</h3>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -6302,7 +6302,7 @@ export default function AdminPage() {
           {/* ── Word Scramble ── */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[var(--brand-deep)]">🔤 Word Scramble</h3>
+              <h3 className="text-lg font-black text-[var(--brand-deep)]">Word Scramble</h3>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -6377,7 +6377,7 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "popup" ? (
-        <Section title="📢 Announcement Popup" description="Configure a pop-up overlay that appears when visitors open the site. Upload a GIF or image, set a schedule, and control how often it shows.">
+        <Section title="Announcement Popup" description="Configure a pop-up overlay that appears when visitors open the site. Upload a GIF or image, set a schedule, and control how often it shows.">
           <div className="space-y-6">
             {/* Enable toggle */}
             <div className="flex items-center justify-between rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm">
@@ -6406,7 +6406,7 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setContent({ ...content, announcementPopup: { ...defaultPopup(content.announcementPopup), title: e.target.value } })
                   }
-                  placeholder="e.g. 🎉 Flash Sale Live Now!"
+                  placeholder="e.g. Flash Sale Live Now!"
                   className={inputClassName()}
                 />
               </Field>
@@ -6605,7 +6605,7 @@ export default function AdminPage() {
             </Field>
 
             <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800">
-              <p className="font-bold mb-1">ℹ️ Tips</p>
+              <p className="font-bold mb-1">Tips</p>
               <ul className="list-disc ml-4 space-y-1">
                 <li>Upload your GIF or image to Cloudinary (or your image host) and paste the URL above.</li>
                 <li>Set <strong>Start Date</strong> and <strong>End Date</strong> to limit the popup to a promo window.</li>
@@ -6620,7 +6620,7 @@ export default function AdminPage() {
 
       {/* ─────────────── DISCOUNT CODES ─────────────── */}
       {activeSection === "discount-codes" ? (
-        <Section title="🏷️ Discount Codes" description="Create and manage discount codes customers can apply at checkout. Supports percentage or fixed GHS off, usage limits, expiry dates, and minimum order amounts.">
+        <Section title="Discount Codes" description="Create and manage discount codes customers can apply at checkout. Supports percentage or fixed GHS off, usage limits, expiry dates, and minimum order amounts.">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-black text-[var(--brand-deep)]">All Codes ({(content.discountCodes ?? []).length})</h3>
@@ -6664,7 +6664,7 @@ export default function AdminPage() {
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${dc.enabled && !isExpired && !isMaxed ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"}`}>
-                        {dc.enabled && !isExpired && !isMaxed ? "✓ Active" : isExpired ? "⏰ Expired" : isMaxed ? "🚫 Limit reached" : "○ Disabled"}
+                        {dc.enabled && !isExpired && !isMaxed ? "Active" : isExpired ? "Expired" : isMaxed ? "Limit reached" : "○ Disabled"}
                       </span>
                       {dc.code && (
                         <span className="font-mono font-black text-sm tracking-wider text-[var(--brand-deep)]">{dc.code}</span>
@@ -6792,7 +6792,7 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "auctions" ? (
-        <Section title="🔨 Auctions" description="Create and manage live auctions. Set starting prices, bid increments, reserve prices, and end dates. End or cancel auctions at any time.">
+        <Section title="Auctions" description="Create and manage live auctions. Set starting prices, bid increments, reserve prices, and end dates. End or cancel auctions at any time.">
           <AdminAuctionsInline />
         </Section>
       ) : null}

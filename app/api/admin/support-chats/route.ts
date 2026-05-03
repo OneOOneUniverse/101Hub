@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
 
     if (chat?.user_id) {
       const preview = (content ?? "Image").slice(0, 80);
-      await notifyUser(chat.user_id, "message", "💬 Support Reply", preview, {
+      await notifyUser(chat.user_id, "message", "Support Reply", preview, {
         chatId,
         link: "/",
       });

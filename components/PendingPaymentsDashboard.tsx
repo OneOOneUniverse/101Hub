@@ -112,7 +112,7 @@ export default function PendingPaymentsDashboard() {
   return (
     <section className="panel space-y-4 p-6">
       <div>
-        <h2 className="text-2xl font-black text-[var(--brand-deep)]">💳 Pending Payments</h2>
+        <h2 className="text-2xl font-black text-[var(--brand-deep)]">Pending Payments</h2>
         <p className="mt-1 text-sm text-[var(--ink-soft)]">Verify payments from customer orders</p>
       </div>
 
@@ -121,7 +121,7 @@ export default function PendingPaymentsDashboard() {
       {loading && <p className="text-sm text-[var(--ink-soft)]">Loading pending payments...</p>}
 
       {!loading && payments.length === 0 && (
-        <p className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-700">✅ No pending payments</p>
+        <p className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-700">No pending payments</p>
       )}
 
       {/* Manual Payment Proofs */}
@@ -139,7 +139,7 @@ export default function PendingPaymentsDashboard() {
                     <p className="font-bold text-[var(--ink)]">{payment.customerName}</p>
                     <p className="text-sm text-[var(--ink-soft)]">{payment.phone}</p>
                     <p className="font-mono text-xs text-amber-800 mt-1">{payment.orderRef}</p>
-                    <p className="text-xs text-amber-700 mt-1.5">📅 Payment: {formatOrderDate(payment.createdAt)}</p>
+                    <p className="text-xs text-amber-700 mt-1.5">Payment: {formatOrderDate(payment.createdAt)}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-black text-xl text-amber-900">GHS {payment.amount.toFixed(2)}</p>
@@ -153,7 +153,7 @@ export default function PendingPaymentsDashboard() {
                       onClick={() => setSelectedProof(payment.paymentProof!)}
                       className="rounded-lg bg-white border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100"
                     >
-                      📸 View Screenshot
+                      View Screenshot
                     </button>
                   </div>
                 )}
@@ -180,7 +180,7 @@ export default function PendingPaymentsDashboard() {
                     }
                     className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
                   >
-                    📞 Call
+                    Call
                   </button>
                 </div>
               </article>

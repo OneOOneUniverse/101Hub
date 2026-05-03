@@ -116,7 +116,7 @@ function generate(id: number): Activity {
     case "wishlist":
       return { id, type, message: `${name} saved to wishlist`, sub: `${rand(PRODUCTS)} · ${city}`, icon: "wishlist", bg: "bg-rose-50 border-rose-200", color: "text-rose-700" };
     case "bid":
-      return { id, type, message: `${name} placed a bid`, sub: `Live auction · ${city}`, icon: "bid", bg: "bg-purple-50 border-purple-200", color: "text-purple-700" };
+      return { id, type, message: `${name} placed a bid`, sub: `Live auction · ${city}`, icon: "bid", bg: "bg-orange-50 border-orange-200", color: "text-orange-700" };
     case "view":
     default: {
       const n = Math.floor(Math.random() * 28) + 5;

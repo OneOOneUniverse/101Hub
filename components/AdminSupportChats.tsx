@@ -53,7 +53,7 @@ export default function AdminSupportChats() {
 
   useEffect(() => {
     loadChats();
-    const interval = setInterval(loadChats, 15000);
+    const interval = setInterval(loadChats, 60000);
     return () => clearInterval(interval);
   }, [loadChats]);
 
@@ -76,7 +76,7 @@ export default function AdminSupportChats() {
     if (!selectedChat) { setMessages([]); return; }
 
     loadMessages(selectedChat);
-    pollRef.current = setInterval(() => loadMessages(selectedChat), 4000);
+    pollRef.current = setInterval(() => loadMessages(selectedChat), 15000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [selectedChat, loadMessages]);
 

@@ -176,7 +176,7 @@ export default function ServiceDetailClient() {
           {service.currentOffers && (
             <div className="rounded-lg border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-4 space-y-3">
               <div>
-                <p className="text-xs font-bold text-[var(--brand-deep)] uppercase tracking-wide">🎯 Current Offer</p>
+                <p className="text-xs font-bold text-[var(--brand-deep)] uppercase tracking-wide">Current Offer</p>
                 <p className="text-sm font-bold text-black mt-2">{service.currentOffers}</p>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function ServiceDetailClient() {
                   href={`tel:${service.phone}`}
                   className="flex items-center gap-2 text-sm text-[var(--brand)] font-bold hover:underline break-all"
                 >
-                  <span>📞</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   {service.phone}
                 </a>
               )}
@@ -206,7 +206,7 @@ export default function ServiceDetailClient() {
                   href={`mailto:${service.email}`}
                   className="flex items-center gap-2 text-sm text-[var(--brand)] font-bold hover:underline break-all"
                 >
-                  <span>✉️</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                   {service.email}
                 </a>
               )}

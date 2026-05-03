@@ -207,7 +207,11 @@ export default function AuctionsPage() {
                 : "bg-[var(--surface-strong)] border border-black/10 text-[var(--ink-soft)] hover:border-[var(--brand)]/40"
             }`}
           >
-            {f === "all" ? "All Auctions" : f === "active" ? "🟢 Active" : "🔴 Ended"}
+            {f === "all" ? "All Auctions" : f === "active" ? (
+              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Active</span>
+            ) : (
+              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" />Ended</span>
+            )}
           </button>
         ))}
       </div>
