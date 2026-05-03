@@ -38,6 +38,22 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // Service worker MUST NOT be cached immutably.
+        // If it is, Vercel CDN serves the stale SW for a year after every deployment,
+        // meaning fixes never reach users and the old SW keeps breaking navigations.
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
+          },
+        ],
+      },
     ];
   },
 };

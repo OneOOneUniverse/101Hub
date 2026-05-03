@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gadget-hub-v5';
+const CACHE_NAME = 'gadget-hub-v6';
 const urlsToCache = [
   '/offline.html',
   '/img/log.png',
