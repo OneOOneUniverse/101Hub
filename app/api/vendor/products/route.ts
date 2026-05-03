@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     stock?: number;
     image?: string;
     images?: string[];
+    variants?: object[];
   };
 
   const { name, description, price, category } = body;
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
       stock: typeof body.stock === "number" && body.stock >= 0 ? body.stock : 1,
       image: typeof body.image === "string" ? body.image.trim() : null,
       images: Array.isArray(body.images) ? body.images : [],
+      variants: Array.isArray(body.variants) ? body.variants : null,
       status: "pending",
     })
     .select()

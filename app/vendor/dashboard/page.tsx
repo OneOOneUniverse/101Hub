@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 
 type VendorStatus = "none" | "pending" | "approved" | "rejected";
 
+type ProductVariant = {
+  id: string;
+  label: string;
+  attribute: string;
+  priceOverride?: number;
+  priceAdjustment?: number;
+};
+
 type VendorProduct = {
   id: string;
   name: string;
@@ -13,6 +21,8 @@ type VendorProduct = {
   category: string;
   stock: number;
   image: string | null;
+  images: string[];
+  variants?: ProductVariant[];
   status: "pending" | "approved" | "rejected";
   admin_notes: string | null;
   created_at: string;
@@ -57,11 +67,13 @@ export default function VendorDashboard() {
 
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
-  const [productForm, setProductForm] = useState({ name: "", description: "", price: "", category: "", stock: "1", image: "" });
+  const [productForm, setProductForm] = useState({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [] as string[], variants: [] as ProductVariant[] });
   const [productUploading, setProductUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
   const [productSaving, setProductSaving] = useState(false);
   const [productError, setProductError] = useState("");
   const productFileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
 
   // Service form
   const [showServiceForm, setShowServiceForm] = useState(false);
@@ -135,6 +147,40 @@ export default function VendorDashboard() {
     }
   }
 
+  async function handleGalleryImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setGalleryUploading(true);
+    setProductError("");
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        const url = await uploadImage(file);
+        uploaded.push(url);
+      }
+      setProductForm((p) => ({ ...p, images: [...p.images, ...uploaded] }));
+    } catch (err) {
+      setProductError(err instanceof Error ? err.message : "Gallery upload failed.");
+    } finally {
+      setGalleryUploading(false);
+      if (galleryFileRef.current) galleryFileRef.current.value = "";
+    }
+  }
+
+  function addVariant() {
+    const id = `v-${Math.random().toString(36).slice(2, 8)}`;
+    const attribute = productForm.variants[0]?.attribute ?? "Size";
+    setProductForm((p) => ({ ...p, variants: [...p.variants, { id, label: "", attribute }] }));
+  }
+
+  function removeVariant(id: string) {
+    setProductForm((p) => ({ ...p, variants: p.variants.filter((v) => v.id !== id) }));
+  }
+
+  function updateVariant(id: string, patch: Partial<ProductVariant>) {
+    setProductForm((p) => ({ ...p, variants: p.variants.map((v) => v.id === id ? { ...v, ...patch } : v) }));
+  }
+
   async function handleServiceImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -165,12 +211,14 @@ export default function VendorDashboard() {
           category: productForm.category,
           stock: parseInt(productForm.stock, 10),
           image: productForm.image || null,
+          images: productForm.images,
+          variants: productForm.variants.length > 0 ? productForm.variants : undefined,
         }),
       });
       const data = (await res.json()) as { error?: string; item?: VendorProduct };
       if (!res.ok) { setProductError(data.error ?? "Failed to add product."); return; }
       setProducts((prev) => [data.item!, ...prev]);
-      setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "" });
+      setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [] });
       setShowProductForm(false);
     } catch {
       setProductError("Network error.");
@@ -380,23 +428,132 @@ export default function VendorDashboard() {
                 <label style={s.lbl}>Description *</label>
                 <textarea required rows={3} value={productForm.description} onChange={(e) => setProductForm((p) => ({ ...p, description: e.target.value }))} placeholder="Describe the product…" style={{ ...s.inp, resize: "vertical" }} />
               </div>
+              {/* Cover image */}
               <div style={{ ...s.fg, marginTop: 8 }}>
-                <label style={s.lbl}>Product Image</label>
+                <label style={s.lbl}>Cover Image</label>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   {productForm.image && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={productForm.image} alt="preview" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8, border: "1px solid #ddd" }} />
                   )}
                   <button type="button" onClick={() => productFileRef.current?.click()} disabled={productUploading} style={{ ...s.btnSecondary, fontSize: 13 }}>
-                    {productUploading ? "Uploading…" : productForm.image ? "Change Image" : "Upload Image"}
+                    {productUploading ? "Uploading…" : productForm.image ? "Change Cover" : "Upload Cover Image"}
                   </button>
                   <input ref={productFileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => void handleProductImageUpload(e)} />
                 </div>
               </div>
+
+              {/* Gallery images */}
+              <div style={{ ...s.fg, marginTop: 12, borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 12 }}>
+                <label style={s.lbl}>Gallery Images <span style={{ fontWeight: 400, color: "var(--ink-soft,#888)" }}>(optional — up to 8 extra photos)</span></label>
+                {productForm.images.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 8, marginTop: 8 }}>
+                    {productForm.images.map((url, idx) => (
+                      <div key={`${url}-${idx}`} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(0,0,0,0.1)" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt={`gallery ${idx + 1}`} style={{ width: "100%", height: 72, objectFit: "cover", display: "block" }} />
+                        <div style={{ position: "absolute", top: 2, right: 2, display: "flex", gap: 2 }}>
+                          {idx > 0 && (
+                            <button type="button" title="Move left" onClick={() => {
+                              const imgs = [...productForm.images];
+                              [imgs[idx], imgs[idx - 1]] = [imgs[idx - 1], imgs[idx]];
+                              setProductForm((p) => ({ ...p, images: imgs }));
+                            }} style={s.galleryBtn}>‹</button>
+                          )}
+                          {idx < productForm.images.length - 1 && (
+                            <button type="button" title="Move right" onClick={() => {
+                              const imgs = [...productForm.images];
+                              [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]];
+                              setProductForm((p) => ({ ...p, images: imgs }));
+                            }} style={s.galleryBtn}>›</button>
+                          )}
+                          <button type="button" title="Remove" onClick={() => setProductForm((p) => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))} style={{ ...s.galleryBtn, background: "rgba(229,62,62,0.85)", color: "#fff" }}>✕</button>
+                        </div>
+                        <div style={{ position: "absolute", bottom: 2, left: 4, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4 }}>#{idx + 1}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+                  <button type="button" disabled={galleryUploading} onClick={() => galleryFileRef.current?.click()} style={{ ...s.btnSecondary, fontSize: 13 }}>
+                    {galleryUploading ? "Uploading…" : "Upload Gallery Images"}
+                  </button>
+                  <input ref={galleryFileRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => void handleGalleryImageUpload(e)} />
+                  <span style={{ fontSize: 12, color: "var(--ink-soft,#888)" }}>or paste a URL:</span>
+                  <div style={{ display: "flex", gap: 6, flex: 1, minWidth: 180 }}>
+                    <input id="gallery-url-input" placeholder="https://…" style={{ ...s.inp, flex: 1 }} />
+                    <button type="button" onClick={() => {
+                      const inp = document.getElementById("gallery-url-input") as HTMLInputElement;
+                      const url = inp?.value.trim();
+                      if (url?.startsWith("http")) {
+                        setProductForm((p) => ({ ...p, images: [...p.images, url] }));
+                        inp.value = "";
+                      }
+                    }} style={{ ...s.btnSecondary, fontSize: 13, whiteSpace: "nowrap" }}>Add</button>
+                  </div>
+                </div>
+                {productForm.images.length > 0 && (
+                  <button type="button" onClick={() => setProductForm((p) => ({ ...p, images: [] }))} style={{ marginTop: 4, fontSize: 12, color: "#c53030", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                    Clear all gallery images
+                  </button>
+                )}
+              </div>
+
+              {/* Price Variants */}
+              <div style={{ ...s.fg, marginTop: 12, borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 6 }}>
+                  <div>
+                    <label style={s.lbl}>Price Variants <span style={{ fontWeight: 400, color: "var(--ink-soft,#888)" }}>(optional)</span></label>
+                    <p style={{ fontSize: 12, color: "var(--ink-soft,#888)", margin: "2px 0 0" }}>Add size/colour/weight options with different prices.</p>
+                  </div>
+                  <button type="button" onClick={addVariant} style={{ ...s.btnSecondary, fontSize: 12, whiteSpace: "nowrap" }}>+ Add Variant</button>
+                </div>
+                {productForm.variants.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {/* Shared attribute name */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-soft,#888)", whiteSpace: "nowrap" }}>Attribute name:</span>
+                      <input
+                        value={productForm.variants[0]?.attribute ?? "Size"}
+                        onChange={(e) => setProductForm((p) => ({ ...p, variants: p.variants.map((v) => ({ ...v, attribute: e.target.value })) }))}
+                        placeholder="e.g. Size, Colour, Weight"
+                        style={{ ...s.inp, maxWidth: 160 }}
+                      />
+                    </div>
+                    {productForm.variants.map((variant) => (
+                      <div key={variant.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, background: "rgba(0,0,0,0.03)", borderRadius: 8, padding: 10, border: "1px solid rgba(0,0,0,0.08)" }}>
+                        <div style={s.fg}>
+                          <label style={{ ...s.lbl, fontSize: 11 }}>Label</label>
+                          <input value={variant.label} onChange={(e) => updateVariant(variant.id, { label: e.target.value })} placeholder="e.g. Small, Red, 1kg" style={s.inp} />
+                        </div>
+                        <div style={s.fg}>
+                          <label style={{ ...s.lbl, fontSize: 11 }}>Price Override (GHS)</label>
+                          <input type="number" min={0} step="0.01" value={variant.priceOverride ?? ""} placeholder="Full price for this variant" onChange={(e) => updateVariant(variant.id, { priceOverride: e.target.value ? Number(e.target.value) : undefined, priceAdjustment: undefined })} style={s.inp} />
+                        </div>
+                        <div style={s.fg}>
+                          <label style={{ ...s.lbl, fontSize: 11 }}>Price Adjustment (±GHS)</label>
+                          <input type="number" step="0.01" value={variant.priceAdjustment ?? ""} placeholder="e.g. +10 or -5" disabled={variant.priceOverride !== undefined} onChange={(e) => updateVariant(variant.id, { priceAdjustment: e.target.value ? Number(e.target.value) : undefined })} style={{ ...s.inp, opacity: variant.priceOverride !== undefined ? 0.5 : 1 }} />
+                        </div>
+                        <button type="button" onClick={() => removeVariant(variant.id)} title="Remove variant" style={{ alignSelf: "flex-end", background: "rgba(229,62,62,0.1)", color: "#c53030", border: "none", borderRadius: 6, width: 32, height: 36, cursor: "pointer", fontWeight: 700, fontSize: 14 }}>✕</button>
+                      </div>
+                    ))}
+                    {productForm.variants.length > 0 && (() => {
+                      const price = parseFloat(productForm.price || "0");
+                      const prices = productForm.variants.map((v) => v.priceOverride ?? price + (v.priceAdjustment ?? 0));
+                      const min = Math.min(...prices);
+                      const max = Math.max(...prices);
+                      return min !== max ? (
+                        <p style={{ fontSize: 12, color: "var(--ink-soft,#888)" }}>Price range: GHS {min.toFixed(2)} – GHS {max.toFixed(2)}</p>
+                      ) : null;
+                    })()}
+                  </div>
+                )}
+              </div>
+
               {productError && <p style={s.errText}>{productError}</p>}
-              <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                 <button type="submit" disabled={productSaving} style={s.btnPrimary}>{productSaving ? "Saving…" : "Submit for Review"}</button>
-                <button type="button" onClick={() => setShowProductForm(false)} style={s.btnSecondary}>Cancel</button>
+                <button type="button" onClick={() => { setShowProductForm(false); setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [] }); }} style={s.btnSecondary}>Cancel</button>
               </div>
             </form>
           )}
@@ -414,7 +571,11 @@ export default function VendorDashboard() {
                   {!p.image && <div style={s.itemImgPlaceholder}>📦</div>}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={s.itemName}>{p.name}</div>
-                    <div style={s.itemMeta}>{p.category} · GHS {p.price.toFixed(2)} · Stock: {p.stock}</div>
+                    <div style={s.itemMeta}>
+                      {p.category} · GHS {p.price.toFixed(2)} · Stock: {p.stock}
+                      {(p.images?.length ?? 0) > 0 && <span> · {p.images.length} gallery photo{p.images.length !== 1 ? "s" : ""}</span>}
+                      {(p.variants?.length ?? 0) > 0 && <span> · {p.variants!.length} variant{p.variants!.length !== 1 ? "s" : ""}</span>}
+                    </div>
                   </div>
                   <StatusBadge status={p.status} />
                   <button onClick={() => void handleDeleteProduct(p.id)} style={s.deleteBtn} title="Delete">✕</button>
@@ -557,4 +718,5 @@ const s: Record<string, React.CSSProperties> = {
   deleteBtn: { background: "rgba(229,62,62,0.1)", color: "#c53030", border: "none", borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   emptyState: { textAlign: "center", color: "var(--ink-soft,#888)", padding: "48px 16px", fontSize: 14 },
   emptyMsg: { textAlign: "center", color: "var(--ink-soft,#888)", padding: 24 },
+  galleryBtn: { background: "rgba(0,0,0,0.55)", color: "#fff", border: "none", borderRadius: 4, width: 20, height: 20, cursor: "pointer", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 },
 };
