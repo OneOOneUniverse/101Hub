@@ -1,11 +1,5 @@
-const CACHE_NAME = 'gadget-hub-v3';
+const CACHE_NAME = 'gadget-hub-v5';
 const urlsToCache = [
-  '/',
-  '/products',
-  '/services',
-  '/faqs',
-  '/cart',
-  '/checkout',
   '/offline.html',
   '/img/log.png',
   '/manifest.json'
@@ -77,43 +71,44 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Fetch event - Network first, fall back to cache
+// Fetch event
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
 
-  // Never cache API routes — they return user-specific, authenticated data
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith('/api/')) {
+
+  // ── Never intercept these — let the browser/CDN handle them natively ──────
+  // 1. API routes (user-specific, authenticated data)
+  if (url.pathname.startsWith('/api/')) return;
+  // 2. Next.js internals: static chunks, RSC payloads, HMR, image optimiser
+  //    Vercel CDN already caches these with immutable headers.
+  //    Letting the SW touch them causes stale-chunk errors after deployments.
+  if (url.pathname.startsWith('/_next/')) return;
+  // 3. RSC navigation requests (query param added by Next.js router)
+  if (url.searchParams.has('_rsc')) return;
+
+  // ── For real page navigations: network-only, fall back to offline page ────
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        caches.match('/offline.html').then((r) => r ?? fetch('/offline.html'))
+      )
+    );
     return;
   }
 
+  // ── For static public assets (images, icons, fonts): cache after first load ─
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (!response || response.status !== 200 || response.type === 'error') {
-          return response;
+        if (response && response.status === 200 && response.type !== 'error') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        
-        // Clone and cache the response
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-        
         return response;
       })
-      .catch(() => {
-        // Fall back to cache
-        return caches.match(event.request).then((response) => {
-          if (response) return response;
-          // For navigation requests, show the offline page
-          if (event.request.mode === 'navigate') {
-            return caches.match('/offline.html');
-          }
-          return new Response('', { status: 408, statusText: 'Offline' });
-        });
-      })
+      .catch(() => caches.match(event.request))
   );
 });
