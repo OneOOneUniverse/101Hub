@@ -181,7 +181,11 @@ export default function AdminAuctionsPage() {
     }
   }
 
-  const minDatetime = new Date(Date.now() + 5 * 60_000).toISOString().slice(0, 16);
+  // Computed client-side only to avoid SSR/hydration mismatch
+  const [minDatetime, setMinDatetime] = useState("");
+  useEffect(() => {
+    setMinDatetime(new Date(Date.now() + 5 * 60_000).toISOString().slice(0, 16));
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -242,7 +246,7 @@ export default function AdminAuctionsPage() {
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--ink)]">End Date &amp; Time <span className="text-red-500">*</span></label>
-              <input value={form.ends_at} onChange={(e) => setField("ends_at", e.target.value)} type="datetime-local" min={minDatetime} required className="input-styled text-sm" />
+              <input value={form.ends_at} onChange={(e) => setField("ends_at", e.target.value)} type="datetime-local" min={minDatetime} required className="input-styled text-sm" suppressHydrationWarning />
             </div>
 
             {formError && (
