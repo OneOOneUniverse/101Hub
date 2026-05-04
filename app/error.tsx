@@ -2,6 +2,31 @@
 
 import { useEffect } from "react";
 
+// Key stored in sessionStorage so we only auto-reload once per error event.
+// If after the reload the page still errors, we show the manual error UI instead
+// of looping forever.
+const RELOAD_FLAG = "101hub_error_auto_reloaded";
+
+function isTransientError(error: Error): boolean {
+  const name = error?.name ?? "";
+  const msg = (error?.message ?? "").toLowerCase();
+  return (
+    // Webpack / Next.js chunk load failures
+    name === "ChunkLoadError" ||
+    msg.includes("loading chunk") ||
+    msg.includes("failed to fetch dynamically imported module") ||
+    // Safari phrasing
+    msg.includes("error loading dynamically imported module") ||
+    msg.includes("importing a module script failed") ||
+    // Generic network interruption during navigation
+    msg.includes("load failed") ||
+    msg.includes("networkerror") ||
+    msg.includes("failed to load resource") ||
+    // CSS chunk failure
+    msg.includes("loading css chunk")
+  );
+}
+
 export default function ErrorPage({
   error,
   reset,
@@ -10,15 +35,27 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Auto-reload on ChunkLoadError (stale deployment artifact)
-    if (
-      error?.name === "ChunkLoadError" ||
-      error?.message?.includes("Loading chunk") ||
-      error?.message?.includes("Failed to fetch dynamically imported module")
-    ) {
+    const alreadyRetried = sessionStorage.getItem(RELOAD_FLAG) === "1";
+
+    if (isTransientError(error) && !alreadyRetried) {
+      // Mark that we attempted a reload so we don't loop on genuine errors
+      sessionStorage.setItem(RELOAD_FLAG, "1");
       window.location.reload();
+      return;
+    }
+
+    // Clear the flag so the next distinct navigation error can retry once
+    if (!isTransientError(error)) {
+      sessionStorage.removeItem(RELOAD_FLAG);
     }
   }, [error]);
+
+  // Clear the reload flag once the user successfully navigates again
+  // (reset() is called by Next.js when the error boundary recovers)
+  function handleReset() {
+    sessionStorage.removeItem(RELOAD_FLAG);
+    reset();
+  }
 
   return (
     <div
@@ -68,7 +105,10 @@ export default function ErrorPage({
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
           <button
             type="button"
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              sessionStorage.removeItem(RELOAD_FLAG);
+              window.location.reload();
+            }}
             style={{
               background: "#111",
               color: "#fff",
@@ -84,7 +124,7 @@ export default function ErrorPage({
           </button>
           <button
             type="button"
-            onClick={reset}
+            onClick={handleReset}
             style={{
               background: "transparent",
               color: "#111",
