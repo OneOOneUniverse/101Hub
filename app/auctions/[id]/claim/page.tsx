@@ -3,7 +3,8 @@
 import { useEffect, useState, use, FormEvent } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import PaystackButton from "@/components/PaystackButton";
+import PaymentDetailsCard from "@/components/PaymentDetailsCard";
+import ImageUploadButton from "@/components/ImageUploadButton";
 
 type WinData = { id: number; title: string; amount: number; image: string };
 
@@ -22,7 +23,8 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [orderRef] = useState(generateRef);
-  const [status, setStatus] = useState<"form" | "paying" | "success" | "error">("form");
+  const [proofUrl, setProofUrl] = useState("");
+  const [status, setStatus] = useState<"form" | "paying" | "submitting" | "success" | "error">("form");
   const [errMsg, setErrMsg] = useState("");
 
   // Read won auction from sessionStorage (set by victory screen)
@@ -47,15 +49,15 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
     if (p) setPhone(p);
   }, [isLoaded, user]);
 
-  async function handlePaymentSuccess(reference: string) {
-    setStatus("paying");
+  async function handleConfirmPayment() {
+    setStatus("submitting");
     try {
       const res = await fetch(`/api/auctions/${auctionId}/claim`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderRef,
-          paystackRef: reference,
+          paymentProofUrl: proofUrl || null,
           customerName: name,
           customerEmail: email,
           customerPhone: phone,
@@ -84,13 +86,14 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
     setStatus("paying");
   }
 
+
   if (status === "success") {
     return (
       <main className="mx-auto max-w-lg px-4 py-16 text-center space-y-6">
         <div className="text-6xl">🎉</div>
-        <h1 className="text-2xl font-black text-[var(--ink)]">Order Placed!</h1>
+        <h1 className="text-2xl font-black text-[var(--ink)]">Order Submitted!</h1>
         <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
-          Your payment was received and your order is confirmed. We'll contact you at <strong>{email}</strong> with delivery details.
+          Your order is pending payment verification. We&apos;ll contact you at <strong>{email}</strong> once your payment is confirmed.
         </p>
         <p className="text-xs text-[var(--ink-soft)]">Order ref: <strong>{orderRef}</strong></p>
         <div className="flex gap-3 justify-center">
@@ -139,8 +142,8 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      {/* Checkout form or Paystack button */}
-      {status !== "paying" ? (
+      {/* Step 1: Contact details form */}
+      {status === "form" && (
         <div className="panel p-6 space-y-5">
           <h2 className="text-base font-black text-[var(--ink)]">Complete Your Purchase</h2>
           <form onSubmit={handleFormSubmit} className="space-y-3">
@@ -193,25 +196,75 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
             </button>
           </form>
         </div>
-      ) : (
-        <div className="panel p-6 space-y-5 text-center">
-          <h2 className="text-base font-black text-[var(--ink)]">Pay GHS {win.amount.toFixed(2)}</h2>
-          <p className="text-sm text-[var(--ink-soft)]">Paying as <strong>{name}</strong> · {email}</p>
+      )}
 
-          <PaystackButton
-            amount={win.amount}
-            orderRef={orderRef}
-            customerEmail={email}
-            customerName={name}
-            customerPhone={phone}
-            onSuccess={(ref) => void handlePaymentSuccess(ref)}
-            onClose={() => setStatus("form")}
+      {/* Step 2: Manual payment */}
+      {(status === "paying" || status === "submitting" || status === "error") && (
+        <div className="space-y-5">
+          <div className="panel p-5 space-y-1">
+            <h2 className="text-base font-black text-[var(--ink)]">Pay GHS {win.amount.toFixed(2)}</h2>
+            <p className="text-sm text-[var(--ink-soft)]">Paying as <strong>{name}</strong> · {email}</p>
+          </div>
+
+          {/* Instructions */}
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-4 space-y-2">
+            <p className="text-sm font-bold text-blue-800">How to complete your payment:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-blue-700">
+              <li>Send <strong>GHS {win.amount.toFixed(2)}</strong> to the account details below</li>
+              <li>Use <strong>{orderRef}</strong> as your payment reference / note</li>
+              <li>Take a screenshot of the payment confirmation</li>
+              <li>Upload the screenshot below and tap <em>Confirm Payment</em></li>
+            </ol>
+          </div>
+
+          {/* Payment account details */}
+          <PaymentDetailsCard
+            fields={[
+              { label: "Transaction / Phone Number", value: "0548656980", icon: "phone" },
+              { label: "Account Name", value: "101 Hub Technologies", icon: "user" },
+              { label: "Network / Bank", value: "MTN Mobile Money", icon: "bank" },
+              { label: "Payment Reference", value: orderRef, icon: "tag" },
+            ]}
           />
+
+          {/* Screenshot upload */}
+          <div className="panel p-5 space-y-3">
+            <p className="text-sm font-bold text-[var(--ink)]">Upload Payment Screenshot <span className="text-red-500">*</span></p>
+            <p className="text-xs text-[var(--ink-soft)]">Your screenshot must clearly show the amount, recipient number, and transaction status.</p>
+            {proofUrl ? (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={proofUrl} alt="Payment proof" className="w-full rounded-lg border border-green-300 max-h-48 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setProofUrl("")}
+                  className="absolute top-2 right-2 rounded-full bg-red-500 text-white text-xs px-2 py-1 font-bold shadow"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <ImageUploadButton
+                folder="auction-proofs"
+                label="Upload Screenshot"
+                onUpload={(url) => setProofUrl(url)}
+              />
+            )}
+          </div>
 
           <button
             type="button"
-            onClick={() => setStatus("form")}
-            className="text-xs text-[var(--ink-soft)] hover:underline"
+            onClick={() => void handleConfirmPayment()}
+            disabled={status === "submitting" || !proofUrl}
+            className="w-full rounded-full bg-[var(--brand)] py-3 text-sm font-black text-white hover:bg-[var(--brand-deep)] transition-all active:scale-95 shadow-md disabled:opacity-60 disabled:pointer-events-none"
+          >
+            {status === "submitting" ? "Submitting…" : "Confirm Payment →"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setStatus("form"); setErrMsg(""); }}
+            className="block w-full text-center text-xs text-[var(--ink-soft)] hover:underline"
           >
             ← Change details
           </button>

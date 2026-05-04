@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sanitizeLine, sanitizeText, hasMinLength, hasMaxLength } from "@/lib/validation";
+import { sendAuctionLiveEmail } from "@/lib/email";
 
 // GET  /api/admin/auctions — list all auctions (admin only)
 export async function GET() {
@@ -87,5 +88,38 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Broadcast live-auction email to all users (non-blocking)
+  void (async () => {
+    try {
+      const clerk = await clerkClient();
+      const emails: string[] = [];
+      let offset = 0;
+      while (true) {
+        const { data: users } = await clerk.users.getUserList({ limit: 100, offset });
+        if (!users?.length) break;
+        for (const u of users) {
+          const primary = u.emailAddresses.find((e) => e.id === u.primaryEmailAddressId);
+          const email = primary?.emailAddress ?? u.emailAddresses[0]?.emailAddress;
+          if (email) emails.push(email);
+        }
+        if (users.length < 100) break;
+        offset += 100;
+      }
+      if (emails.length > 0) {
+        await sendAuctionLiveEmail({
+          auctionId: data.id,
+          title: data.title,
+          startingPrice: data.starting_price,
+          imageUrl: data.image_url || undefined,
+          endsAt: data.ends_at,
+          recipients: emails,
+        });
+      }
+    } catch (err) {
+      console.error("[auction] Failed to send live email:", err);
+    }
+  })();
+
   return NextResponse.json(data, { status: 201 });
 }

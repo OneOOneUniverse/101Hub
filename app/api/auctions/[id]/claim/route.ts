@@ -5,7 +5,7 @@ import { notifyAdmins } from "@/lib/db-notifications";
 
 type ClaimBody = {
   orderRef?: string;
-  paystackRef?: string;
+  paymentProofUrl?: string | null;
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
@@ -33,7 +33,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { orderRef, paystackRef, customerName, customerEmail, customerPhone, customerAddress, amount, title } = body;
+  const { orderRef, paymentProofUrl, customerName, customerEmail, customerPhone, customerAddress, amount, title } = body;
 
   if (!orderRef || !customerName || !customerEmail || !customerPhone || !customerAddress || !amount || !title) {
     return NextResponse.json({ error: "All fields are required." }, { status: 400 });
@@ -56,7 +56,7 @@ export async function POST(
     .insert({
       auction_id: auctionId,
       order_ref: orderRef,
-      paystack_ref: paystackRef ?? null,
+      payment_proof_url: paymentProofUrl ?? null,
       user_id: userId ?? null,
       customer_name: customerName,
       customer_email: customerEmail,
@@ -64,7 +64,7 @@ export async function POST(
       customer_address: customerAddress,
       amount,
       title,
-      status: "paid",
+      status: "pending",
     });
 
   if (insertErr) {
@@ -85,8 +85,8 @@ export async function POST(
     await notifyAdmins(
       "payment",
       "Auction Win Payment Received",
-      `${customerName} paid GHS ${Number(amount).toFixed(2)} for "${title}" (Ref: ${orderRef})`,
-      { auctionId, orderRef, paystackRef, customerEmail, customerPhone }
+      `${customerName} submitted manual payment of GHS ${Number(amount).toFixed(2)} for "${title}" (Ref: ${orderRef}) — pending verification`,
+      { auctionId, orderRef, paymentProofUrl, customerEmail, customerPhone }
     );
   } catch { /* non-fatal */ }
 

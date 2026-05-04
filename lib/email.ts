@@ -502,6 +502,54 @@ export async function sendBroadcastEmail(
   return { sent, failed };
 }
 
+/**
+ * Broadcast "auction is live" email to all provided recipients.
+ * Call this from an API route after fetching all user emails from Clerk.
+ */
+export async function sendAuctionLiveEmail(opts: {
+  auctionId: number;
+  title: string;
+  startingPrice: number;
+  imageUrl?: string;
+  endsAt: string;
+  recipients: string[];
+}): Promise<{ sent: number; failed: number }> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop';
+
+  let endsDate = '';
+  try {
+    endsDate = new Date(opts.endsAt).toLocaleString('en-US', {
+      weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  } catch { endsDate = opts.endsAt; }
+
+  const bodyHtml = `
+    ${opts.imageUrl ? `<div style="text-align:center;margin-bottom:20px"><img src="${opts.imageUrl}" alt="${opts.title}" style="max-width:100%;border-radius:10px;max-height:240px;object-fit:cover" /></div>` : ''}
+    <h2 style="margin:0 0 12px;color:#111;font-size:22px">🔴 Live Auction Has Started!</h2>
+    <p style="margin:0 0 10px;font-size:15px;color:#333">A new auction is <strong>live right now</strong> on ${STORE_NAME}. Don't miss your chance to bid!</p>
+
+    <div style="background:#fff7ed;border:2px solid ${BRAND_COLOR};border-radius:10px;padding:16px 20px;margin:16px 0">
+      <p style="margin:0 0 4px;font-size:18px;font-weight:800;color:#111">${opts.title}</p>
+      <p style="margin:4px 0 0;font-size:24px;font-weight:900;color:${BRAND_COLOR}">Base Price: GHS ${opts.startingPrice.toFixed(2)}</p>
+    </div>
+
+    <p style="margin:0 0 6px;font-size:13px;color:#555">⏰ Auction ends: <strong>${endsDate}</strong></p>
+    <p style="margin:0 0 16px;font-size:13px;color:#555">Be the highest bidder to win this item. Bids are open to all registered users — join now before it's too late!</p>
+  `;
+
+  return sendBroadcastEmail(
+    opts.recipients,
+    `🔴 LIVE: Bid on "${opts.title}" — Base price GHS ${opts.startingPrice.toFixed(2)}`,
+    bodyHtml,
+    {
+      category: 'event',
+      ctaUrl: `${appUrl}/auctions/${opts.auctionId}`,
+      ctaLabel: 'Join the Auction →',
+    },
+  );
+}
+
 /** Send payment rejected email to customer */
 export async function sendPaymentRejectedEmail(customerEmail: string, customerName: string, orderRef: string, reason?: string) {
   await safeSend({
