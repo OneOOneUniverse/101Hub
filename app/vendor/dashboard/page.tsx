@@ -22,6 +22,7 @@ type VendorProduct = {
   stock: number;
   image: string | null;
   images: string[];
+  videos?: string[];
   variants?: ProductVariant[];
   sizes?: string[];
   colors?: string[];
@@ -73,13 +74,15 @@ export default function VendorDashboard() {
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
-  const [productForm, setProductForm] = useState({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [] as string[], variants: [] as ProductVariant[], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false });
+  const [productForm, setProductForm] = useState({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [] as string[], videos: [] as string[], variants: [] as ProductVariant[], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false });
   const [productUploading, setProductUploading] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
   const [productSaving, setProductSaving] = useState(false);
   const [productError, setProductError] = useState("");
   const productFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
+  const videoFileRef = useRef<HTMLInputElement>(null);
 
   // Service form
   const [showServiceForm, setShowServiceForm] = useState(false);
@@ -174,6 +177,41 @@ export default function VendorDashboard() {
     }
   }
 
+  async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setVideoUploading(true);
+    setProductError("");
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        const sigRes = await fetch("/api/vendor/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ folder: "products", resourceType: "video" }),
+        });
+        if (!sigRes.ok) throw new Error("Failed to get upload token.");
+        const sig = (await sigRes.json()) as { signature: string; timestamp: number; folder: string; cloudName: string; apiKey: string; resourceType: string };
+        const body = new FormData();
+        body.append("file", file);
+        body.append("api_key", sig.apiKey);
+        body.append("timestamp", String(sig.timestamp));
+        body.append("signature", sig.signature);
+        body.append("folder", sig.folder);
+        const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/video/upload`, { method: "POST", body });
+        if (!cloudRes.ok) throw new Error("Video upload failed.");
+        const result = (await cloudRes.json()) as { secure_url: string };
+        uploaded.push(result.secure_url);
+      }
+      setProductForm((p) => ({ ...p, videos: [...p.videos, ...uploaded] }));
+    } catch (err) {
+      setProductError(err instanceof Error ? err.message : "Video upload failed.");
+    } finally {
+      setVideoUploading(false);
+      if (videoFileRef.current) videoFileRef.current.value = "";
+    }
+  }
+
   function addVariant() {
     const id = `v-${Math.random().toString(36).slice(2, 8)}`;
     const attribute = productForm.variants[0]?.attribute ?? "Size";
@@ -213,6 +251,7 @@ export default function VendorDashboard() {
       stock: String(p.stock),
       image: p.image ?? "",
       images: p.images ?? [],
+      videos: p.videos ?? [],
       variants: p.variants ?? [],
       sizesRaw: (p.sizes ?? []).join(", "),
       colorsRaw: (p.colors ?? []).join(", "),
@@ -239,6 +278,7 @@ export default function VendorDashboard() {
         stock: parseInt(productForm.stock, 10),
         image: productForm.image || null,
         images: productForm.images,
+        videos: productForm.videos.length > 0 ? productForm.videos : undefined,
         variants: productForm.variants.length > 0 ? productForm.variants : undefined,
         sizes: sizes ?? null,
         colors: colors ?? null,
@@ -259,7 +299,7 @@ export default function VendorDashboard() {
         setProducts((prev) => [data.item!, ...prev]);
       }
       setEditingProductId(null);
-      setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false });
+      setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], videos: [], variants: [], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false });
       setShowProductForm(false);
     } catch {
       setProductError("Network error.");
@@ -555,6 +595,50 @@ export default function VendorDashboard() {
                 {productForm.images.length > 0 && (
                   <button type="button" onClick={() => setProductForm((p) => ({ ...p, images: [] }))} style={{ marginTop: 4, fontSize: 12, color: "#c53030", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                     Clear all gallery images
+                  </button>
+                )}
+              </div>
+
+              {/* Product Videos */}
+              <div style={{ ...s.fg, marginTop: 12, borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 12 }}>
+                <label style={s.lbl}>Product Videos <span style={{ fontWeight: 400, color: "var(--ink-soft,#888)" }}>(optional — shown before images in gallery)</span></label>
+                {productForm.videos.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8, marginTop: 8 }}>
+                    {productForm.videos.map((url, idx) => (
+                      <div key={`${url}-${idx}`} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(0,0,0,0.1)", background: "#000" }}>
+                        <video src={url} muted preload="metadata" style={{ width: "100%", height: 72, objectFit: "cover", display: "block" }} />
+                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                          <span style={{ fontSize: 20, opacity: 0.8 }}>▶</span>
+                        </div>
+                        <div style={{ position: "absolute", top: 2, right: 2 }}>
+                          <button type="button" title="Remove" onClick={() => setProductForm((p) => ({ ...p, videos: p.videos.filter((_, i) => i !== idx) }))} style={{ ...s.galleryBtn, background: "rgba(229,62,62,0.85)", color: "#fff" }}>✕</button>
+                        </div>
+                        <div style={{ position: "absolute", bottom: 2, left: 4, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4 }}>#{idx + 1}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+                  <button type="button" disabled={videoUploading} onClick={() => videoFileRef.current?.click()} style={{ ...s.btnSecondary, fontSize: 13 }}>
+                    {videoUploading ? "Uploading…" : "Upload Video"}
+                  </button>
+                  <input ref={videoFileRef} type="file" accept="video/*" multiple style={{ display: "none" }} onChange={(e) => void handleVideoUpload(e)} />
+                  <span style={{ fontSize: 12, color: "var(--ink-soft,#888)" }}>or paste a URL:</span>
+                  <div style={{ display: "flex", gap: 6, flex: 1, minWidth: 180 }}>
+                    <input id="video-url-input" placeholder="https://…" style={{ ...s.inp, flex: 1 }} />
+                    <button type="button" onClick={() => {
+                      const inp = document.getElementById("video-url-input") as HTMLInputElement;
+                      const url = inp?.value.trim();
+                      if (url?.startsWith("http")) {
+                        setProductForm((p) => ({ ...p, videos: [...p.videos, url] }));
+                        inp.value = "";
+                      }
+                    }} style={{ ...s.btnSecondary, fontSize: 13, whiteSpace: "nowrap" }}>Add</button>
+                  </div>
+                </div>
+                {productForm.videos.length > 0 && (
+                  <button type="button" onClick={() => setProductForm((p) => ({ ...p, videos: [] }))} style={{ marginTop: 4, fontSize: 12, color: "#c53030", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                    Clear all videos
                   </button>
                 )}
               </div>

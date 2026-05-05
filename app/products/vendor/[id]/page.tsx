@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { use } from "react";
+import ProductGallery from "@/components/ProductGallery";
 
 type VendorProduct = {
   id: string;
@@ -15,6 +16,7 @@ type VendorProduct = {
   stock?: number;
   image?: string | null;
   images?: string[];
+  videos?: string[];
   status: string;
   created_at: string;
 };
@@ -27,7 +29,6 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
   const [product, setProduct] = useState<VendorProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/public/vendor-products`)
@@ -35,7 +36,6 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
       .then((data: { items?: VendorProduct[] }) => {
         const found = (data.items ?? []).find((p) => p.id === id) ?? null;
         setProduct(found);
-        if (found?.image) setSelectedImage(found.image);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -86,32 +86,13 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
 
       <div className="panel p-4 sm:p-6">
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Images */}
-          <div className="space-y-3">
-            <div className="overflow-hidden rounded-xl border border-black/10 bg-[var(--base-light)] aspect-square flex items-center justify-center">
-              {selectedImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={selectedImage} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-6xl">📦</span>
-              )}
-            </div>
-            {allImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {allImages.map((img, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={i}
-                    src={img}
-                    alt={`${product.name} ${i + 1}`}
-                    onClick={() => setSelectedImage(img)}
-                    className={`h-16 w-16 shrink-0 cursor-pointer rounded-lg object-cover border-2 transition ${
-                      selectedImage === img ? "border-[var(--brand)]" : "border-black/10"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
+          {/* Images & Videos Gallery */}
+          <div>
+            <ProductGallery
+              productName={product.name}
+              images={allImages}
+              videos={product.videos}
+            />
           </div>
 
           {/* Details */}
