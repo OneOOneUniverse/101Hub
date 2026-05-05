@@ -774,7 +774,7 @@ export default function VendorDashboard() {
               {productError && <p style={s.errText}>{productError}</p>}
               <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                 <button type="submit" disabled={productSaving} style={s.btnPrimary}>{productSaving ? "Saving…" : editingProductId ? "Save Changes" : "Submit for Review"}</button>
-                <button type="button" onClick={() => { setShowProductForm(false); setEditingProductId(null); setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false }); }} style={s.btnSecondary}>Cancel</button>
+                <button type="button" onClick={() => { setShowProductForm(false); setEditingProductId(null); setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], videos: [], variants: [], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false }); }} style={s.btnSecondary}>Cancel</button>
               </div>
             </form>
           )}
