@@ -82,13 +82,17 @@ export async function POST(request: NextRequest) {
       no_delivery_fee: body.noDeliveryFee ?? null,
       videos: Array.isArray(body.videos) && body.videos.length > 0 ? body.videos : null,
       status: "approved",
+      updated_at: new Date().toISOString(),
     })
     .select()
     .single();
 
   if (error) {
     console.error("vendor product insert error:", error);
-    return NextResponse.json({ error: "Failed to add product." }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to add product.", detail: error.details ?? null },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ success: true, item: data }, { status: 201 });
@@ -153,7 +157,13 @@ export async function PATCH(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: "Failed to update product." }, { status: 500 });
+  if (error) {
+    console.error("vendor product update error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to update product.", detail: error.details ?? null },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ success: true, item: data });
 }

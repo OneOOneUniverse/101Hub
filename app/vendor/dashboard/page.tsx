@@ -291,7 +291,7 @@ export default function VendorDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingProductId ? { id: editingProductId, ...payload } : payload),
       });
-      const data = (await res.json()) as { error?: string; item?: VendorProduct };
+      const data = (await res.json()) as { error?: string; detail?: string; item?: VendorProduct };
       if (!res.ok) { setProductError(data.error ?? "Failed to save product."); return; }
       if (editingProductId) {
         setProducts((prev) => prev.map((p) => p.id === editingProductId ? data.item! : p));
