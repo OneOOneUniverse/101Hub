@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       delivery_fee: typeof body.deliveryFee === "number" ? body.deliveryFee : null,
       no_delivery_fee: body.noDeliveryFee ?? null,
       videos: Array.isArray(body.videos) && body.videos.length > 0 ? body.videos : null,
-      status: "pending",
+      status: "approved",
     })
     .select()
     .single();
@@ -145,7 +145,7 @@ export async function PATCH(request: NextRequest) {
       delivery_fee: typeof body.deliveryFee === "number" ? body.deliveryFee : null,
       no_delivery_fee: body.noDeliveryFee ?? null,
       videos: Array.isArray(body.videos) && body.videos.length > 0 ? body.videos : null,
-      status: "pending", // resets for re-approval after edit
+      status: "approved",
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)

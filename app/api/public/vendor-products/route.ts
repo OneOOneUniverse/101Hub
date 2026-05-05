@@ -6,7 +6,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("vendor_products")
     .select("id, vendor_id, vendor_name, name, description, price, category, stock, image, images, videos, status, created_at")
-    .eq("status", "approved")
+    .neq("status", "rejected")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ items: [] }, { status: 200 });
