@@ -38,8 +38,15 @@ export async function PATCH(request: NextRequest) {
     category?: string;
     stock?: number;
     image?: string | null;
-    images?: string[];
-    variants?: object[];
+    badge?: string;
+    rating?: number;
+    discount?: number | null;
+    deliveryFee?: number | null;
+    noDeliveryFee?: boolean | null;
+    sizes?: string[] | null;
+    colors?: string[] | null;
+    images?: string[] | null;
+    variants?: object[] | null;
     turnaround?: string;
   };
 
@@ -65,8 +72,15 @@ export async function PATCH(request: NextRequest) {
   if (body.category !== undefined) update.category = body.category.trim();
   if (body.stock !== undefined) update.stock = body.stock;
   if ("image" in body) update.image = typeof body.image === "string" ? body.image.trim() || null : null;
-  if (body.images !== undefined) update.images = body.images;
-  if (body.variants !== undefined) update.variants = body.variants;
+  if ("badge" in body) update.badge = typeof body.badge === "string" ? body.badge.trim() || null : null;
+  if (body.rating !== undefined) update.rating = body.rating;
+  if ("discount" in body) update.discount = body.discount ?? null;
+  if ("deliveryFee" in body) update.delivery_fee = body.deliveryFee ?? null;
+  if ("noDeliveryFee" in body) update.no_delivery_fee = body.noDeliveryFee ?? null;
+  if ("sizes" in body) update.sizes = body.sizes ?? null;
+  if ("colors" in body) update.colors = body.colors ?? null;
+  if ("images" in body) update.images = body.images ?? null;
+  if ("variants" in body) update.variants = body.variants ?? null;
   if (body.turnaround !== undefined) update.turnaround = body.turnaround.trim();
 
   const { error } = await supabaseAdmin.from(table).update(update).eq("id", id);

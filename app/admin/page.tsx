@@ -403,7 +403,7 @@ export default function AdminPage() {
   const [adminVendorProducts, setAdminVendorProducts] = useState<VendorItem[]>([]);
   const [adminVendorProductsLoading, setAdminVendorProductsLoading] = useState(false);
   const [expandedVendorProducts, setExpandedVendorProducts] = useState<Set<string>>(new Set());
-  type VendorProductEdit = { name: string; description: string; price: string; category: string; stock: string; image: string };
+  type VendorProductEdit = { name: string; description: string; price: string; category: string; stock: string; image: string; badge: string; rating: string; discount: string; deliveryFee: string; noDeliveryFee: boolean; sizesRaw: string; colorsRaw: string; images: string[]; variants: ProductVariant[] };
   const [vendorProductEdits, setVendorProductEdits] = useState<Record<string, VendorProductEdit>>({});
   const [vendorProductSaving, setVendorProductSaving] = useState<string | null>(null);
   const [vendorProductDeleting, setVendorProductDeleting] = useState<string | null>(null);
@@ -447,6 +447,15 @@ export default function AdminPage() {
               category: product.category ?? "",
               stock: String(product.stock ?? 1),
               image: product.image ?? "",
+              badge: product.badge ?? "",
+              rating: String(product.rating ?? 0),
+              discount: product.discount !== undefined ? String(product.discount) : "",
+              deliveryFee: product.deliveryFee !== undefined ? String(product.deliveryFee) : "",
+              noDeliveryFee: product.noDeliveryFee ?? false,
+              sizesRaw: (product.sizes ?? []).join(", "),
+              colorsRaw: (product.colors ?? []).join(", "),
+              images: product.images ?? [],
+              variants: product.variants ?? [],
             },
           }));
         }
@@ -529,6 +538,8 @@ export default function AdminPage() {
     setVendorProductSaving(id);
     setMessage("");
     try {
+      const sizes = edit.sizesRaw.trim() ? edit.sizesRaw.split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+      const colors = edit.colorsRaw.trim() ? edit.colorsRaw.split(",").map((c) => c.trim()).filter(Boolean) : undefined;
       const res = await fetch("/api/admin/vendor-products", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -540,12 +551,38 @@ export default function AdminPage() {
           price: Number(edit.price),
           category: edit.category,
           stock: Number(edit.stock),
-          image: edit.image,
+          image: edit.image || null,
+          badge: edit.badge || undefined,
+          rating: edit.rating ? Number(edit.rating) : 0,
+          discount: edit.discount ? Number(edit.discount) : null,
+          deliveryFee: edit.noDeliveryFee ? null : (edit.deliveryFee ? Number(edit.deliveryFee) : null),
+          noDeliveryFee: edit.noDeliveryFee || null,
+          sizes: sizes ?? null,
+          colors: colors ?? null,
+          images: edit.images.length ? edit.images : null,
+          variants: edit.variants.length ? edit.variants : null,
         }),
       });
-      const data = (await res.json()) as { success?: boolean; item?: VendorItem };
-      if (res.ok && data.item) {
-        setAdminVendorProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...data.item } : p)));
+      const data = (await res.json()) as { success?: boolean };
+      if (res.ok && data.success) {
+        const updatedFields: Partial<VendorItem> = {
+          name: edit.name,
+          description: edit.description,
+          price: Number(edit.price),
+          category: edit.category,
+          stock: Number(edit.stock),
+          image: edit.image || null,
+          badge: edit.badge || undefined,
+          rating: edit.rating ? Number(edit.rating) : 0,
+          discount: edit.discount ? Number(edit.discount) : undefined,
+          deliveryFee: edit.noDeliveryFee ? undefined : (edit.deliveryFee ? Number(edit.deliveryFee) : undefined),
+          noDeliveryFee: edit.noDeliveryFee || undefined,
+          sizes: sizes,
+          colors: colors,
+          images: edit.images.length ? edit.images : undefined,
+          variants: edit.variants.length ? edit.variants : undefined,
+        };
+        setAdminVendorProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updatedFields } : p)));
         setMessage("Vendor product updated.");
       }
     } catch { /* silent */ } finally {
@@ -3049,6 +3086,27 @@ export default function AdminPage() {
                     ))}
                   </select>
                 </Field>
+                <Field label="Badge">
+                  <input
+                    value={edit.badge}
+                    placeholder="e.g. New, Hot, Sale"
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], badge: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Image URL or path">
+                  <input
+                    value={edit.image}
+                    placeholder="https://… or /products/photo.jpg"
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                  <ImageUploadButton
+                    folder={`vendor-products/${vp.id}`}
+                    onUpload={(url: string) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: url } }))}
+                    label="Upload Image"
+                  />
+                </Field>
                 <Field label="Price (GHS)">
                   <input
                     type="number"
@@ -3068,39 +3126,191 @@ export default function AdminPage() {
                     className={inputClassName()}
                   />
                 </Field>
+                <Field label="Rating">
+                  <input
+                    type="number"
+                    min={0}
+                    max={5}
+                    step="0.1"
+                    value={edit.rating}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], rating: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Discount % (optional)">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="1"
+                    value={edit.discount}
+                    placeholder="Leave empty for no discount"
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], discount: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                  {edit.discount ? (
+                    <p className="mt-1 text-xs text-green-700">
+                      Sale price: GHS {(Number(edit.price) * ((100 - Number(edit.discount)) / 100)).toFixed(2)} (saves GHS {(Number(edit.price) * (Number(edit.discount) / 100)).toFixed(2)})
+                    </p>
+                  ) : null}
+                </Field>
+                <Field label="Delivery Fee (GHS, optional)">
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={edit.deliveryFee}
+                    placeholder="Leave empty to use location/default fee"
+                    disabled={edit.noDeliveryFee}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], deliveryFee: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">Per-product delivery charge. Overrides location fee for this product.</p>
+                </Field>
+                <div className="flex flex-col justify-start gap-2 pt-1">
+                  <span className="text-sm font-semibold text-[var(--brand-deep)]">No Delivery Fee</span>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={edit.noDeliveryFee}
+                      onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], noDeliveryFee: e.target.checked, deliveryFee: e.target.checked ? "" : prev[vp.id].deliveryFee } }))}
+                      className="h-4 w-4 accent-[var(--brand)]"
+                    />
+                    <span className="text-sm text-[var(--ink)]">Free delivery for this product</span>
+                  </label>
+                  {edit.noDeliveryFee && (
+                    <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1"><TruckIcon size={14} /> This product ships for free</p>
+                  )}
+                </div>
+                <Field label="Sizes (comma-separated, optional)">
+                  <input
+                    value={edit.sizesRaw}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], sizesRaw: e.target.value } }))}
+                    placeholder="e.g. 40, 41, 42, 43 or Small, Medium, Large, XL"
+                    className={inputClassName()}
+                  />
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">Shown as selectable options on the product page.</p>
+                </Field>
+                <Field label="Colors (comma-separated, optional)">
+                  <input
+                    value={edit.colorsRaw}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], colorsRaw: e.target.value } }))}
+                    placeholder="e.g. Black, White, Navy Blue, Red"
+                    className={inputClassName()}
+                  />
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">Shown as selectable color options on the product page.</p>
+                </Field>
+
+                {/* Price Variants */}
+                <div className="lg:col-span-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <label className="block text-sm font-semibold text-[var(--brand-deep)]">Price Variants (Optional)</label>
+                        <p className="text-xs text-[var(--ink-soft)] mt-0.5">Add size/length/weight options with different prices.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newVariant: ProductVariant = { id: createId("variant"), label: "", attribute: (edit.variants[0]?.attribute) ?? "Size" };
+                          setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], variants: [...prev[vp.id].variants, newVariant] } }));
+                        }}
+                        className="rounded-full border border-[var(--brand)] px-3 py-1.5 text-xs font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 whitespace-nowrap"
+                      >
+                        + Add Variant
+                      </button>
+                    </div>
+                    {edit.variants.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-semibold text-[var(--ink-soft)] whitespace-nowrap">Attribute name:</span>
+                          <input
+                            value={edit.variants[0]?.attribute ?? "Size"}
+                            onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], variants: prev[vp.id].variants.map((v) => ({ ...v, attribute: e.target.value })) } }))}
+                            placeholder="e.g. Size, Length, Weight"
+                            className={`${inputClassName()} max-w-[160px]`}
+                          />
+                        </div>
+                        {edit.variants.map((variant, vIdx) => (
+                          <div key={variant.id} className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 rounded-xl border border-black/10 bg-white p-3 shadow-sm">
+                            <Field label="Label">
+                              <input
+                                value={variant.label}
+                                onChange={(e) => {
+                                  const variants = [...edit.variants];
+                                  variants[vIdx] = { ...variant, label: e.target.value };
+                                  setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], variants } }));
+                                }}
+                                placeholder="e.g. Small, 30cm, 1kg"
+                                className={inputClassName()}
+                              />
+                            </Field>
+                            <Field label="Price override (GHS)">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={variant.priceOverride ?? ""}
+                                placeholder="Override full price"
+                                onChange={(e) => {
+                                  const variants = [...edit.variants];
+                                  variants[vIdx] = { ...variant, priceOverride: e.target.value ? Number(e.target.value) : undefined, priceAdjustment: undefined };
+                                  setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], variants } }));
+                                }}
+                                className={inputClassName()}
+                              />
+                            </Field>
+                            <Field label="Price adj. (GHS ±)">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={variant.priceAdjustment ?? ""}
+                                placeholder="e.g. +10 or -5"
+                                disabled={variant.priceOverride !== undefined}
+                                onChange={(e) => {
+                                  const variants = [...edit.variants];
+                                  variants[vIdx] = { ...variant, priceAdjustment: e.target.value ? Number(e.target.value) : undefined };
+                                  setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], variants } }));
+                                }}
+                                className={`${inputClassName()} disabled:opacity-50`}
+                              />
+                            </Field>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const variants = edit.variants.filter((_, i) => i !== vIdx);
+                                setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], variants } }));
+                              }}
+                              className="self-end rounded-full border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
                 <Field label="Description">
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={edit.description}
                     onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], description: e.target.value } }))}
                     className={inputClassName(true)}
                   />
                 </Field>
-                <Field label="Image URL">
-                  <input
-                    value={edit.image}
-                    placeholder="https://…"
-                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: e.target.value } }))}
-                    className={inputClassName()}
+                <div className="lg:col-span-2">
+                  <GalleryImageManager
+                    images={edit.images}
+                    onChange={(newImages) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], images: newImages } }))}
+                    productId={vp.id}
+                    productSlug={vp.id}
+                    label="Product Gallery Images (Variation/Detail Images)"
                   />
-                </Field>
-                {edit.image ? (
-                  <div className="col-span-2 flex items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={edit.image} alt="preview" className="h-20 w-20 rounded-xl object-cover border" />
-                    <ImageUploadButton
-                      onUpload={(url: string) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: url } }))}
-                      label="Replace Image"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-end">
-                    <ImageUploadButton
-                      onUpload={(url: string) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: url } }))}
-                      label="Upload Image"
-                    />
-                  </div>
-                )}
+                </div>
               </div>
 
               <div className="flex items-end mt-4 gap-2">
@@ -7162,6 +7372,15 @@ type VendorItem = {
   turnaround?: string;
   stock?: number;
   image: string | null;
+  badge?: string;
+  rating?: number;
+  discount?: number;
+  deliveryFee?: number;
+  noDeliveryFee?: boolean;
+  sizes?: string[];
+  colors?: string[];
+  images?: string[];
+  variants?: ProductVariant[];
   status: "pending" | "approved" | "rejected";
   admin_notes: string | null;
   created_at: string;
