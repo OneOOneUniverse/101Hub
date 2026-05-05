@@ -70,9 +70,12 @@ function ProductsPageContent() {
 
   useEffect(() => {
     fetch("/api/public/vendor-products")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`vendor-products API ${r.status}`);
+        return r.json();
+      })
       .then((d: { items?: VendorProduct[] }) => setVendorProducts(d.items ?? []))
-      .catch(() => {});
+      .catch((err) => console.error("[vendor-products] fetch error:", err));
   }, []);
 
   useEffect(() => {
@@ -608,7 +611,7 @@ function ProductsPageContent() {
               <p className="text-[10px] font-bold text-purple-600 sm:text-xs">by {vp.vendor_name}</p>
               <div className="flex items-end justify-between gap-1">
                 <p className="text-sm font-black leading-none sm:text-base product-card__price">
-                  GHS {vp.price.toFixed(2)}
+                  GHS {(vp.price ?? 0).toFixed(2)}
                 </p>
                 {vp.stock !== undefined && (
                   <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {vp.stock}</p>

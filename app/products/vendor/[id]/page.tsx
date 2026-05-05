@@ -108,7 +108,7 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
               <p className="mt-1 text-sm text-[var(--ink-soft)]">by {product.vendor_name}</p>
             </div>
 
-            <p className="text-3xl font-black text-[var(--brand-deep)]">GHS {product.price.toFixed(2)}</p>
+            <p className="text-3xl font-black text-[var(--brand-deep)]">GHS {(product.price ?? 0).toFixed(2)}</p>
 
             {product.stock !== undefined && (
               <p className="text-sm text-[var(--ink-soft)]">
