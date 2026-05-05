@@ -475,6 +475,14 @@ export default function AdminPage() {
       });
   }, [content, productSearch]);
 
+  const filteredVendorProducts = useMemo(() => {
+    const term = productSearch.trim().toLowerCase();
+    return adminVendorProducts.filter((vp) => {
+      if (!term) return true;
+      return `${vp.id} ${vp.name} ${vp.category ?? ""}`.toLowerCase().includes(term);
+    });
+  }, [adminVendorProducts, productSearch]);
+
   useEffect(() => {
     void loadContent();
   }, []);
@@ -2402,7 +2410,7 @@ export default function AdminPage() {
         </div>
 
         <p className="text-sm text-[var(--ink-soft)]">
-          Showing {filteredProducts.length} of {content.products.length} products.
+          Showing {filteredProducts.length + filteredVendorProducts.length} of {content.products.length + adminVendorProducts.length} products.
         </p>
 
         <div className="space-y-4">
@@ -2986,165 +2994,138 @@ export default function AdminPage() {
             </article>
             );
           })}
-        </div>
-
-        {/* Vendor Products Sub-Section */}
-        <div className="mt-8 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-[var(--brand-deep)]">
-              Vendor Products
-              <span className="ml-2 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
-                {adminVendorProducts.length}
-              </span>
-            </h3>
-            <button
-              type="button"
-              onClick={() => void loadAdminVendorProducts()}
-              className="rounded-full border border-black/10 px-3 py-1 text-xs font-bold text-[var(--ink)] hover:bg-gray-50"
-            >
-              {adminVendorProductsLoading ? "Loading…" : "Refresh"}
-            </button>
-          </div>
-          {adminVendorProducts.length === 0 && !adminVendorProductsLoading ? (
-            <p className="text-sm text-[var(--ink-soft)]">No vendor products yet.</p>
-          ) : null}
-          {adminVendorProducts
-            .filter(({ name }) => {
-              const term = productSearch.trim().toLowerCase();
-              return !term || name.toLowerCase().includes(term);
-            })
-            .map((vp) => {
-              const isExpanded = expandedVendorProducts.has(vp.id);
-              const edit = vendorProductEdits[vp.id];
-              return (
-                <article key={vp.id} className="rounded-2xl border border-purple-200 bg-white shadow-sm overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => toggleVendorProduct(vp.id, vp)}
-                    className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-purple-50/60 transition-colors"
-                  >
-                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
-                      <span className="font-bold text-[var(--brand-deep)] truncate">
-                        {vp.name || <span className="text-[var(--ink-soft)] font-normal italic">Unnamed</span>}
-                      </span>
-                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
-                        Vendor: {vp.vendor_name}
-                      </span>
-                      {vp.category ? (
-                        <span className="rounded-full bg-[var(--accent)]/15 px-2.5 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">
-                          {vp.category}
-                        </span>
-                      ) : null}
-                      {vp.price > 0 ? (
-                        <span className="text-sm text-[var(--ink-soft)]">GHS {vp.price.toLocaleString()}</span>
-                      ) : null}
-                      {(vp.stock ?? 0) === 0 ? (
-                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Out of stock</span>
-                      ) : (
-                        <span className="text-xs text-[var(--ink-soft)]">Stock: {vp.stock}</span>
-                      )}
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${vp.status === "approved" ? "bg-green-100 text-green-700" : vp.status === "rejected" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"}`}>
-                        {vp.status}
-                      </span>
-                    </div>
-                    <span className="shrink-0 text-[var(--brand-deep)] text-lg" aria-hidden>
-                      {isExpanded ? "▲" : "▼"}
+          {filteredVendorProducts.map((vp) => {
+            const isExpanded = expandedVendorProducts.has(vp.id);
+            const edit = vendorProductEdits[vp.id];
+            return (
+            <article key={vp.id} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+              <button
+                type="button"
+                onClick={() => toggleVendorProduct(vp.id, vp)}
+                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-[var(--brand)]/5 transition-colors"
+              >
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
+                  <span className="font-bold text-[var(--brand-deep)] truncate">
+                    {vp.name || <span className="text-[var(--ink-soft)] font-normal italic">Unnamed product</span>}
+                  </span>
+                  {vp.category ? (
+                    <span className="rounded-full bg-[var(--accent)]/15 px-2.5 py-0.5 text-xs font-semibold text-[var(--brand-deep)]">
+                      {vp.category}
                     </span>
-                  </button>
-
-                  {isExpanded && edit ? (
-                    <div className="border-t border-purple-200 p-4 space-y-4">
-                      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-                        <Field label="Name">
-                          <input
-                            value={edit.name}
-                            onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], name: e.target.value } }))}
-                            className={inputClassName()}
-                          />
-                        </Field>
-                        <Field label="Category">
-                          <input
-                            value={edit.category}
-                            onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], category: e.target.value } }))}
-                            className={inputClassName()}
-                          />
-                        </Field>
-                        <Field label="Price (GHS)">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={edit.price}
-                            onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], price: e.target.value } }))}
-                            className={inputClassName()}
-                          />
-                        </Field>
-                        <Field label="Stock">
-                          <input
-                            type="number"
-                            min={0}
-                            value={edit.stock}
-                            onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], stock: e.target.value } }))}
-                            className={inputClassName()}
-                          />
-                        </Field>
-                        <Field label="Description">
-                          <textarea
-                            rows={3}
-                            value={edit.description}
-                            onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], description: e.target.value } }))}
-                            className={inputClassName(true)}
-                          />
-                        </Field>
-                        <Field label="Image URL">
-                          <input
-                            value={edit.image}
-                            placeholder="https://…"
-                            onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: e.target.value } }))}
-                            className={inputClassName()}
-                          />
-                        </Field>
-                        {edit.image ? (
-                          <div className="col-span-2 flex items-center gap-3">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={edit.image} alt="preview" className="h-20 w-20 rounded-xl object-cover border" />
-                            <ImageUploadButton
-                              onUpload={(url: string) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: url } }))}
-                              label="Replace Image"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex items-end">
-                            <ImageUploadButton
-                              onUpload={(url: string) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: url } }))}
-                              label="Upload Image"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex gap-2 mt-2">
-                        <button
-                          type="button"
-                          onClick={() => void saveVendorProductEdit(vp.id)}
-                          disabled={vendorProductSaving === vp.id}
-                          className="flex-1 rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-60"
-                        >
-                          {vendorProductSaving === vp.id ? "Saving…" : "Save Changes"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void deleteVendorProductFromTab(vp.id)}
-                          disabled={vendorProductDeleting === vp.id}
-                          className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50 disabled:opacity-60"
-                        >
-                          {vendorProductDeleting === vp.id ? "Deleting…" : "Remove"}
-                        </button>
-                      </div>
-                    </div>
                   ) : null}
-                </article>
-              );
-            })}
+                  {vp.price > 0 ? (
+                    <span className="text-sm text-[var(--ink-soft)]">GHS {vp.price.toLocaleString()}</span>
+                  ) : null}
+                  {(vp.stock ?? 0) === 0 ? (
+                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Out of stock</span>
+                  ) : (
+                    <span className="text-xs text-[var(--ink-soft)]">Stock: {vp.stock}</span>
+                  )}
+                  <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">Vendor</span>
+                </div>
+                <span className="shrink-0 text-[var(--brand-deep)] text-lg" aria-hidden>
+                  {isExpanded ? "▲" : "▼"}
+                </span>
+              </button>
+
+              {isExpanded && edit ? (
+              <div className="border-t border-black/10 p-4">
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                <Field label="Name">
+                  <input
+                    value={edit.name}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], name: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Category">
+                  <select
+                    value={edit.category}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], category: e.target.value } }))}
+                    className={inputClassName()}
+                  >
+                    {getProductCategories(content.categories).map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Price (GHS)">
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={edit.price}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], price: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Stock">
+                  <input
+                    type="number"
+                    min={0}
+                    value={edit.stock}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], stock: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Description">
+                  <textarea
+                    rows={3}
+                    value={edit.description}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], description: e.target.value } }))}
+                    className={inputClassName(true)}
+                  />
+                </Field>
+                <Field label="Image URL">
+                  <input
+                    value={edit.image}
+                    placeholder="https://…"
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                </Field>
+                {edit.image ? (
+                  <div className="col-span-2 flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={edit.image} alt="preview" className="h-20 w-20 rounded-xl object-cover border" />
+                    <ImageUploadButton
+                      onUpload={(url: string) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: url } }))}
+                      label="Replace Image"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-end">
+                    <ImageUploadButton
+                      onUpload={(url: string) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], image: url } }))}
+                      label="Upload Image"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-end mt-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => void saveVendorProductEdit(vp.id)}
+                  disabled={vendorProductSaving === vp.id}
+                  className="flex-1 rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-60"
+                >
+                  {vendorProductSaving === vp.id ? "Saving…" : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void deleteVendorProductFromTab(vp.id)}
+                  disabled={vendorProductDeleting === vp.id}
+                  className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                >
+                  {vendorProductDeleting === vp.id ? "Deleting…" : "Remove"}
+                </button>
+              </div>
+              </div>
+              ) : null}
+            </article>
+            );
+          })}
         </div>
 
         </Section>
