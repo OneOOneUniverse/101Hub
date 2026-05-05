@@ -7411,6 +7411,7 @@ function AdminVendorsPanel() {
   };
   const [editAdminItem, setEditAdminItem] = useState<EditAdminItem | null>(null);
   const [editAdminSaving, setEditAdminSaving] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     void loadData();
@@ -7552,6 +7553,26 @@ function AdminVendorsPanel() {
 
   return (
     <div className="space-y-4">
+      {/* Vendor Application Form Link */}
+      <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-[var(--brand-deep)]">Vendor Application Form</p>
+          <p className="text-xs text-[var(--ink-soft)] mt-0.5">Share this link with vendors to invite them to apply and join the marketplace.</p>
+          <p className="mt-1 text-xs font-mono text-[var(--ink)] break-all">https://www.101hub.shop/vendor/apply</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard.writeText("https://www.101hub.shop/vendor/apply");
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 2000);
+          }}
+          className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition"
+        >
+          {linkCopied ? "✓ Copied!" : "Copy Link"}
+        </button>
+      </div>
+
       {/* Tabs */}
       <div className="flex gap-1 rounded-xl bg-black/5 p-1">
         {(["applications", "products", "services"] as const).map((t) => {
@@ -7678,6 +7699,17 @@ function AdminVendorsPanel() {
                         </div>
                       </div>
                     </div>
+                    {/* Gallery images */}
+                    {(item.images ?? []).length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {item.images!.map((img, imgIdx) => (
+                          <a key={imgIdx} href={img} target="_blank" rel="noopener noreferrer" title={`Gallery image ${imgIdx + 1}`}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={img} alt={`Gallery ${imgIdx + 1}`} className="h-12 w-12 rounded-md object-cover border border-black/10 hover:border-[var(--brand)] transition" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     <div className="mt-3 space-y-2">
                       <input
                         value={notes[item.id] ?? item.admin_notes ?? ""}
