@@ -67,6 +67,7 @@ export default function VendorDashboard() {
 
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productForm, setProductForm] = useState({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [] as string[], variants: [] as ProductVariant[] });
   const [productUploading, setProductUploading] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
@@ -77,6 +78,7 @@ export default function VendorDashboard() {
 
   // Service form
   const [showServiceForm, setShowServiceForm] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [serviceForm, setServiceForm] = useState({ name: "", description: "", price: "", turnaround: "", image: "" });
   const [serviceUploading, setServiceUploading] = useState(false);
   const [serviceSaving, setServiceSaving] = useState(false);
@@ -196,28 +198,50 @@ export default function VendorDashboard() {
     }
   }
 
+  function startEditProduct(p: VendorProduct) {
+    setEditingProductId(p.id);
+    setProductForm({
+      name: p.name,
+      description: p.description,
+      price: String(p.price),
+      category: p.category,
+      stock: String(p.stock),
+      image: p.image ?? "",
+      images: p.images ?? [],
+      variants: p.variants ?? [],
+    });
+    setProductError("");
+    setShowProductForm(true);
+  }
+
   async function handleAddProduct(e: React.FormEvent) {
     e.preventDefault();
     setProductError("");
     setProductSaving(true);
     try {
+      const payload = {
+        name: productForm.name,
+        description: productForm.description,
+        price: parseFloat(productForm.price),
+        category: productForm.category,
+        stock: parseInt(productForm.stock, 10),
+        image: productForm.image || null,
+        images: productForm.images,
+        variants: productForm.variants.length > 0 ? productForm.variants : undefined,
+      };
       const res = await fetch("/api/vendor/products", {
-        method: "POST",
+        method: editingProductId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: productForm.name,
-          description: productForm.description,
-          price: parseFloat(productForm.price),
-          category: productForm.category,
-          stock: parseInt(productForm.stock, 10),
-          image: productForm.image || null,
-          images: productForm.images,
-          variants: productForm.variants.length > 0 ? productForm.variants : undefined,
-        }),
+        body: JSON.stringify(editingProductId ? { id: editingProductId, ...payload } : payload),
       });
       const data = (await res.json()) as { error?: string; item?: VendorProduct };
-      if (!res.ok) { setProductError(data.error ?? "Failed to add product."); return; }
-      setProducts((prev) => [data.item!, ...prev]);
+      if (!res.ok) { setProductError(data.error ?? "Failed to save product."); return; }
+      if (editingProductId) {
+        setProducts((prev) => prev.map((p) => p.id === editingProductId ? data.item! : p));
+      } else {
+        setProducts((prev) => [data.item!, ...prev]);
+      }
+      setEditingProductId(null);
       setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [] });
       setShowProductForm(false);
     } catch {
@@ -227,25 +251,44 @@ export default function VendorDashboard() {
     }
   }
 
+  function startEditService(sv: VendorService) {
+    setEditingServiceId(sv.id);
+    setServiceForm({
+      name: sv.name,
+      description: sv.description,
+      price: String(sv.price),
+      turnaround: sv.turnaround,
+      image: sv.image ?? "",
+    });
+    setServiceError("");
+    setShowServiceForm(true);
+  }
+
   async function handleAddService(e: React.FormEvent) {
     e.preventDefault();
     setServiceError("");
     setServiceSaving(true);
     try {
+      const payload = {
+        name: serviceForm.name,
+        description: serviceForm.description,
+        price: parseFloat(serviceForm.price),
+        turnaround: serviceForm.turnaround,
+        image: serviceForm.image || null,
+      };
       const res = await fetch("/api/vendor/services", {
-        method: "POST",
+        method: editingServiceId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: serviceForm.name,
-          description: serviceForm.description,
-          price: parseFloat(serviceForm.price),
-          turnaround: serviceForm.turnaround,
-          image: serviceForm.image || null,
-        }),
+        body: JSON.stringify(editingServiceId ? { id: editingServiceId, ...payload } : payload),
       });
       const data = (await res.json()) as { error?: string; item?: VendorService };
-      if (!res.ok) { setServiceError(data.error ?? "Failed to add service."); return; }
-      setServices((prev) => [data.item!, ...prev]);
+      if (!res.ok) { setServiceError(data.error ?? "Failed to save service."); return; }
+      if (editingServiceId) {
+        setServices((prev) => prev.map((s) => s.id === editingServiceId ? data.item! : s));
+      } else {
+        setServices((prev) => [data.item!, ...prev]);
+      }
+      setEditingServiceId(null);
       setServiceForm({ name: "", description: "", price: "", turnaround: "", image: "" });
       setShowServiceForm(false);
     } catch {
@@ -402,7 +445,7 @@ export default function VendorDashboard() {
 
           {showProductForm && (
             <form onSubmit={(e) => void handleAddProduct(e)} style={s.formCard}>
-              <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700 }}>New Product</h3>
+              <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700 }}>{editingProductId ? "Edit Product" : "New Product"}</h3>
               <div style={s.formGrid}>
                 <div style={s.fg}>
                   <label style={s.lbl}>Product Name *</label>
@@ -552,8 +595,8 @@ export default function VendorDashboard() {
 
               {productError && <p style={s.errText}>{productError}</p>}
               <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-                <button type="submit" disabled={productSaving} style={s.btnPrimary}>{productSaving ? "Saving…" : "Submit for Review"}</button>
-                <button type="button" onClick={() => { setShowProductForm(false); setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [] }); }} style={s.btnSecondary}>Cancel</button>
+                <button type="submit" disabled={productSaving} style={s.btnPrimary}>{productSaving ? "Saving…" : editingProductId ? "Save Changes" : "Submit for Review"}</button>
+                <button type="button" onClick={() => { setShowProductForm(false); setEditingProductId(null); setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [] }); }} style={s.btnSecondary}>Cancel</button>
               </div>
             </form>
           )}
@@ -578,6 +621,7 @@ export default function VendorDashboard() {
                     </div>
                   </div>
                   <StatusBadge status={p.status} />
+                  <button onClick={() => startEditProduct(p)} style={{ ...s.deleteBtn, background: "rgba(49,130,206,0.12)", color: "#2b6cb0" }} title="Edit">✎</button>
                   <button onClick={() => void handleDeleteProduct(p.id)} style={s.deleteBtn} title="Delete">✕</button>
                 </div>
               ))}
@@ -600,7 +644,7 @@ export default function VendorDashboard() {
 
           {showServiceForm && (
             <form onSubmit={(e) => void handleAddService(e)} style={s.formCard}>
-              <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700 }}>New Service</h3>
+              <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700 }}>{editingServiceId ? "Edit Service" : "New Service"}</h3>
               <div style={s.formGrid}>
                 <div style={s.fg}>
                   <label style={s.lbl}>Service Name *</label>
@@ -634,8 +678,8 @@ export default function VendorDashboard() {
               </div>
               {serviceError && <p style={s.errText}>{serviceError}</p>}
               <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-                <button type="submit" disabled={serviceSaving} style={s.btnPrimary}>{serviceSaving ? "Saving…" : "Submit for Review"}</button>
-                <button type="button" onClick={() => setShowServiceForm(false)} style={s.btnSecondary}>Cancel</button>
+                <button type="submit" disabled={serviceSaving} style={s.btnPrimary}>{serviceSaving ? "Saving…" : editingServiceId ? "Save Changes" : "Submit for Review"}</button>
+                <button type="button" onClick={() => { setShowServiceForm(false); setEditingServiceId(null); setServiceForm({ name: "", description: "", price: "", turnaround: "", image: "" }); }} style={s.btnSecondary}>Cancel</button>
               </div>
             </form>
           )}
@@ -656,6 +700,7 @@ export default function VendorDashboard() {
                     <div style={s.itemMeta}>GHS {sv.price.toFixed(2)} · {sv.turnaround}</div>
                   </div>
                   <StatusBadge status={sv.status} />
+                  <button onClick={() => startEditService(sv)} style={{ ...s.deleteBtn, background: "rgba(49,130,206,0.12)", color: "#2b6cb0" }} title="Edit">✎</button>
                   <button onClick={() => void handleDeleteService(sv.id)} style={s.deleteBtn} title="Delete">✕</button>
                 </div>
               ))}

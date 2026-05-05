@@ -6937,6 +6937,20 @@ function AdminVendorsPanel() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "application" | "products" | "services" } | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
+  type EditAdminItem = {
+    id: string;
+    type: "products" | "services";
+    name: string;
+    description: string;
+    price: string;
+    category: string;
+    stock: string;
+    turnaround: string;
+    image: string;
+  };
+  const [editAdminItem, setEditAdminItem] = useState<EditAdminItem | null>(null);
+  const [editAdminSaving, setEditAdminSaving] = useState(false);
+
   useEffect(() => {
     void loadData();
   }, [tab]);
@@ -7023,6 +7037,51 @@ function AdminVendorsPanel() {
       }
     } catch { /* silent */ } finally {
       setDeleting(null);
+    }
+  }
+
+  async function saveAdminItemEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editAdminItem) return;
+    setEditAdminSaving(true);
+    setMessage("");
+    try {
+      const body: Record<string, unknown> = {
+        id: editAdminItem.id,
+        type: editAdminItem.type,
+        name: editAdminItem.name,
+        description: editAdminItem.description,
+        price: parseFloat(editAdminItem.price),
+        image: editAdminItem.image.trim() || null,
+      };
+      if (editAdminItem.type === "products") {
+        body.category = editAdminItem.category;
+        body.stock = parseInt(editAdminItem.stock, 10);
+      } else {
+        body.turnaround = editAdminItem.turnaround;
+      }
+      const res = await fetch("/api/admin/vendor-products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const setter = editAdminItem.type === "products" ? setProducts : setServices;
+        setter((prev) => prev.map((item) => item.id === editAdminItem.id ? {
+          ...item,
+          name: editAdminItem.name,
+          description: editAdminItem.description,
+          price: parseFloat(editAdminItem.price),
+          category: editAdminItem.type === "products" ? editAdminItem.category : item.category,
+          stock: editAdminItem.type === "products" ? parseInt(editAdminItem.stock, 10) : item.stock,
+          turnaround: editAdminItem.type === "services" ? editAdminItem.turnaround : item.turnaround,
+          image: editAdminItem.image.trim() || null,
+        } : item));
+        setMessage("Changes saved.");
+        setEditAdminItem(null);
+      }
+    } catch { /* silent */ } finally {
+      setEditAdminSaving(false);
     }
   }
 
@@ -7184,6 +7243,23 @@ function AdminVendorsPanel() {
                         </button>
                         <button
                           type="button"
+                          onClick={() => setEditAdminItem({
+                            id: item.id,
+                            type: tab as "products" | "services",
+                            name: item.name,
+                            description: item.description,
+                            price: String(item.price),
+                            category: item.category ?? "",
+                            stock: String(item.stock ?? 1),
+                            turnaround: item.turnaround ?? "",
+                            image: item.image ?? "",
+                          })}
+                          className="rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-200"
+                        >
+                          ✎ Edit
+                        </button>
+                        <button
+                          type="button"
                           disabled={actionLoading === item.id}
                           onClick={() => setDeleteConfirm({ id: item.id, type: tab })}
                           className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"
@@ -7202,6 +7278,108 @@ function AdminVendorsPanel() {
             </div>
           )}
         </>
+      )}
+
+      {/* Edit Item Modal */}
+      {editAdminItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-[var(--brand-deep)]">
+              Edit {editAdminItem.type === "products" ? "Product" : "Service"}
+            </h3>
+            <form onSubmit={(e) => void saveAdminItemEdit(e)} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--brand-deep)] mb-1">Name *</label>
+                <input
+                  required
+                  value={editAdminItem.name}
+                  onChange={(e) => setEditAdminItem((prev) => prev ? { ...prev, name: e.target.value } : null)}
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[var(--brand)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--brand-deep)] mb-1">Description *</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={editAdminItem.description}
+                  onChange={(e) => setEditAdminItem((prev) => prev ? { ...prev, description: e.target.value } : null)}
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[var(--brand)] resize-y"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--brand-deep)] mb-1">Price (GHS) *</label>
+                  <input
+                    required
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={editAdminItem.price}
+                    onChange={(e) => setEditAdminItem((prev) => prev ? { ...prev, price: e.target.value } : null)}
+                    className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[var(--brand)]"
+                  />
+                </div>
+                {editAdminItem.type === "products" ? (
+                  <>
+                    <div>
+                      <label className="block text-xs font-semibold text-[var(--brand-deep)] mb-1">Stock</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editAdminItem.stock}
+                        onChange={(e) => setEditAdminItem((prev) => prev ? { ...prev, stock: e.target.value } : null)}
+                        className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[var(--brand)]"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-semibold text-[var(--brand-deep)] mb-1">Category</label>
+                      <input
+                        value={editAdminItem.category}
+                        onChange={(e) => setEditAdminItem((prev) => prev ? { ...prev, category: e.target.value } : null)}
+                        className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[var(--brand)]"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-semibold text-[var(--brand-deep)] mb-1">Turnaround</label>
+                    <input
+                      value={editAdminItem.turnaround}
+                      onChange={(e) => setEditAdminItem((prev) => prev ? { ...prev, turnaround: e.target.value } : null)}
+                      className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[var(--brand)]"
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--brand-deep)] mb-1">Image URL</label>
+                <input
+                  value={editAdminItem.image}
+                  onChange={(e) => setEditAdminItem((prev) => prev ? { ...prev, image: e.target.value } : null)}
+                  placeholder="https://…"
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[var(--brand)]"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditAdminItem(null)}
+                  className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm font-bold text-[var(--ink)] hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editAdminSaving}
+                  className="flex-1 rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-60"
+                >
+                  {editAdminSaving ? "Saving…" : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}

@@ -82,6 +82,58 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, item: data }, { status: 201 });
 }
 
+export async function PATCH(request: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const vendor = await getApprovedVendor(userId);
+  if (!vendor) return NextResponse.json({ error: "Not an approved vendor." }, { status: 403 });
+
+  const body = (await request.json()) as {
+    id?: string;
+    name?: string;
+    description?: string;
+    price?: number;
+    category?: string;
+    stock?: number;
+    image?: string | null;
+    images?: string[];
+    variants?: object[];
+  };
+
+  const { id, name, description, price, category } = body;
+  if (!id) return NextResponse.json({ error: "id is required." }, { status: 400 });
+  if (!name?.trim() || !description?.trim() || !price || !category?.trim()) {
+    return NextResponse.json({ error: "name, description, price, and category are required." }, { status: 400 });
+  }
+  if (typeof price !== "number" || price <= 0) {
+    return NextResponse.json({ error: "Price must be a positive number." }, { status: 400 });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("vendor_products")
+    .update({
+      name: name.trim(),
+      description: description.trim(),
+      price,
+      category: category.trim(),
+      stock: typeof body.stock === "number" && body.stock >= 0 ? body.stock : 1,
+      image: typeof body.image === "string" ? body.image.trim() || null : body.image ?? null,
+      images: Array.isArray(body.images) ? body.images : [],
+      variants: Array.isArray(body.variants) && body.variants.length > 0 ? body.variants : null,
+      status: "pending", // resets for re-approval after edit
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("vendor_id", userId) // only own products
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: "Failed to update product." }, { status: 500 });
+
+  return NextResponse.json({ success: true, item: data });
+}
+
 export async function DELETE(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

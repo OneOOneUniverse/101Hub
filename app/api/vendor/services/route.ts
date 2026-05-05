@@ -79,6 +79,52 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, item: data }, { status: 201 });
 }
 
+export async function PATCH(request: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const vendor = await getApprovedVendor(userId);
+  if (!vendor) return NextResponse.json({ error: "Not an approved vendor." }, { status: 403 });
+
+  const body = (await request.json()) as {
+    id?: string;
+    name?: string;
+    description?: string;
+    price?: number;
+    turnaround?: string;
+    image?: string | null;
+  };
+
+  const { id, name, description, price, turnaround } = body;
+  if (!id) return NextResponse.json({ error: "id is required." }, { status: 400 });
+  if (!name?.trim() || !description?.trim() || !price || !turnaround?.trim()) {
+    return NextResponse.json({ error: "name, description, price, and turnaround are required." }, { status: 400 });
+  }
+  if (typeof price !== "number" || price <= 0) {
+    return NextResponse.json({ error: "Price must be a positive number." }, { status: 400 });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("vendor_services")
+    .update({
+      name: name.trim(),
+      description: description.trim(),
+      price,
+      turnaround: turnaround.trim(),
+      image: typeof body.image === "string" ? body.image.trim() || null : body.image ?? null,
+      status: "pending", // resets for re-approval after edit
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("vendor_id", userId) // only own services
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: "Failed to update service." }, { status: 500 });
+
+  return NextResponse.json({ success: true, item: data });
+}
+
 export async function DELETE(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

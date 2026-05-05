@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ items: data ?? [] });
 }
 
-/** PATCH /api/admin/vendor-products — approve or reject a vendor product/service */
+/** PATCH /api/admin/vendor-products — approve/reject OR edit fields of a vendor product/service */
 export async function PATCH(request: NextRequest) {
   const isAdmin = await isCurrentUserAdmin();
   if (!isAdmin) return NextResponse.json({ error: "Forbidden." }, { status: 403 });
@@ -28,28 +28,48 @@ export async function PATCH(request: NextRequest) {
   const body = (await request.json()) as {
     id?: string;
     type?: string;
+    // status update
     status?: string;
     adminNotes?: string;
+    // field edits (admin can edit without resetting to pending)
+    name?: string;
+    description?: string;
+    price?: number;
+    category?: string;
+    stock?: number;
+    image?: string | null;
+    images?: string[];
+    variants?: object[];
+    turnaround?: string;
   };
 
-  const { id, type, status, adminNotes } = body;
-  if (!id || !status) {
-    return NextResponse.json({ error: "id and status are required." }, { status: 400 });
-  }
-  if (!["approved", "rejected", "pending"].includes(status)) {
-    return NextResponse.json({ error: "Invalid status." }, { status: 400 });
-  }
+  const { id, type } = body;
+  if (!id) return NextResponse.json({ error: "id is required." }, { status: 400 });
 
   const table = type === "services" ? "vendor_services" : "vendor_products";
 
-  const { error } = await supabaseAdmin
-    .from(table)
-    .update({
-      status,
-      admin_notes: typeof adminNotes === "string" ? adminNotes.trim() : null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
+  const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+  if (body.status !== undefined) {
+    if (!["approved", "rejected", "pending"].includes(body.status)) {
+      return NextResponse.json({ error: "Invalid status." }, { status: 400 });
+    }
+    update.status = body.status;
+    update.admin_notes = typeof body.adminNotes === "string" ? body.adminNotes.trim() : null;
+  }
+
+  // Field edits — admin keeps existing status (no re-approval required)
+  if (body.name !== undefined) update.name = body.name.trim();
+  if (body.description !== undefined) update.description = body.description.trim();
+  if (body.price !== undefined) update.price = body.price;
+  if (body.category !== undefined) update.category = body.category.trim();
+  if (body.stock !== undefined) update.stock = body.stock;
+  if ("image" in body) update.image = typeof body.image === "string" ? body.image.trim() || null : null;
+  if (body.images !== undefined) update.images = body.images;
+  if (body.variants !== undefined) update.variants = body.variants;
+  if (body.turnaround !== undefined) update.turnaround = body.turnaround.trim();
+
+  const { error } = await supabaseAdmin.from(table).update(update).eq("id", id);
 
   if (error) return NextResponse.json({ error: "Failed to update item." }, { status: 500 });
 
