@@ -26,6 +26,15 @@ export default function ProductGallery({ productName, images, videos }: ProductG
   for (const img of images) items.push({ type: "image", src: img });
 
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Guard: nothing to show
+  if (items.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-lg border border-black/10 bg-gray-50 sm:h-80 md:h-96">
+        <p className="text-sm text-gray-400">No images available</p>
+      </div>
+    );
+  }
   const [isFullscreen, setIsFullscreen] = useState(false);
   const activeItem = items[activeIndex] ?? items[0];
   const hasMultipleItems = items.length > 1;

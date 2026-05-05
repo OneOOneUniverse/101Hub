@@ -403,7 +403,7 @@ export default function AdminPage() {
   const [adminVendorProducts, setAdminVendorProducts] = useState<VendorItem[]>([]);
   const [adminVendorProductsLoading, setAdminVendorProductsLoading] = useState(false);
   const [expandedVendorProducts, setExpandedVendorProducts] = useState<Set<string>>(new Set());
-  type VendorProductEdit = { name: string; description: string; price: string; category: string; stock: string; image: string; badge: string; rating: string; discount: string; deliveryFee: string; noDeliveryFee: boolean; sizesRaw: string; colorsRaw: string; images: string[]; variants: ProductVariant[] };
+  type VendorProductEdit = { status: "pending" | "approved" | "rejected"; adminNotes: string; name: string; description: string; price: string; category: string; stock: string; image: string; badge: string; rating: string; discount: string; deliveryFee: string; noDeliveryFee: boolean; sizesRaw: string; colorsRaw: string; images: string[]; variants: ProductVariant[] };
   const [vendorProductEdits, setVendorProductEdits] = useState<Record<string, VendorProductEdit>>({});
   const [vendorProductSaving, setVendorProductSaving] = useState<string | null>(null);
   const [vendorProductDeleting, setVendorProductDeleting] = useState<string | null>(null);
@@ -441,6 +441,8 @@ export default function AdminPage() {
           setVendorProductEdits((edits) => ({
             ...edits,
             [id]: {
+              status: product.status,
+              adminNotes: product.admin_notes ?? "",
               name: product.name,
               description: product.description,
               price: String(product.price),
@@ -546,6 +548,8 @@ export default function AdminPage() {
         body: JSON.stringify({
           id,
           type: "products",
+          status: edit.status,
+          adminNotes: edit.adminNotes || undefined,
           name: edit.name,
           description: edit.description,
           price: Number(edit.price),
@@ -566,6 +570,8 @@ export default function AdminPage() {
       const data = (await res.json()) as { success?: boolean };
       if (res.ok && data.success) {
         const updatedFields: Partial<VendorItem> = {
+          status: edit.status,
+          admin_notes: edit.adminNotes || null,
           name: edit.name,
           description: edit.description,
           price: Number(edit.price),
@@ -3059,6 +3065,9 @@ export default function AdminPage() {
                     <span className="text-xs text-[var(--ink-soft)]">Stock: {vp.stock}</span>
                   )}
                   <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">Vendor</span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${vp.status === "approved" ? "bg-emerald-100 text-emerald-700" : vp.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+                    {vp.status === "approved" ? "✅ Approved" : vp.status === "rejected" ? "❌ Rejected" : "⏳ Pending"}
+                  </span>
                 </div>
                 <span className="shrink-0 text-[var(--brand-deep)] text-lg" aria-hidden>
                   {isExpanded ? "▲" : "▼"}
@@ -3067,6 +3076,28 @@ export default function AdminPage() {
 
               {isExpanded && edit ? (
               <div className="border-t border-black/10 p-4">
+              {/* Status + notes row */}
+              <div className="mb-4 grid gap-3 sm:grid-cols-[auto_1fr] items-end rounded-xl border border-black/10 bg-[var(--surface)] p-3">
+                <Field label="Approval Status">
+                  <select
+                    value={edit.status}
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], status: e.target.value as "pending" | "approved" | "rejected" } }))}
+                    className={`${inputClassName()} font-bold ${edit.status === "approved" ? "text-emerald-700" : edit.status === "rejected" ? "text-red-700" : "text-amber-700"}`}
+                  >
+                    <option value="pending">⏳ Pending</option>
+                    <option value="approved">✅ Approved (visible to customers)</option>
+                    <option value="rejected">❌ Rejected</option>
+                  </select>
+                </Field>
+                <Field label="Admin Notes (optional — visible to vendor)">
+                  <input
+                    value={edit.adminNotes}
+                    placeholder="e.g. Price needs adjustment, awaiting clearer photos…"
+                    onChange={(e) => setVendorProductEdits((prev) => ({ ...prev, [vp.id]: { ...prev[vp.id], adminNotes: e.target.value } }))}
+                    className={inputClassName()}
+                  />
+                </Field>
+              </div>
               <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
                 <Field label="Name">
                   <input
@@ -7975,7 +8006,7 @@ function AdminReviewsSection() {
       setReviews((prev) =>
         prev.map((r) =>
           r.id === reviewId
-            ? { ...r, general_review_replies: r.general_review_replies.filter((rep) => rep.id !== replyId) }
+            ? { ...r, general_review_replies: (r.general_review_replies ?? []).filter((rep) => rep.id !== replyId) }
             : r
         )
       );
@@ -8043,7 +8074,7 @@ function AdminReviewsSection() {
                     )}
                   </div>
                   <p className="text-xs text-[var(--ink-soft)] mt-0.5">
-                    {new Date(r.created_at).toLocaleString()} · {r.general_review_reactions.length} reaction{r.general_review_reactions.length !== 1 ? "s" : ""} · {r.general_review_replies.length} repl{r.general_review_replies.length !== 1 ? "ies" : "y"}
+                    {new Date(r.created_at).toLocaleString()} · {(r.general_review_reactions?.length ?? 0)} reaction{(r.general_review_reactions?.length ?? 0) !== 1 ? "s" : ""} · {(r.general_review_replies?.length ?? 0)} repl{(r.general_review_replies?.length ?? 0) !== 1 ? "ies" : "y"}
                   </p>
                   {r.is_deleted && r.deletion_reason && (
                     <p className="text-xs text-red-600 mt-0.5">Reason: {r.deletion_reason}</p>
@@ -8071,10 +8102,10 @@ function AdminReviewsSection() {
               <p className="text-sm text-[var(--ink)] leading-relaxed border-l-2 border-[var(--brand)] pl-3">{r.content}</p>
 
               {/* Replies */}
-              {r.general_review_replies.length > 0 && (
+              {(r.general_review_replies?.length ?? 0) > 0 && (
                 <div className="space-y-2 border-t border-black/05 pt-2">
                   <p className="text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wide">Replies</p>
-                  {r.general_review_replies.map((rep) => (
+                  {(r.general_review_replies ?? []).map((rep) => (
                     <div key={rep.id} className={`flex items-start justify-between gap-2 rounded-lg px-3 py-2 ${rep.is_deleted ? "bg-red-50" : "bg-gray-50"}`}>
                       <div>
                         <span className="text-xs font-bold text-[var(--ink)]">{rep.user_name}</span>

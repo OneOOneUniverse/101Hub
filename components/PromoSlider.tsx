@@ -53,7 +53,7 @@ export default function PromoSlider({ slides, compact = false }: Readonly<PromoS
 
   return (
     <section className="promo-slider slider-container relative mx-auto overflow-hidden rounded-xl" aria-label="Ongoing promos and offers">
-      <div className="relative w-full" style={{ aspectRatio: compact ? "4 / 1" : "3 / 1" }}>
+      <div className={`relative w-full ${compact ? "promo-slider__frame--compact" : "promo-slider__frame"}`}>
         {slides.map((slide, index) => {
           const isActive = index === normalizedIndex;
 
