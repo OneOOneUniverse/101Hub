@@ -25,6 +25,7 @@ type VendorProduct = {
   category?: string;
   stock?: number;
   image?: string | null;
+  status?: string | null;
 };
 
 const STORAGE_KEY = "101hub-cart";
@@ -182,8 +183,9 @@ function ProductsPageContent() {
   const filteredVendorProducts = useMemo(() => {
     const term = query.trim().toLowerCase();
     return vendorProducts.filter((vp) => {
+      if (vp.status === "rejected") return false;
       const categoryMatch = category === "All" || vp.category === category;
-      const text = `${vp.name} ${vp.description}`.toLowerCase();
+      const text = `${vp.name} ${(vp.description ?? "")}`.toLowerCase();
       return categoryMatch && (term ? text.includes(term) : true);
     });
   }, [vendorProducts, category, query]);
