@@ -46,6 +46,11 @@ export async function POST(request: NextRequest) {
     image?: string;
     images?: string[];
     variants?: object[];
+    sizes?: string[] | null;
+    colors?: string[] | null;
+    discount?: number | null;
+    deliveryFee?: number | null;
+    noDeliveryFee?: boolean | null;
   };
 
   const { name, description, price, category } = body;
@@ -69,6 +74,11 @@ export async function POST(request: NextRequest) {
       image: typeof body.image === "string" ? body.image.trim() : null,
       images: Array.isArray(body.images) ? body.images : [],
       variants: Array.isArray(body.variants) ? body.variants : null,
+      sizes: Array.isArray(body.sizes) && body.sizes.length > 0 ? body.sizes : null,
+      colors: Array.isArray(body.colors) && body.colors.length > 0 ? body.colors : null,
+      discount: typeof body.discount === "number" && body.discount > 0 ? body.discount : null,
+      delivery_fee: typeof body.deliveryFee === "number" ? body.deliveryFee : null,
+      no_delivery_fee: body.noDeliveryFee ?? null,
       status: "pending",
     })
     .select()
@@ -99,6 +109,11 @@ export async function PATCH(request: NextRequest) {
     image?: string | null;
     images?: string[];
     variants?: object[];
+    sizes?: string[] | null;
+    colors?: string[] | null;
+    discount?: number | null;
+    deliveryFee?: number | null;
+    noDeliveryFee?: boolean | null;
   };
 
   const { id, name, description, price, category } = body;
@@ -121,6 +136,11 @@ export async function PATCH(request: NextRequest) {
       image: typeof body.image === "string" ? body.image.trim() || null : body.image ?? null,
       images: Array.isArray(body.images) ? body.images : [],
       variants: Array.isArray(body.variants) && body.variants.length > 0 ? body.variants : null,
+      sizes: Array.isArray(body.sizes) && body.sizes.length > 0 ? body.sizes : null,
+      colors: Array.isArray(body.colors) && body.colors.length > 0 ? body.colors : null,
+      discount: typeof body.discount === "number" && body.discount > 0 ? body.discount : null,
+      delivery_fee: typeof body.deliveryFee === "number" ? body.deliveryFee : null,
+      no_delivery_fee: body.noDeliveryFee ?? null,
       status: "pending", // resets for re-approval after edit
       updated_at: new Date().toISOString(),
     })

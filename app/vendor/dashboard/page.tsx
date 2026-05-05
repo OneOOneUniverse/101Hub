@@ -23,6 +23,11 @@ type VendorProduct = {
   image: string | null;
   images: string[];
   variants?: ProductVariant[];
+  sizes?: string[];
+  colors?: string[];
+  discount?: number;
+  deliveryFee?: number;
+  noDeliveryFee?: boolean;
   status: "pending" | "approved" | "rejected";
   admin_notes: string | null;
   created_at: string;
@@ -68,7 +73,7 @@ export default function VendorDashboard() {
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
-  const [productForm, setProductForm] = useState({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [] as string[], variants: [] as ProductVariant[] });
+  const [productForm, setProductForm] = useState({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [] as string[], variants: [] as ProductVariant[], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false });
   const [productUploading, setProductUploading] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [productSaving, setProductSaving] = useState(false);
@@ -209,6 +214,11 @@ export default function VendorDashboard() {
       image: p.image ?? "",
       images: p.images ?? [],
       variants: p.variants ?? [],
+      sizesRaw: (p.sizes ?? []).join(", "),
+      colorsRaw: (p.colors ?? []).join(", "),
+      discount: p.discount !== undefined ? String(p.discount) : "",
+      deliveryFee: p.deliveryFee !== undefined ? String(p.deliveryFee) : "",
+      noDeliveryFee: p.noDeliveryFee ?? false,
     });
     setProductError("");
     setShowProductForm(true);
@@ -219,6 +229,8 @@ export default function VendorDashboard() {
     setProductError("");
     setProductSaving(true);
     try {
+      const sizes = productForm.sizesRaw.trim() ? productForm.sizesRaw.split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+      const colors = productForm.colorsRaw.trim() ? productForm.colorsRaw.split(",").map((c) => c.trim()).filter(Boolean) : undefined;
       const payload = {
         name: productForm.name,
         description: productForm.description,
@@ -228,6 +240,11 @@ export default function VendorDashboard() {
         image: productForm.image || null,
         images: productForm.images,
         variants: productForm.variants.length > 0 ? productForm.variants : undefined,
+        sizes: sizes ?? null,
+        colors: colors ?? null,
+        discount: productForm.discount ? Number(productForm.discount) : null,
+        deliveryFee: productForm.noDeliveryFee ? null : (productForm.deliveryFee ? Number(productForm.deliveryFee) : null),
+        noDeliveryFee: productForm.noDeliveryFee || null,
       };
       const res = await fetch("/api/vendor/products", {
         method: editingProductId ? "PATCH" : "POST",
@@ -242,7 +259,7 @@ export default function VendorDashboard() {
         setProducts((prev) => [data.item!, ...prev]);
       }
       setEditingProductId(null);
-      setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [] });
+      setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false });
       setShowProductForm(false);
     } catch {
       setProductError("Network error.");
@@ -593,10 +610,87 @@ export default function VendorDashboard() {
                 )}
               </div>
 
+              {/* Sizes */}
+              <div style={{ ...s.fg, marginTop: 12, borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 12 }}>
+                <label style={s.lbl}>Sizes <span style={{ fontWeight: 400, color: "var(--ink-soft,#888)" }}>(optional — comma-separated)</span></label>
+                <input
+                  value={productForm.sizesRaw}
+                  onChange={(e) => setProductForm((p) => ({ ...p, sizesRaw: e.target.value }))}
+                  placeholder="e.g. 40, 41, 42, 43   or   Small, Medium, Large, XL"
+                  style={s.inp}
+                />
+                <p style={{ fontSize: 12, color: "var(--ink-soft,#888)", margin: "4px 0 0" }}>Shown as selectable size options on the product page.</p>
+              </div>
+
+              {/* Colors */}
+              <div style={{ ...s.fg, marginTop: 8 }}>
+                <label style={s.lbl}>Colors <span style={{ fontWeight: 400, color: "var(--ink-soft,#888)" }}>(optional — comma-separated)</span></label>
+                <input
+                  value={productForm.colorsRaw}
+                  onChange={(e) => setProductForm((p) => ({ ...p, colorsRaw: e.target.value }))}
+                  placeholder="e.g. Black, White, Navy Blue, Red"
+                  style={s.inp}
+                />
+                <p style={{ fontSize: 12, color: "var(--ink-soft,#888)", margin: "4px 0 0" }}>Shown as selectable colour options on the product page.</p>
+              </div>
+
+              {/* Discount */}
+              <div style={{ ...s.fg, marginTop: 8 }}>
+                <label style={s.lbl}>Discount % <span style={{ fontWeight: 400, color: "var(--ink-soft,#888)" }}>(optional)</span></label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={productForm.discount}
+                  placeholder="Leave empty for no discount"
+                  onChange={(e) => setProductForm((p) => ({ ...p, discount: e.target.value }))}
+                  style={s.inp}
+                />
+                {productForm.discount && Number(productForm.discount) > 0 && productForm.price ? (
+                  <p style={{ fontSize: 12, color: "#276749", margin: "4px 0 0" }}>
+                    Sale price: GHS {(parseFloat(productForm.price) * ((100 - Number(productForm.discount)) / 100)).toFixed(2)}{" "}
+                    (saves GHS {(parseFloat(productForm.price) * (Number(productForm.discount) / 100)).toFixed(2)})
+                  </p>
+                ) : null}
+              </div>
+
+              {/* Delivery fee */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 8, alignItems: "end" }}>
+                <div style={s.fg}>
+                  <label style={s.lbl}>Delivery Fee (GHS) <span style={{ fontWeight: 400, color: "var(--ink-soft,#888)" }}>(optional)</span></label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={productForm.deliveryFee}
+                    placeholder="Leave empty to use store default"
+                    disabled={productForm.noDeliveryFee}
+                    onChange={(e) => setProductForm((p) => ({ ...p, deliveryFee: e.target.value }))}
+                    style={{ ...s.inp, opacity: productForm.noDeliveryFee ? 0.5 : 1 }}
+                  />
+                  <p style={{ fontSize: 12, color: "var(--ink-soft,#888)", margin: "4px 0 0" }}>Per-product delivery charge. Overrides the store default.</p>
+                </div>
+                <div>
+                  <label style={{ ...s.lbl, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={productForm.noDeliveryFee}
+                      onChange={(e) => setProductForm((p) => ({ ...p, noDeliveryFee: e.target.checked, deliveryFee: e.target.checked ? "" : p.deliveryFee }))}
+                      style={{ width: 16, height: 16, accentColor: "var(--brand,#333)" }}
+                    />
+                    Free delivery for this product
+                  </label>
+                  {productForm.noDeliveryFee && (
+                    <p style={{ fontSize: 12, color: "#276749", margin: "4px 0 0", fontWeight: 600 }}>🚚 This product ships for free</p>
+                  )}
+                </div>
+              </div>
+
               {productError && <p style={s.errText}>{productError}</p>}
               <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                 <button type="submit" disabled={productSaving} style={s.btnPrimary}>{productSaving ? "Saving…" : editingProductId ? "Save Changes" : "Submit for Review"}</button>
-                <button type="button" onClick={() => { setShowProductForm(false); setEditingProductId(null); setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [] }); }} style={s.btnSecondary}>Cancel</button>
+                <button type="button" onClick={() => { setShowProductForm(false); setEditingProductId(null); setProductForm({ name: "", description: "", price: "", category: "", stock: "1", image: "", images: [], variants: [], sizesRaw: "", colorsRaw: "", discount: "", deliveryFee: "", noDeliveryFee: false }); }} style={s.btnSecondary}>Cancel</button>
               </div>
             </form>
           )}
