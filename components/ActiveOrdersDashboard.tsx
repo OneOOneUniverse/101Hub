@@ -42,6 +42,8 @@ export default function ActiveOrdersDashboard() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [estimateModal, setEstimateModal] = useState<DeliveryEstimateModal>(null);
   const [savingEstimate, setSavingEstimate] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     void load();
@@ -100,6 +102,22 @@ export default function ActiveOrdersDashboard() {
       setError(err instanceof Error ? err.message : "Could not save delivery estimate");
     } finally {
       setSavingEstimate(false);
+    }
+  }
+
+  async function deleteOrder(orderRef: string) {
+    setDeleting(orderRef);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/orders?orderRef=${encodeURIComponent(orderRef)}`, { method: "DELETE" });
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not delete order");
+      setOrders((prev) => prev.filter((o) => o.orderRef !== orderRef));
+      setDeleteConfirm(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete order");
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -176,6 +194,13 @@ export default function ActiveOrdersDashboard() {
                 >
                   Call Customer
                 </a>
+                <button
+                  onClick={() => setDeleteConfirm(order.orderRef)}
+                  className="rounded-full bg-red-100 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-200"
+                  title="Delete order"
+                >
+                  🗑
+                </button>
               </div>
 
               {/* Messaging Panel */}
@@ -228,6 +253,13 @@ export default function ActiveOrdersDashboard() {
                 >
                   Call Customer
                 </a>
+                <button
+                  onClick={() => setDeleteConfirm(order.orderRef)}
+                  className="rounded-full bg-red-100 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-200"
+                  title="Delete order"
+                >
+                  🗑
+                </button>
               </div>
 
               {/* Messaging Panel */}
@@ -275,6 +307,33 @@ export default function ActiveOrdersDashboard() {
                 className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60"
               >
                 {savingEstimate ? "Saving..." : "Save Estimate"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-red-700">Delete Order?</h3>
+            <p className="text-sm text-[var(--ink-soft)]">
+              This will permanently delete order <strong className="font-mono">{deleteConfirm}</strong>. This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm font-bold text-[var(--ink)] hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void deleteOrder(deleteConfirm)}
+                disabled={deleting === deleteConfirm}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting === deleteConfirm ? "Deleting…" : "Delete"}
               </button>
             </div>
           </div>

@@ -55,3 +55,21 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+
+/** DELETE /api/admin/vendor-products — delete a vendor product or service */
+export async function DELETE(request: NextRequest) {
+  const isAdmin = await isCurrentUserAdmin();
+  if (!isAdmin) return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+
+  const id = request.nextUrl.searchParams.get("id");
+  const type = request.nextUrl.searchParams.get("type") ?? "products";
+  if (!id) return NextResponse.json({ error: "id is required." }, { status: 400 });
+
+  const table = type === "services" ? "vendor_services" : "vendor_products";
+
+  const { error } = await supabaseAdmin.from(table).delete().eq("id", id);
+
+  if (error) return NextResponse.json({ error: "Failed to delete item." }, { status: 500 });
+
+  return NextResponse.json({ success: true });
+}

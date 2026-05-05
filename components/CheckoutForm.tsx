@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { CreditCardIcon, GiftIcon, TruckIcon } from "@/components/Icons";
 import { useStoreContent } from "@/lib/use-store-content";
@@ -91,8 +92,11 @@ function loadLines() {
 
 export default function CheckoutForm() {
   const { content, loading, error: contentError } = useStoreContent();
+  const { user, isLoaded: userLoaded } = useUser();
   const [customerName, setCustomerName] = useState("");
   const [email, setEmail] = useState("");
+  // True once Clerk confirms user is signed in and email is locked
+  const emailLocked = userLoaded && Boolean(user?.primaryEmailAddress?.emailAddress);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [region, setRegion] = useState("");
@@ -197,6 +201,17 @@ export default function CheckoutForm() {
       setDraftRestored(true);
     } catch {}
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Autofill from signed-in Clerk user (always overrides draft email) ───────
+  useEffect(() => {
+    if (!userLoaded || !user) return;
+    const clerkEmail = user.primaryEmailAddress?.emailAddress ?? "";
+    const clerkName = user.username ?? [user.firstName, user.lastName].filter(Boolean).join(" ") ?? "";
+    const clerkPhone = (user.primaryPhoneNumber?.phoneNumber ?? "").replace(/\D/g, "");
+    if (clerkEmail) setEmail(clerkEmail);
+    if (clerkName) setCustomerName((prev) => prev || clerkName);
+    if (clerkPhone) setPhone((prev) => prev || clerkPhone);
+  }, [userLoaded, user]);
 
   // ── Autosave form fields on every change ───────────────────────────────────
   useEffect(() => {
@@ -823,14 +838,18 @@ export default function CheckoutForm() {
                 required
                 placeholder="you@example.com"
                 value={email}
+                readOnly={emailLocked}
                 onChange={(event) => {
+                  if (emailLocked) return;
                   setEmail(event.target.value);
                   if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: "" }));
                 }}
-                className={`input-styled${fieldErrors.email ? " border-red-400" : ""}`}
+                className={`input-styled${fieldErrors.email ? " border-red-400" : ""}${emailLocked ? " cursor-not-allowed opacity-70 select-none" : ""}`}
               />
               {fieldErrors.email ? (
                 <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
+              ) : emailLocked ? (
+                <p className="mt-1 text-xs text-[var(--ink-soft)]">Using your account email · <a href="/profile" className="text-[var(--brand)] hover:underline">change in profile</a></p>
               ) : (
                 <p className="mt-1 text-xs text-[var(--ink-soft)]">We'll send your order confirmation to this email</p>
               )}

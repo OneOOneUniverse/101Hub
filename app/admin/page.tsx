@@ -6934,6 +6934,8 @@ function AdminVendorsPanel() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "application" | "products" | "services" } | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     void loadData();
@@ -6998,6 +7000,29 @@ function AdminVendorsPanel() {
       }
     } catch { /* silent */ } finally {
       setActionLoading(null);
+    }
+  }
+
+  async function deleteRecord(id: string, type: "application" | "products" | "services") {
+    setDeleting(id);
+    setMessage("");
+    try {
+      let url: string;
+      if (type === "application") {
+        url = `/api/admin/vendors?id=${encodeURIComponent(id)}`;
+      } else {
+        url = `/api/admin/vendor-products?id=${encodeURIComponent(id)}&type=${type}`;
+      }
+      const res = await fetch(url, { method: "DELETE" });
+      if (res.ok) {
+        if (type === "application") setApplications((prev) => prev.filter((a) => a.id !== id));
+        else if (type === "products") setProducts((prev) => prev.filter((p) => p.id !== id));
+        else setServices((prev) => prev.filter((s) => s.id !== id));
+        setDeleteConfirm(null);
+        setMessage("Deleted successfully.");
+      }
+    } catch { /* silent */ } finally {
+      setDeleting(null);
     }
   }
 
@@ -7081,6 +7106,15 @@ function AdminVendorsPanel() {
                       >
                         Reject
                       </button>
+                      <button
+                        type="button"
+                        disabled={actionLoading === app.id}
+                        onClick={() => setDeleteConfirm({ id: app.id, type: "application" })}
+                        className="rounded-full bg-gray-100 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"
+                        title="Delete application"
+                      >
+                        🗑 Delete
+                      </button>
                       <span className="text-xs text-[var(--ink-soft)] self-center">
                         Applied {new Date(app.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
@@ -7148,6 +7182,15 @@ function AdminVendorsPanel() {
                         >
                           Reject
                         </button>
+                        <button
+                          type="button"
+                          disabled={actionLoading === item.id}
+                          onClick={() => setDeleteConfirm({ id: item.id, type: tab })}
+                          className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"
+                          title="Delete"
+                        >
+                          🗑 Delete
+                        </button>
                         <span className="text-xs text-[var(--ink-soft)] self-center">
                           {new Date(item.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
@@ -7159,6 +7202,35 @@ function AdminVendorsPanel() {
             </div>
           )}
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-red-700">Confirm Delete</h3>
+            <p className="text-sm text-[var(--ink-soft)]">
+              This will permanently delete this {deleteConfirm.type === "application" ? "vendor application" : deleteConfirm.type === "products" ? "product" : "service"}. This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm font-bold text-[var(--ink)] hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void deleteRecord(deleteConfirm.id, deleteConfirm.type)}
+                disabled={deleting === deleteConfirm.id}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting === deleteConfirm.id ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

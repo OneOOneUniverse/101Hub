@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { sendVendorApplicationEmail, sendVendorApplicationConfirmationEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -55,6 +56,27 @@ export async function POST(request: NextRequest) {
   if (error) {
     console.error("vendor apply error:", error);
     return NextResponse.json({ error: "Failed to submit application." }, { status: 500 });
+  }
+
+  // Notify admin(s) about the new vendor application (non-blocking)
+  sendVendorApplicationEmail({
+    applicantName: user?.fullName ?? "",
+    applicantEmail: email,
+    businessName: businessName.trim(),
+    category: category.trim(),
+    phone: phone.trim(),
+    location: location.trim(),
+    description: description.trim(),
+    website: typeof body.website === "string" ? body.website.trim() : undefined,
+  }).catch((err) => console.error("vendor application admin email error:", err));
+
+  // Confirmation email to the vendor (non-blocking)
+  if (email) {
+    sendVendorApplicationConfirmationEmail({
+      applicantEmail: email,
+      applicantName: user?.fullName ?? "",
+      businessName: businessName.trim(),
+    }).catch((err) => console.error("vendor confirmation email error:", err));
   }
 
   return NextResponse.json({ success: true });

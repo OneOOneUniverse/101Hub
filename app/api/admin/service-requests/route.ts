@@ -101,3 +101,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const adminCheck = await isCurrentUserAdmin();
+  if (!adminCheck) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const url = new URL(request.url);
+  const ticketRef = url.searchParams.get("ticketRef");
+  if (!ticketRef) return NextResponse.json({ error: "ticketRef is required" }, { status: 400 });
+
+  try {
+    const { error: dbError } = await supabaseAdmin
+      .from("service_requests")
+      .delete()
+      .eq("ticket_ref", ticketRef);
+
+    if (dbError) return NextResponse.json({ error: "Could not delete service request" }, { status: 500 });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[admin/service-requests] Delete error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

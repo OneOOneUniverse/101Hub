@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import ImageUploadButton from "@/components/ImageUploadButton";
 
 type Auction = {
   id: number;
@@ -227,8 +228,33 @@ export default function AdminAuctionsPage() {
               <textarea value={form.description} onChange={(e) => setField("description", e.target.value)} maxLength={2000} rows={3} placeholder="Describe the item…" className="input-styled text-sm" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-[var(--ink)]">Image URL</label>
-              <input value={form.image_url} onChange={(e) => setField("image_url", e.target.value)} type="url" placeholder="https://…" className="input-styled text-sm" />
+              <label className="mb-1 block text-xs font-semibold text-[var(--ink)]">Auction Image</label>
+              {form.image_url ? (
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.image_url} alt="Preview" className="h-16 w-16 rounded-lg object-cover border border-black/10" />
+                  <div className="flex flex-col gap-1.5">
+                    <ImageUploadButton
+                      folder="auctions"
+                      label="Replace Image"
+                      onUpload={(url) => setField("image_url", url)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setField("image_url", "")}
+                      className="rounded-full border border-red-200 px-3 py-1 text-[11px] font-semibold text-red-500 hover:bg-red-50"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <ImageUploadButton
+                  folder="auctions"
+                  label="Upload Image"
+                  onUpload={(url) => setField("image_url", url)}
+                />
+              )}
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--ink)]">Starting Price (GHS) <span className="text-red-500">*</span></label>

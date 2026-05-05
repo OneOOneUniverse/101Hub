@@ -49,6 +49,8 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
     if (p) setPhone(p);
   }, [isLoaded, user]);
 
+  const emailLocked = isLoaded && Boolean(user?.primaryEmailAddress?.emailAddress);
+
   async function handleConfirmPayment() {
     setStatus("submitting");
     try {
@@ -162,11 +164,15 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                readOnly={emailLocked}
+                onChange={(e) => { if (!emailLocked) setEmail(e.target.value); }}
                 placeholder="you@example.com"
                 required maxLength={254}
-                className="input-styled text-sm"
+                className={`input-styled text-sm${emailLocked ? " cursor-not-allowed opacity-70 select-none" : ""}`}
               />
+              {emailLocked && (
+                <p className="mt-1 text-xs text-[var(--ink-soft)]">Using your account email · <a href="/profile" className="text-[var(--brand)] hover:underline">change in profile</a></p>
+              )}
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--ink)]">Phone Number <span className="text-red-500">*</span></label>

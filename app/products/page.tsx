@@ -16,6 +16,17 @@ import { emitCartUpdate } from "@/lib/use-cart-count";
 
 type CartLine = { productId: string; qty: number };
 
+type VendorProduct = {
+  id: string;
+  vendor_name: string;
+  name: string;
+  description: string;
+  price: number;
+  category?: string;
+  stock?: number;
+  image?: string | null;
+};
+
 const STORAGE_KEY = "101hub-cart";
 
 function addToCart(productId: string) {
@@ -54,6 +65,15 @@ function ProductsPageContent() {
   const [reviewSummaryByProduct, setReviewSummaryByProduct] = useState<
     Record<string, { average: number; count: number }>
   >({});
+  const [vendorProducts, setVendorProducts] = useState<VendorProduct[]>([]);
+  const [vendorAddedId, setVendorAddedId] = useState("");
+
+  useEffect(() => {
+    fetch("/api/public/vendor-products")
+      .then((r) => r.json())
+      .then((d: { items?: VendorProduct[] }) => setVendorProducts(d.items ?? []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setQuery(searchQuery);
@@ -600,6 +620,77 @@ function ProductsPageContent() {
             ›
           </button>
         </nav>
+      )}
+
+      {/* Vendor Products */}
+      {vendorProducts.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-black sm:text-xl">Products from Independent Vendors</h2>
+            <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-700">Vendor</span>
+          </div>
+          <div className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {vendorProducts.map((item) => (
+              <article key={item.id} className="product-card">
+                <div className="product-card__shine" />
+                <div className="product-card__glow" />
+                <div className="product-card__content">
+                  <p className="product-card__badge" style={{ background: "#7c3aed" }}>Vendor</p>
+                  {item.image ? (
+                    <div className="product-card__img-wrap">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.image} alt={item.name} className="product-card__img" />
+                    </div>
+                  ) : (
+                    <div className="product-card__image" aria-hidden="true" />
+                  )}
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs">
+                      {item.category ?? "Vendor"}
+                    </p>
+                  </div>
+                  <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
+                    <Link href={`/products/vendor/${item.id}`}>{item.name}</Link>
+                  </h2>
+                  <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">by {item.vendor_name}</p>
+                  <div className="flex items-end justify-between gap-1">
+                    <p className="text-sm font-black leading-none sm:text-base product-card__price">
+                      GHS {item.price.toFixed(2)}
+                    </p>
+                    {item.stock !== undefined && (
+                      <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {item.stock}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-1.5 sm:gap-2">
+                    <button
+                      onClick={() => {
+                        const raw = localStorage.getItem(STORAGE_KEY);
+                        const existing = raw ? (JSON.parse(raw) as CartLine[]) : [];
+                        const idx = existing.findIndex((l) => l.productId === item.id);
+                        if (idx >= 0) existing[idx] = { ...existing[idx], qty: existing[idx].qty + 1 };
+                        else existing.push({ productId: item.id, qty: 1 });
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+                        window.dispatchEvent(new Event("101hub:cart-updated"));
+                        window.dispatchEvent(new Event("101hub:product-added"));
+                        setVendorAddedId(item.id);
+                        setTimeout(() => setVendorAddedId(""), 1200);
+                      }}
+                      className="flex-1 product-card__action rounded-full bg-[var(--brand)] px-2 py-1.5 text-[11px] font-bold text-white hover:bg-[var(--brand-deep)] sm:px-4 sm:py-2 sm:text-sm"
+                    >
+                      {vendorAddedId === item.id ? "Added" : "Add to Cart"}
+                    </button>
+                    <Link
+                      href={`/products/vendor/${item.id}`}
+                      className="rounded-full border border-[var(--brand)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:px-4 sm:py-2 sm:text-sm"
+                    >
+                      View
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

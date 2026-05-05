@@ -417,6 +417,119 @@ export async function sendPaymentVerifiedEmail(customerEmail: string, customerNa
   });
 }
 
+// ─── Auction order emails ────────────────────────────────────────
+
+export interface AuctionOrderEmailData {
+  orderRef: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerAddress: string;
+  auctionTitle: string;
+  amount: number;
+  paymentProofUrl?: string | null;
+}
+
+function auctionCustomerHtml(data: AuctionOrderEmailData): string {
+  return wrapLayout(`
+    <h2 style="margin:0 0 16px;color:#111;font-size:20px">Auction Order Received! 🏆</h2>
+    <p style="margin:0 0 6px;font-size:14px;color:#333">Hi <strong>${data.customerName}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">Congratulations on winning the auction! Your order has been received and is awaiting payment verification.</p>
+
+    <div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin-bottom:16px">
+      <p style="margin:0 0 4px;font-size:13px;color:#888">Order Reference</p>
+      <p style="margin:0;font-size:18px;font-weight:700;color:${BRAND_COLOR}">${data.orderRef}</p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Item</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${data.auctionTitle}</td></tr>
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Amount</td><td style="padding:7px 10px;font-size:13px;color:${BRAND_COLOR};font-weight:700">GHS ${data.amount.toFixed(2)}</td></tr>
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Delivery</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${data.customerAddress}</td></tr>
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Phone</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${data.customerPhone}</td></tr>
+    </table>
+
+    <div style="background:#fef3c7;border:1px solid #fcd34d;padding:14px;border-radius:8px;margin:20px 0">
+      <p style="margin:0 0 6px;font-weight:700;color:#78350f;font-size:14px">💳 Payment Status</p>
+      <p style="margin:0;font-size:13px;color:#92400e">${data.paymentProofUrl ? '✅ Payment screenshot received — pending admin verification.' : '⏳ Awaiting payment proof. Please upload your payment screenshot.'}</p>
+    </div>
+
+    <p style="margin:16px 0 0;font-size:13px;color:#555">We'll notify you once your payment is verified and your order is on its way.</p>
+  `);
+}
+
+function auctionAdminHtml(data: AuctionOrderEmailData): string {
+  return wrapLayout(`
+    <div style="background:#fff7ed;border:2px solid ${BRAND_COLOR};border-radius:10px;padding:14px 18px;margin-bottom:20px">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#c2410c">🏆 New Auction Order — Payment Verification Required</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#9a3412">A winning bidder has submitted their order. Review payment proof below.</p>
+    </div>
+
+    <div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin-bottom:20px;text-align:center">
+      <p style="margin:0 0 2px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.05em">Order Reference</p>
+      <p style="margin:0;font-size:22px;font-weight:800;color:${BRAND_COLOR}">${data.orderRef}</p>
+    </div>
+
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.05em">👤 Customer</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Name</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${data.customerName}</td></tr>
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Email</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600"><a href="mailto:${data.customerEmail}" style="color:${BRAND_COLOR}">${data.customerEmail}</a></td></tr>
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Phone</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600"><a href="tel:${data.customerPhone}" style="color:${BRAND_COLOR}">${data.customerPhone}</a></td></tr>
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Address</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${data.customerAddress}</td></tr>
+    </table>
+
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.05em">🏷️ Auction Item</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Item</td><td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${data.auctionTitle}</td></tr>
+      <tr><td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap">Winning Bid</td><td style="padding:7px 10px;font-size:16px;font-weight:800;color:${BRAND_COLOR}">GHS ${data.amount.toFixed(2)}</td></tr>
+    </table>
+
+    <div style="background:#fef3c7;border:1px solid #fcd34d;padding:14px 16px;border-radius:8px;margin:20px 0">
+      <p style="margin:0 0 8px;font-weight:700;color:#78350f;font-size:14px">💳 Payment Proof</p>
+      ${data.paymentProofUrl
+        ? `<p style="margin:0 0 8px;font-size:13px;color:#92400e">✅ Screenshot uploaded by customer.</p>
+           <a href="${data.paymentProofUrl}" target="_blank" rel="noopener noreferrer"
+              style="display:inline-block;padding:10px 20px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:13px">
+             View Payment Screenshot →
+           </a>`
+        : `<p style="margin:0;font-size:13px;color:#b45309;font-weight:600">❌ No screenshot uploaded — follow up with the customer.</p>`
+      }
+    </div>
+
+    <div style="text-align:center;margin:24px 0 8px">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop'}/admin"
+         style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+        Open Admin Panel →
+      </a>
+    </div>
+  `);
+}
+
+/** Send auction order confirmation to customer + admin notification with payment proof */
+export async function sendAuctionOrderEmails(data: AuctionOrderEmailData) {
+  const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
+  const extraEmails = (process.env.ADMIN_NOTIFICATION_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim())
+    .filter(Boolean);
+  const adminRecipients = [...new Set([primaryEmail, ...extraEmails])];
+
+  await safeSend({
+    from: fromAddress(),
+    to: data.customerEmail,
+    subject: `Your ${STORE_NAME} auction order ${data.orderRef} is confirmed!`,
+    html: auctionCustomerHtml(data),
+  });
+
+  for (const recipient of adminRecipients) {
+    await safeSend({
+      from: `"${STORE_NAME} Auctions" <${process.env.SMTP_USER}>`,
+      to: recipient,
+      subject: `🏆 Auction Order ${data.orderRef} — ${data.customerName} (GHS ${data.amount.toFixed(2)}) — ${data.paymentProofUrl ? 'Proof Uploaded' : 'NO PROOF'}`,
+      html: auctionAdminHtml(data),
+    });
+  }
+}
+
 /**
  * Send a broadcast email to a list of recipients.
  * Sends in BCC batches of 50 to avoid SMTP limits and timeouts.
@@ -705,6 +818,81 @@ function serviceRequestAdminHtml(d: ServiceRequestEmailData): string {
   `);
 }
 
+/** Admin notification when a new vendor application is submitted */
+export async function sendVendorApplicationEmail(opts: {
+  applicantName: string;
+  applicantEmail: string;
+  businessName: string;
+  category: string;
+  phone: string;
+  location: string;
+  description: string;
+  website?: string;
+}) {
+  const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
+  const extraEmails = (process.env.ADMIN_NOTIFICATION_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim())
+    .filter(Boolean);
+  const adminRecipients = [...new Set([primaryEmail, ...extraEmails])];
+
+  const html = wrapLayout(`
+    <h2 style="margin:0 0 16px;color:#111;font-size:20px">🏪 New Vendor Application</h2>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">A new vendor has submitted an application and is awaiting review.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:20px">
+      <tr style="background:#f9fafb">
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;width:40%">Business Name</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111">${opts.businessName}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;border-top:1px solid #f0f0f0">Applicant</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111;border-top:1px solid #f0f0f0">${opts.applicantName || opts.applicantEmail}</td>
+      </tr>
+      <tr style="background:#f9fafb">
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;border-top:1px solid #f0f0f0">Email</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111;border-top:1px solid #f0f0f0">${opts.applicantEmail}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;border-top:1px solid #f0f0f0">Category</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111;border-top:1px solid #f0f0f0">${opts.category}</td>
+      </tr>
+      <tr style="background:#f9fafb">
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;border-top:1px solid #f0f0f0">Phone</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111;border-top:1px solid #f0f0f0">${opts.phone}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;border-top:1px solid #f0f0f0">Location</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111;border-top:1px solid #f0f0f0">${opts.location}</td>
+      </tr>
+      ${opts.website ? `<tr style="background:#f9fafb">
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;border-top:1px solid #f0f0f0">Website</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111;border-top:1px solid #f0f0f0">${opts.website}</td>
+      </tr>` : ''}
+      <tr ${opts.website ? '' : 'style="background:#f9fafb"'}>
+        <td style="padding:10px 12px;font-size:13px;font-weight:700;color:#555;border-top:1px solid #f0f0f0;vertical-align:top">Description</td>
+        <td style="padding:10px 12px;font-size:13px;color:#111;border-top:1px solid #f0f0f0">${opts.description}</td>
+      </tr>
+    </table>
+
+    <div style="text-align:center;margin:24px 0 8px">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop'}/admin"
+         style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+        Review in Admin Panel →
+      </a>
+    </div>
+  `);
+
+  for (const recipient of adminRecipients) {
+    await safeSend({
+      from: `"${STORE_NAME} Vendors" <${process.env.SMTP_USER}>`,
+      to: recipient,
+      subject: `🏪 New Vendor Application — ${opts.businessName}`,
+      html,
+    });
+  }
+}
+
 /** Send service request confirmation to customer and notification to admin */
 export async function sendServiceRequestEmails(data: ServiceRequestEmailData) {
   const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
@@ -732,3 +920,94 @@ export async function sendServiceRequestEmails(data: ServiceRequestEmailData) {
     });
   }
 }
+
+/** Confirmation email sent to vendor when their application is received */
+export async function sendVendorApplicationConfirmationEmail(opts: {
+  applicantEmail: string;
+  applicantName: string;
+  businessName: string;
+}) {
+  await safeSend({
+    from: fromAddress(),
+    to: opts.applicantEmail,
+    subject: `Your ${STORE_NAME} vendor application has been received`,
+    html: wrapLayout(`
+      <h2 style="margin:0 0 16px;color:#111;font-size:20px">Application Received ✅</h2>
+      <p style="margin:0 0 12px;font-size:14px;color:#333">Hi <strong>${opts.applicantName || opts.businessName}</strong>,</p>
+      <p style="margin:0 0 12px;font-size:14px;color:#555">
+        Thank you for applying to become a vendor on <strong>${STORE_NAME}</strong>! We've received your application for
+        <strong>${opts.businessName}</strong> and our team will review it shortly.
+      </p>
+      <p style="margin:0 0 12px;font-size:14px;color:#555">
+        You'll receive another email once your application has been reviewed. In the meantime, feel free to
+        browse the store and reach out if you have any questions.
+      </p>
+      <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:14px;margin:20px 0">
+        <p style="margin:0;font-size:13px;color:#78350f">
+          <strong>What happens next?</strong> Our admin team reviews applications within 1–3 business days. You'll be notified by email once a decision is made.
+        </p>
+      </div>
+      <p style="margin:16px 0 0;font-size:13px;color:#555">Thank you for your interest in partnering with us!</p>
+    `),
+  });
+}
+
+/** Email sent to vendor when their application is approved or rejected */
+export async function sendVendorStatusEmail(opts: {
+  applicantEmail: string;
+  applicantName: string;
+  businessName: string;
+  status: "approved" | "rejected";
+  adminNotes?: string;
+}) {
+  const isApproved = opts.status === "approved";
+
+  await safeSend({
+    from: fromAddress(),
+    to: opts.applicantEmail,
+    subject: isApproved
+      ? `🎉 Congratulations! Your ${STORE_NAME} vendor application is approved`
+      : `Update on your ${STORE_NAME} vendor application`,
+    html: wrapLayout(`
+      <h2 style="margin:0 0 16px;color:#111;font-size:20px">
+        ${isApproved ? "🎉 Application Approved!" : "Application Update"}
+      </h2>
+      <p style="margin:0 0 12px;font-size:14px;color:#333">Hi <strong>${opts.applicantName || opts.businessName}</strong>,</p>
+
+      ${isApproved ? `
+      <p style="margin:0 0 12px;font-size:14px;color:#555">
+        Great news! Your vendor application for <strong>${opts.businessName}</strong> has been <strong style="color:#16a34a">approved</strong>.
+        You can now log in to your dashboard and start listing products and services.
+      </p>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px;margin:20px 0">
+        <p style="margin:0 0 6px;font-weight:700;color:#166534;font-size:14px">What you can do now:</p>
+        <ul style="margin:0;padding-left:20px;color:#15803d;font-size:13px">
+          <li>Add products and services from your vendor dashboard</li>
+          <li>Your listings go live on the store after admin review</li>
+          <li>Track your submissions from the dashboard</li>
+        </ul>
+      </div>
+      <div style="text-align:center;margin:24px 0 8px">
+        <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop'}/vendor/dashboard"
+           style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+          Go to Vendor Dashboard →
+        </a>
+      </div>
+      ` : `
+      <p style="margin:0 0 12px;font-size:14px;color:#555">
+        Thank you for your interest in becoming a vendor on <strong>${STORE_NAME}</strong>. After reviewing your application
+        for <strong>${opts.businessName}</strong>, we are unable to approve it at this time.
+      </p>
+      ${opts.adminNotes ? `
+      <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:14px;margin:16px 0">
+        <p style="margin:0 0 4px;font-weight:700;color:#991b1b;font-size:13px">Reason:</p>
+        <p style="margin:0;font-size:13px;color:#7f1d1d">${opts.adminNotes}</p>
+      </div>` : ''}
+      <p style="margin:0 0 12px;font-size:14px;color:#555">
+        You are welcome to re-apply in the future. If you have questions, please contact us.
+      </p>
+      `}
+    `),
+  });
+}
+

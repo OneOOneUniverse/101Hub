@@ -1,9 +1,19 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
+
+type VendorService = {
+  id: string;
+  vendor_name: string;
+  name: string;
+  description: string;
+  price: number;
+  turnaround?: string;
+  image?: string | null;
+};
 
 export default function ServicesPage() {
   return (
@@ -23,6 +33,14 @@ export default function ServicesPage() {
 function ServicesContent() {
   const { content, loading, error: contentError } = useStoreContent();
   const services = useMemo(() => content?.services ?? [], [content?.services]);
+  const [vendorServices, setVendorServices] = useState<VendorService[]>([]);
+
+  useEffect(() => {
+    fetch("/api/public/vendor-services")
+      .then((r) => r.json())
+      .then((d: { items?: VendorService[] }) => setVendorServices(d.items ?? []))
+      .catch(() => {});
+  }, []);
 
   if (loading) {
     return (
@@ -142,6 +160,56 @@ function ServicesContent() {
           </article>
         ))}
       </div>
+
+      {/* Vendor Services */}
+      {vendorServices.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-black sm:text-xl">Services from Independent Vendors</h2>
+            <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-700">Vendor</span>
+          </div>
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {vendorServices.map((vs) => (
+              <article key={vs.id} className="product-card group">
+                <div className="product-card__shine" />
+                <div className="product-card__glow" />
+                <div className="product-card__content flex flex-col h-full">
+                  {vs.image ? (
+                    <div className="relative mb-3 overflow-hidden rounded-lg border border-black/10 h-40">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={vs.image} alt={vs.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="relative mb-3 overflow-hidden rounded-lg border border-black/10 bg-[var(--base-light)] h-40 flex items-center justify-center">
+                      <span className="text-3xl text-[var(--ink-soft)]">🛠</span>
+                    </div>
+                  )}
+                  <div className="flex-1 flex flex-col">
+                    <span className="inline-block self-start rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700 mb-1">Vendor</span>
+                    <h2 className="text-sm font-bold sm:text-base mb-1">{vs.name}</h2>
+                    <p className="text-xs text-[var(--ink-soft)] sm:text-sm line-clamp-2 mb-3">{vs.description}</p>
+                    <div className="flex items-center justify-between gap-2 mb-3 text-xs sm:text-sm">
+                      {vs.turnaround && (
+                        <div>
+                          <p className="text-[var(--ink-soft)]">Turnaround</p>
+                          <p className="font-semibold">{vs.turnaround}</p>
+                        </div>
+                      )}
+                      <div className="text-right">
+                        <p className="text-[var(--ink-soft)]">Price</p>
+                        <p className="font-black text-[var(--brand-deep)]">₵{vs.price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <div className="mb-3 text-xs py-2 px-2 bg-[var(--base-light)] rounded text-[var(--ink-soft)]">
+                      <p className="font-semibold">{vs.vendor_name}</p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

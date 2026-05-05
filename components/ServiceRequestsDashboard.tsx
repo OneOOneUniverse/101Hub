@@ -86,6 +86,8 @@ export default function ServiceRequestsDashboard() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | StatusKey>("all");
   const [proofModal, setProofModal] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => { void load(); }, []);
 
@@ -120,6 +122,22 @@ export default function ServiceRequestsDashboard() {
       setError(err instanceof Error ? err.message : "Could not update request");
     } finally {
       setUpdating(null);
+    }
+  }
+
+  async function deleteRequest(ticketRef: string) {
+    setDeleting(ticketRef);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/service-requests?ticketRef=${encodeURIComponent(ticketRef)}`, { method: "DELETE" });
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not delete request");
+      setRequests((prev) => prev.filter((r) => r.ticket_ref !== ticketRef));
+      setDeleteConfirm(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete request");
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -348,10 +366,44 @@ export default function ServiceRequestsDashboard() {
                   >
                     <span className="flex items-center gap-1"><MessageIcon /> WhatsApp</span>
                   </a>
+                  <button
+                    onClick={() => setDeleteConfirm(req.ticket_ref)}
+                    className="rounded-lg bg-red-100 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-200 transition-colors"
+                    title="Delete request"
+                  >
+                    🗑 Delete
+                  </button>
                 </div>
               </article>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-red-700">Delete Service Request?</h3>
+            <p className="text-sm text-[var(--ink-soft)]">
+              This will permanently delete request <strong className="font-mono">{deleteConfirm}</strong>. This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm font-bold text-[var(--ink)] hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void deleteRequest(deleteConfirm)}
+                disabled={deleting === deleteConfirm}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting === deleteConfirm ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </section>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { notifyAdmins } from "@/lib/db-notifications";
+import { sendAuctionOrderEmails } from "@/lib/email";
 
 type ClaimBody = {
   orderRef?: string;
@@ -89,6 +90,20 @@ export async function POST(
       { auctionId, orderRef, paymentProofUrl, customerEmail, customerPhone }
     );
   } catch { /* non-fatal */ }
+
+  // Send confirmation email to customer and admin notification
+  try {
+    await sendAuctionOrderEmails({
+      orderRef,
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerAddress,
+      auctionTitle: title,
+      amount: Number(amount),
+      paymentProofUrl: paymentProofUrl ?? null,
+    });
+  } catch (e) { console.error("[auction-claim] sendAuctionOrderEmails failed:", e); }
 
   return NextResponse.json({ success: true, orderRef });
 }
