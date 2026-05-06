@@ -7,78 +7,84 @@ export default function SiteLoader() {
   const [dismissed, setDismissed] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement>(null);
-  const truckRef  = useRef<HTMLDivElement>(null);
-  const textRef   = useRef<HTMLParagraphElement>(null);
+  const truckRef   = useRef<HTMLDivElement>(null);
+  const textRef    = useRef<HTMLParagraphElement>(null);
 
-  // ── Entrance animation (runs once on mount) ──────────────────────
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline();
-
-      // Truck rolls in from right
-      tl.fromTo(
-        truckRef.current,
-        { x: 320, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" }
-      );
-
-      // Text fades + rises
-      tl.fromTo(
-        textRef.current,
-        { y: 18, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
-        "-=0.2"
-      );
+    // Set will-change once so the browser promotes these to their own
+    // compositor layers — eliminates layout thrash during animation.
+    gsap.set([overlayRef.current, truckRef.current, textRef.current], {
+      willChange: "transform, opacity",
     });
 
-    return () => ctx.revert();
-  }, []);
+    // ── Single master timeline ────────────────────────────────────
+    const master = gsap.timeline({ paused: true });
 
-  // ── Dismiss when page is fully loaded ────────────────────────────
-  useEffect(() => {
-    function dismiss() {
-      const tl = gsap.timeline({ onComplete: () => setDismissed(true) });
-
-      // Truck rolls off to the left
-      tl.to(truckRef.current, {
-        x: -340,
-        opacity: 0,
-        duration: 0.55,
-        ease: "power2.in",
-      });
-
-      // Text fades out simultaneously
-      tl.to(
+    // 1. Entrance: truck slides in from right, text fades up
+    master
+      .fromTo(
+        truckRef.current,
+        { x: 200, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.6, ease: "power2.out" }
+      )
+      .fromTo(
         textRef.current,
-        { y: -12, opacity: 0, duration: 0.4, ease: "power2.in" },
-        "<"
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" },
+        "-=0.2"
       );
 
-      // Overlay slides upward and fades
-      tl.to(
+    // 2. Exit: truck rolls left, text fades, overlay fades out (no wipe)
+    master
+      .to(
+        truckRef.current,
+        { x: -260, opacity: 0, duration: 0.45, ease: "power2.in" },
+        "+=0.5"   // pause after entrance so it's readable
+      )
+      .to(
+        textRef.current,
+        { opacity: 0, duration: 0.3, ease: "power1.in" },
+        "<"
+      )
+      .to(
         overlayRef.current,
-        {
-          yPercent: -100,
-          opacity: 0,
-          duration: 0.55,
-          ease: "power3.inOut",
+        { opacity: 0, duration: 0.4, ease: "power2.inOut",
+          onComplete: () => {
+            // Clean up will-change after animation
+            gsap.set([overlayRef.current, truckRef.current, textRef.current], {
+              willChange: "auto",
+            });
+            setDismissed(true);
+          },
         },
-        "-=0.15"
+        "-=0.1"
       );
+
+    master.play();
+
+    // Trigger the exit section as soon as the page has fully loaded.
+    // We seek to just before the exit so it plays immediately.
+    const EXIT_LABEL_TIME = master.duration() - 1.3; // time of the exit segment
+
+    function triggerExit() {
+      // If the master hasn't reached the exit segment yet, fast-forward to it.
+      if (master.time() < EXIT_LABEL_TIME) {
+        master.seek(EXIT_LABEL_TIME);
+      }
     }
 
     if (document.readyState === "complete") {
-      // Small extra pause so the entrance animation is always visible
-      const t = setTimeout(dismiss, 600);
-      return () => clearTimeout(t);
+      triggerExit();
+    } else {
+      window.addEventListener("load", triggerExit, { once: true });
     }
-
-    window.addEventListener("load", dismiss, { once: true });
-    const fallback = setTimeout(dismiss, 2000);
+    // Hard cap: never block the user for more than 3 s
+    const cap = setTimeout(triggerExit, 3000);
 
     return () => {
-      window.removeEventListener("load", dismiss);
-      clearTimeout(fallback);
+      window.removeEventListener("load", triggerExit);
+      clearTimeout(cap);
+      master.kill();
     };
   }, []);
 

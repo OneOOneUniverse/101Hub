@@ -6,7 +6,6 @@ import "./globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import SiteLoader from "@/components/SiteLoader";
-import PageReveal from "@/components/PageReveal";
 import ReferralTracker from "@/components/ReferralTracker";
 import ThemeProvider from "@/components/ThemeProvider";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
@@ -160,7 +159,6 @@ export default async function RootLayout({
         <body className="min-h-full flex flex-col bg-[var(--surface)] text-[var(--ink)]">
           <ThemeProvider>
           <SiteLoader />
-          <PageReveal />
           <PWAInstallBanner />
           <AnnouncementPopup />
           <FeaturesTour />

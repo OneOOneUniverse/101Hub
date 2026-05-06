@@ -906,8 +906,8 @@ body {
   justify-content: center;
   background: #fff;
   color: #172026;
-  /* opacity/visibility now driven by GSAP — no CSS transition needed */
   overflow: hidden;
+  will-change: opacity;
 }
 .site-loader-truck {
   width: 200px;
@@ -918,6 +918,7 @@ body {
   align-items: center;
   justify-content: flex-end;
   overflow-x: hidden;
+  will-change: transform, opacity;
 }
 .site-loader-truck .truck-body {
   width: 130px;
