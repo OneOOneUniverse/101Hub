@@ -1,30 +1,96 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 
 export default function SiteLoader() {
-  const [loaded, setLoaded] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const truckRef  = useRef<HTMLDivElement>(null);
+  const textRef   = useRef<HTMLParagraphElement>(null);
+
+  // ── Entrance animation (runs once on mount) ──────────────────────
   useEffect(() => {
-    // Dismiss as soon as the browser fires "load" (all resources ready).
-    // Fall back to a short timeout so the loader never hangs on slow networks.
-    if (document.readyState === "complete") {
-      setLoaded(true);
-      return;
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
+
+      // Truck rolls in from right
+      tl.fromTo(
+        truckRef.current,
+        { x: 320, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" }
+      );
+
+      // Text fades + rises
+      tl.fromTo(
+        textRef.current,
+        { y: 18, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
+        "-=0.2"
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  // ── Dismiss when page is fully loaded ────────────────────────────
+  useEffect(() => {
+    function dismiss() {
+      const tl = gsap.timeline({ onComplete: () => setDismissed(true) });
+
+      // Truck rolls off to the left
+      tl.to(truckRef.current, {
+        x: -340,
+        opacity: 0,
+        duration: 0.55,
+        ease: "power2.in",
+      });
+
+      // Text fades out simultaneously
+      tl.to(
+        textRef.current,
+        { y: -12, opacity: 0, duration: 0.4, ease: "power2.in" },
+        "<"
+      );
+
+      // Overlay slides upward and fades
+      tl.to(
+        overlayRef.current,
+        {
+          yPercent: -100,
+          opacity: 0,
+          duration: 0.55,
+          ease: "power3.inOut",
+        },
+        "-=0.15"
+      );
     }
-    const onLoad = () => setLoaded(true);
-    window.addEventListener("load", onLoad, { once: true });
-    // Safety net: never block the UI longer than 800 ms
-    const fallback = setTimeout(() => setLoaded(true), 800);
+
+    if (document.readyState === "complete") {
+      // Small extra pause so the entrance animation is always visible
+      const t = setTimeout(dismiss, 600);
+      return () => clearTimeout(t);
+    }
+
+    window.addEventListener("load", dismiss, { once: true });
+    const fallback = setTimeout(dismiss, 2000);
+
     return () => {
-      window.removeEventListener("load", onLoad);
+      window.removeEventListener("load", dismiss);
       clearTimeout(fallback);
     };
   }, []);
 
+  if (dismissed) return null;
+
   return (
-    <div className={`site-loader-overlay${loaded ? " loaded" : ""}`}>
-      <div className="site-loader-truck">
+    <div
+      ref={overlayRef}
+      className="site-loader-overlay"
+      aria-hidden="true"
+    >
+      <div ref={truckRef} className="site-loader-truck">
         <div className="truck-body">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 198 93">
             <path strokeWidth={3} stroke="#282828" fill="#ff6b35" d="M135 22.5H177.264C178.295 22.5 179.22 23.133 179.594 24.0939L192.33 56.8443C192.442 57.1332 192.5 57.4404 192.5 57.7504V89C192.5 90.3807 191.381 91.5 190 91.5H135C133.619 91.5 132.5 90.3807 132.5 89V25C132.5 23.6193 133.619 22.5 135 22.5Z" />
@@ -59,7 +125,7 @@ export default function SiteLoader() {
     h78.747C231.693,100.736,232.77,106.162,232.77,111.694z" />
         </svg>
       </div>
-      <p className="site-loader-text">DELIVERING YOUR EXPERIENCE...</p>
+      <p ref={textRef} className="site-loader-text">DELIVERING YOUR EXPERIENCE...</p>
     </div>
   );
 }

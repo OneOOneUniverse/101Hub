@@ -906,12 +906,8 @@ body {
   justify-content: center;
   background: #fff;
   color: #172026;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-.site-loader-overlay.loaded {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+  /* opacity/visibility now driven by GSAP — no CSS transition needed */
+  overflow: hidden;
 }
 .site-loader-truck {
   width: 200px;
