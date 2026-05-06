@@ -7426,6 +7426,7 @@ function AdminVendorsPanel() {
   const [inviteTokens, setInviteTokens] = useState<InviteToken[]>([]);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteCreating, setInviteCreating] = useState(false);
+  const [inviteError, setInviteError] = useState("");
   const [inviteForm, setInviteForm] = useState({ label: "", usesLimit: "", expiresAt: "" });
   const [inviteShowForm, setInviteShowForm] = useState(false);
   const [copiedTokenId, setCopiedTokenId] = useState<string | null>(null);
@@ -7460,6 +7461,7 @@ function AdminVendorsPanel() {
   async function createInviteToken(e: React.FormEvent) {
     e.preventDefault();
     setInviteCreating(true);
+    setInviteError("");
     try {
       const res = await fetch("/api/admin/vendor-invite", {
         method: "POST",
@@ -7470,13 +7472,17 @@ function AdminVendorsPanel() {
           expiresAt: inviteForm.expiresAt || null,
         }),
       });
-      const d = (await res.json()) as { token?: InviteToken };
+      const d = (await res.json()) as { token?: InviteToken; error?: string };
       if (res.ok && d.token) {
         setInviteTokens((prev) => [d.token!, ...prev]);
         setInviteForm({ label: "", usesLimit: "", expiresAt: "" });
         setInviteShowForm(false);
+      } else {
+        setInviteError(d.error ?? `Server error ${res.status}`);
       }
-    } catch { /* silent */ } finally {
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : "Network error. Please try again.");
+    } finally {
       setInviteCreating(false);
     }
   }
@@ -7689,6 +7695,11 @@ function AdminVendorsPanel() {
                 />
               </div>
             </div>
+            {inviteError && (
+              <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700 font-semibold">
+                ⚠ {inviteError}
+              </p>
+            )}
             <button
               type="submit"
               disabled={inviteCreating}
