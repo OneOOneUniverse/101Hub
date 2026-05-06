@@ -7411,7 +7411,90 @@ function AdminVendorsPanel() {
   };
   const [editAdminItem, setEditAdminItem] = useState<EditAdminItem | null>(null);
   const [editAdminSaving, setEditAdminSaving] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+
+  // ── Invite link state ────────────────────────────────────────────
+  type InviteToken = {
+    id: string;
+    token: string;
+    label: string | null;
+    uses_limit: number | null;
+    uses_count: number;
+    expires_at: string | null;
+    revoked: boolean;
+    created_at: string;
+  };
+  const [inviteTokens, setInviteTokens] = useState<InviteToken[]>([]);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteCreating, setInviteCreating] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ label: "", usesLimit: "", expiresAt: "" });
+  const [inviteShowForm, setInviteShowForm] = useState(false);
+  const [copiedTokenId, setCopiedTokenId] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  const appUrl =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL ?? "https://www.101hub.shop";
+
+  function inviteUrl(token: string) {
+    return `${appUrl}/vendor/apply?token=${token}`;
+  }
+
+  function copyInviteLink(t: InviteToken) {
+    void navigator.clipboard.writeText(inviteUrl(t.token));
+    setCopiedTokenId(t.id);
+    setTimeout(() => setCopiedTokenId(null), 2000);
+  }
+
+  async function loadInviteTokens() {
+    setInviteLoading(true);
+    try {
+      const res = await fetch("/api/admin/vendor-invite", { cache: "no-store" });
+      const d = (await res.json()) as { tokens?: InviteToken[] };
+      if (res.ok) setInviteTokens(d.tokens ?? []);
+    } catch { /* silent */ } finally {
+      setInviteLoading(false);
+    }
+  }
+
+  async function createInviteToken(e: React.FormEvent) {
+    e.preventDefault();
+    setInviteCreating(true);
+    try {
+      const res = await fetch("/api/admin/vendor-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          label: inviteForm.label.trim() || undefined,
+          usesLimit: inviteForm.usesLimit ? parseInt(inviteForm.usesLimit, 10) : null,
+          expiresAt: inviteForm.expiresAt || null,
+        }),
+      });
+      const d = (await res.json()) as { token?: InviteToken };
+      if (res.ok && d.token) {
+        setInviteTokens((prev) => [d.token!, ...prev]);
+        setInviteForm({ label: "", usesLimit: "", expiresAt: "" });
+        setInviteShowForm(false);
+      }
+    } catch { /* silent */ } finally {
+      setInviteCreating(false);
+    }
+  }
+
+  async function revokeInviteToken(id: string) {
+    setRevoking(id);
+    try {
+      const res = await fetch(`/api/admin/vendor-invite?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (res.ok) setInviteTokens((prev) => prev.map((t) => (t.id === id ? { ...t, revoked: true } : t)));
+    } catch { /* silent */ } finally {
+      setRevoking(null);
+    }
+  }
+
+  useEffect(() => {
+    void loadInviteTokens();
+  }, []);
+  // ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     void loadData();
@@ -7553,25 +7636,129 @@ function AdminVendorsPanel() {
 
   return (
     <div className="space-y-4">
-      {/* Vendor Application Form Link */}
-      <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-bold text-[var(--brand-deep)]">Vendor Application Form</p>
-          <p className="text-xs text-[var(--ink-soft)] mt-0.5">Share this link with vendors to invite them to apply and join the marketplace.</p>
-          <p className="mt-1 text-xs font-mono text-[var(--ink)] break-all">https://www.101hub.shop/vendor/apply</p>
+      {/* ── Invite Link Manager ─────────────────────────────────── */}
+      <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p className="text-sm font-bold text-[var(--brand-deep)]">Vendor Invite Links</p>
+            <p className="text-xs text-[var(--ink-soft)] mt-0.5">
+              Generate unique invite links to control who can access the vendor application form.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setInviteShowForm((v) => !v)}
+            className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition"
+          >
+            {inviteShowForm ? "Cancel" : "+ New Invite Link"}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            void navigator.clipboard.writeText("https://www.101hub.shop/vendor/apply");
-            setLinkCopied(true);
-            setTimeout(() => setLinkCopied(false), 2000);
-          }}
-          className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition"
-        >
-          {linkCopied ? "✓ Copied!" : "Copy Link"}
-        </button>
+
+        {/* Create form */}
+        {inviteShowForm && (
+          <form onSubmit={(e) => void createInviteToken(e)} className="rounded-xl bg-white border border-black/10 p-4 space-y-3">
+            <p className="text-xs font-bold text-[var(--brand-deep)]">Create Invite Link</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink)] mb-1">Label (optional)</label>
+                <input
+                  value={inviteForm.label}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, label: e.target.value }))}
+                  placeholder="e.g. Christmas promo"
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs outline-none focus:border-[var(--brand)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink)] mb-1">Max uses (blank = unlimited)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={inviteForm.usesLimit}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, usesLimit: e.target.value }))}
+                  placeholder="e.g. 10"
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs outline-none focus:border-[var(--brand)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink)] mb-1">Expires at (blank = never)</label>
+                <input
+                  type="datetime-local"
+                  value={inviteForm.expiresAt}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, expiresAt: e.target.value }))}
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs outline-none focus:border-[var(--brand)]"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={inviteCreating}
+              className="rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
+            >
+              {inviteCreating ? "Creating…" : "Create Link"}
+            </button>
+          </form>
+        )}
+
+        {/* Token list */}
+        {inviteLoading ? (
+          <p className="text-xs text-[var(--ink-soft)]">Loading invite links…</p>
+        ) : inviteTokens.length === 0 ? (
+          <p className="text-xs text-[var(--ink-soft)]">No invite links yet. Create one to share with vendors.</p>
+        ) : (
+          <div className="space-y-2">
+            {inviteTokens.map((t) => {
+              const expired = !!t.expires_at && new Date(t.expires_at) < new Date();
+              const exhausted = t.uses_limit !== null && t.uses_count >= t.uses_limit;
+              const inactive = t.revoked || expired || exhausted;
+              return (
+                <div
+                  key={t.id}
+                  className={`rounded-xl border p-3 ${inactive ? "border-red-200 bg-red-50 opacity-70" : "border-black/10 bg-white"}`}
+                >
+                  <div className="flex items-start gap-3 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {t.label && <span className="text-xs font-bold text-[var(--brand-deep)]">{t.label}</span>}
+                        {t.revoked && <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">Revoked</span>}
+                        {!t.revoked && expired && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Expired</span>}
+                        {!t.revoked && !expired && exhausted && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Exhausted</span>}
+                        {!inactive && <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">Active</span>}
+                      </div>
+                      <p className="mt-1 text-[10px] font-mono text-[var(--ink-soft)] break-all">{inviteUrl(t.token)}</p>
+                      <p className="mt-1 text-[10px] text-[var(--ink-soft)]">
+                        Uses: {t.uses_count}{t.uses_limit !== null ? ` / ${t.uses_limit}` : " / ∞"}
+                        {t.expires_at && ` · Expires ${new Date(t.expires_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`}
+                        {` · Created ${new Date(t.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 items-center shrink-0">
+                      <button
+                        type="button"
+                        disabled={inactive}
+                        onClick={() => copyInviteLink(t)}
+                        className="rounded-full bg-[var(--brand)] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {copiedTokenId === t.id ? "✓ Copied!" : "Copy Link"}
+                      </button>
+                      {!t.revoked && (
+                        <button
+                          type="button"
+                          disabled={revoking === t.id}
+                          onClick={() => void revokeInviteToken(t.id)}
+                          className="rounded-full bg-red-100 px-3 py-1.5 text-[10px] font-bold text-red-700 hover:bg-red-200 disabled:opacity-50"
+                        >
+                          {revoking === t.id ? "…" : "Revoke"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+      {/* ──────────────────────────────────────────────────────────── */}
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-xl bg-black/5 p-1">

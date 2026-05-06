@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const CATEGORIES = [
   "Electronics & Gadgets",
@@ -21,6 +21,30 @@ const CATEGORIES = [
 
 export default function VendorApplyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("token") ?? "";
+
+  // Token validation state (only active when a token is present in the URL)
+  const [tokenChecking, setTokenChecking] = useState(!!inviteToken);
+  const [tokenValid, setTokenValid] = useState(!inviteToken); // open access when no token
+  const [tokenError, setTokenError] = useState("");
+
+  useEffect(() => {
+    if (!inviteToken) return;
+    setTokenChecking(true);
+    fetch(`/api/vendor/validate-invite?token=${encodeURIComponent(inviteToken)}`)
+      .then((r) => r.json())
+      .then((d: { valid: boolean; reason?: string }) => {
+        if (d.valid) {
+          setTokenValid(true);
+        } else {
+          setTokenError(d.reason ?? "This invite link is invalid.");
+        }
+      })
+      .catch(() => setTokenError("Could not validate the invite link. Please try again."))
+      .finally(() => setTokenChecking(false));
+  }, [inviteToken]);
+
   const [form, setForm] = useState({
     businessName: "",
     description: "",
@@ -45,7 +69,7 @@ export default function VendorApplyPage() {
       const res = await fetch("/api/vendor/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, inviteToken: inviteToken || undefined }),
       });
       const data = (await res.json()) as { error?: string; status?: string };
       if (!res.ok) {
@@ -63,6 +87,31 @@ export default function VendorApplyPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (tokenChecking) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <p style={{ ...styles.subtext, textAlign: "center" }}>Validating invite link…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tokenValid) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={styles.successIcon}>🔒</div>
+          <h1 style={styles.heading}>Invite Required</h1>
+          <p style={styles.subtext}>{tokenError || "A valid invite link is required to access this form."}</p>
+          <button style={styles.btnPrimary} onClick={() => router.push("/")}>
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (success) {
