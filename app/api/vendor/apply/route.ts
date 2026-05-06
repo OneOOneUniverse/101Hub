@@ -87,24 +87,25 @@ export async function POST(request: NextRequest) {
 
   // Increment invite token use count (non-blocking)
   if (inviteTokenId) {
-    supabaseAdmin.rpc("increment_invite_token_use", { token_id: inviteTokenId })
-      .then(({ error: rpcErr }) => {
+    void (async () => {
+      try {
+        const { error: rpcErr } = await supabaseAdmin.rpc("increment_invite_token_use", { token_id: inviteTokenId });
         if (rpcErr) {
           // Fallback: manual increment
-          return supabaseAdmin
+          const { data: t } = await supabaseAdmin
             .from("vendor_invite_tokens")
             .select("uses_count")
             .eq("id", inviteTokenId)
-            .single()
-            .then(({ data: t }) =>
-              supabaseAdmin
-                .from("vendor_invite_tokens")
-                .update({ uses_count: (t?.uses_count ?? 0) + 1 })
-                .eq("id", inviteTokenId)
-            );
+            .single();
+          await supabaseAdmin
+            .from("vendor_invite_tokens")
+            .update({ uses_count: (t?.uses_count ?? 0) + 1 })
+            .eq("id", inviteTokenId);
         }
-      })
-      .catch((err: unknown) => console.error("invite token increment error:", err));
+      } catch (err) {
+        console.error("invite token increment error:", err);
+      }
+    })();
   }
 
   // Notify admin(s) about the new vendor application (non-blocking)
