@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 /** Returns the number of unique visitors active in the last 15 minutes. */

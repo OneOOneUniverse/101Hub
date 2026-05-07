@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "app/api/admin/broadcast-email/route.ts": { "maxDuration": 30 },
+    "app/api/admin/upload/route.ts": { "maxDuration": 30 },
+    "app/api/vendor/upload/route.ts": { "maxDuration": 30 },
+    "app/api/support/upload/route.ts": { "maxDuration": 30 },
+    "app/api/checkout/route.ts": { "maxDuration": 15 },
+    "app/api/checkout/verify-payment/route.ts": { "maxDuration": 15 },
+    "app/api/admin/verify-payment/route.ts": { "maxDuration": 15 },
+    "app/api/auctions/[id]/bid/route.ts": { "maxDuration": 15 },
+    "app/api/**": { "maxDuration": 10 }
+  }
+}

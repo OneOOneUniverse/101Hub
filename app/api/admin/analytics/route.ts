@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
 // Never cache — active-visitor and totals counts must always be fresh
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 type DailyCount = { date: string; count: number };
