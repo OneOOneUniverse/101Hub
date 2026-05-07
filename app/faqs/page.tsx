@@ -69,26 +69,23 @@ export default function FAQsPage() {
         {/* Search Bar */}
         <div className="mb-8 sm:mb-12">
           <div className="relative">
+            <svg
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--brand)]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               placeholder="Search FAQs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl border-2 border-gray-200 focus:border-black focus:outline-none text-gray-900 placeholder:text-gray-500 transition-colors"
+              className="w-full rounded-full border-2 border-[rgba(255,107,53,0.2)] bg-white py-3 pl-12 pr-5 text-gray-900 outline-none transition-all placeholder:font-medium placeholder:text-[rgba(23,32,38,0.38)] focus:border-[var(--brand)] focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)] sm:py-4"
             />
-            <svg
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
           </div>
         </div>
 

@@ -25,17 +25,28 @@ export default function NavSearch() {
       <label htmlFor="nav-search" className="sr-only">
         Search products
       </label>
-      <div className="flex w-full items-center gap-2 rounded-full border-2 border-[rgba(255,107,53,0.2)] bg-white px-3 py-2 shadow-sm transition-all focus-within:border-[var(--brand)] focus-within:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]" style={{color:'#172026'}}>
+      <div className="relative flex w-full items-center">
+        <svg
+          className="pointer-events-none absolute left-3.5 h-4 w-4 text-[var(--brand)]"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
         <input
           id="nav-search"
           value={query}
           onChange={(event) => setQuery(event.target.value.slice(0, 100))}
           placeholder="Search gadgets, brands, and accessories"
-          className="w-full bg-transparent text-sm outline-none text-[#172026] placeholder:text-[rgba(255,107,53,0.5)] placeholder:font-semibold"
+          className="w-full rounded-full border-2 border-[rgba(255,107,53,0.2)] bg-white py-2 pl-9 pr-24 text-sm text-[#172026] outline-none transition-all placeholder:font-semibold placeholder:text-[rgba(255,107,53,0.45)] focus:border-[var(--brand)] focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]"
         />
         <button
           type="submit"
-          className="rounded-full bg-[var(--brand)] px-3 py-1.5 text-xs font-bold text-white hover:bg-[var(--brand-deep)] transition-all hover:shadow-md active:scale-95"
+          className="absolute right-1.5 rounded-full bg-[var(--brand)] px-4 py-1.5 text-xs font-bold text-white transition-all hover:bg-[var(--brand-deep)] hover:shadow-md active:scale-95"
         >
           Search
         </button>

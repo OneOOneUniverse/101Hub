@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getCategories } from "@/lib/store-data";
+import type { Product } from "@/lib/site-content-types";
 import { defaultProductCategories, getProductCategories } from "@/lib/site-content-types";
 import { useStoreContent } from "@/lib/use-store-content";
 import WishlistButton from "@/components/WishlistButton";
@@ -26,7 +27,12 @@ type VendorProduct = {
   stock?: number;
   image?: string | null;
   status?: string | null;
+  created_at?: string;
 };
+
+type CombinedProduct =
+  | (Product & { _isVendor?: false })
+  | (VendorProduct & { _isVendor: true });
 
 const STORAGE_KEY = "101hub-cart";
 
@@ -123,10 +129,10 @@ function ProductsPageContent() {
     };
   }, [products]);
 
-  const filtered = useMemo(() => {
+  const filtered = useMemo((): CombinedProduct[] => {
     const term = query.trim().toLowerCase();
 
-    let result = products.filter((item) => {
+    const storeItems: CombinedProduct[] = products.filter((item) => {
       // Handle "New Drops" special category
       if (category === "New Drops") {
         // Show products with dateAdded or products with "New" badge
@@ -141,10 +147,22 @@ function ProductsPageContent() {
       const text = `${item.name} ${item.description}`.toLowerCase();
       const searchMatch = term ? text.includes(term) : true;
       return categoryMatch && subCategoryMatch && searchMatch;
-    });
+    }).map((item) => ({ ...item, _isVendor: false as const }));
 
-    // Apply sorting based on sortBy state
-    result.sort((a, b) => {
+    // Vendor products are excluded from "New Drops" and subcategory filtering
+    const vendorItems: CombinedProduct[] = category === "New Drops" ? [] : vendorProducts.filter((vp) => {
+      if (vp.status === "rejected") return false;
+      const categoryMatch = category === "All" || vp.category === category;
+      const text = `${vp.name} ${(vp.description ?? "")}`.toLowerCase();
+      return categoryMatch && (term ? text.includes(term) : true);
+    }).map((vp) => ({ ...vp, _isVendor: true as const }));
+
+    const combined: CombinedProduct[] = [...storeItems, ...vendorItems];
+
+    // Sort the combined list — use created_at for vendor products, dateAdded for store products
+    combined.sort((a, b) => {
+      const dateA = a._isVendor ? (a.created_at ?? "") : (a.dateAdded ?? "");
+      const dateB = b._isVendor ? (b.created_at ?? "") : (b.dateAdded ?? "");
       switch (sortBy) {
         case "price-asc":
           return a.price - b.price;
@@ -153,45 +171,41 @@ function ProductsPageContent() {
         case "name-asc":
           return a.name.localeCompare(b.name);
         case "brand-asc":
-          // Assuming brand is stored in a field, using name as brand proxy
           return a.name.localeCompare(b.name);
         case "oldest":
-          // Sort by dateAdded oldest first
-          if (a.dateAdded && b.dateAdded) {
-            return new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
-          }
-          if (a.dateAdded) return 1;
-          if (b.dateAdded) return -1;
+          if (dateA && dateB) return new Date(dateA).getTime() - new Date(dateB).getTime();
+          if (dateA) return 1;
+          if (dateB) return -1;
           return 0;
         case "newest":
         default:
-          // Sort by dateAdded newest first
-          if (a.dateAdded && b.dateAdded) {
-            return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          if (dateA && dateB) return new Date(dateB).getTime() - new Date(dateA).getTime();
+          if (dateA) return -1;
+          if (dateB) return 1;
+          // Among items with no date, "New" badge comes first
+          if (!a._isVendor && !b._isVendor) {
+            if (a.badge === "New" && b.badge !== "New") return -1;
+            if (a.badge !== "New" && b.badge === "New") return 1;
           }
-          if (a.dateAdded) return -1;
-          if (b.dateAdded) return 1;
-
-          // Then items with "New" badge
-          if (a.badge === "New" && b.badge !== "New") return -1;
-          if (a.badge !== "New" && b.badge === "New") return 1;
-
           return 0;
       }
     });
 
-    return result;
-  }, [category, subCategory, products, query, sortBy]);
+    return combined;
+  }, [category, subCategory, products, vendorProducts, query, sortBy]);
 
-  const filteredVendorProducts = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    return vendorProducts.filter((vp) => {
-      if (vp.status === "rejected") return false;
-      const categoryMatch = category === "All" || vp.category === category;
-      const text = `${vp.name} ${(vp.description ?? "")}`.toLowerCase();
-      return categoryMatch && (term ? text.includes(term) : true);
+  // Featured products: badge="Featured" first, then newest by dateAdded/rating
+  const featuredProducts = useMemo(() => {
+    const badgeFeatured = products.filter((p) => p.badge === "Featured");
+    if (badgeFeatured.length >= 4) return badgeFeatured.slice(0, 10);
+    const sorted = [...products].sort((a, b) => {
+      if (a.dateAdded && b.dateAdded) return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+      if (a.dateAdded) return -1;
+      if (b.dateAdded) return 1;
+      return b.rating - a.rating;
     });
-  }, [vendorProducts, category, query]);
+    return sorted.slice(0, 10);
+  }, [products]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -367,30 +381,208 @@ function ProductsPageContent() {
         )}
 
         <div className="mt-3 flex gap-3 flex-col sm:flex-row sm:items-center">
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search products"
-            className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm"
-          />
-          <select
-            value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as SortOption)}
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm bg-white cursor-pointer"
-          >
-            <option value="newest">Date Added (Newest)</option>
-            <option value="oldest">Date Added (Oldest)</option>
-            <option value="price-asc">Price (Low to High)</option>
-            <option value="price-desc">Price (High to Low)</option>
-            <option value="name-asc">Name (A-Z)</option>
-            <option value="brand-asc">Brand (A-Z)</option>
-          </select>
+          <div className="relative flex-1">
+            <svg className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--brand)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search products..."
+              className="w-full rounded-full border-2 border-[rgba(255,107,53,0.18)] bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-all placeholder:font-medium placeholder:text-[rgba(23,32,38,0.38)] focus:border-[var(--brand)] focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]"
+            />
+          </div>
+          <div className="relative sm:w-52">
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value as SortOption)}
+              className="w-full appearance-none rounded-full border-2 border-[rgba(255,107,53,0.18)] bg-white py-2.5 pl-4 pr-9 text-sm font-semibold outline-none transition-all cursor-pointer focus:border-[var(--brand)] focus:shadow-[0_0_0_3px_rgba(255,107,53,0.1)]"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="price-asc">Price: Low → High</option>
+              <option value="price-desc">Price: High → Low</option>
+              <option value="name-asc">Name (A–Z)</option>
+              <option value="brand-asc">Brand (A–Z)</option>
+            </select>
+            <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--brand)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
       </section>
 
+      {/* ── Featured Products ─────────────────────────────────────── */}
+      {featuredProducts.length > 0 && (
+        <section className="panel overflow-hidden p-4 sm:p-6">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-black sm:text-xl">Featured Products</h2>
+              <p className="text-xs text-[var(--ink-soft)] sm:text-sm">Hand-picked top picks just for you</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setCategory("All"); setSubCategory("All"); document.getElementById("products-grid")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              className="shrink-0 rounded-full border border-[var(--brand)] px-4 py-1.5 text-xs font-bold text-[var(--brand-deep)] transition-all hover:bg-[var(--brand)]/10 active:scale-95"
+            >
+              View All
+            </button>
+          </div>
+          <div className="-mx-4 overflow-x-auto sm:-mx-6">
+            <div className="flex gap-3 px-4 pb-2 sm:px-6" style={{ minWidth: "max-content" }}>
+              {featuredProducts.map((item) => {
+                const hasDiscount = item.discount && item.discount > 0;
+                const isFlash = !hasDiscount && content.features.flashSale && content.flashSale.featuredProductIds.includes(item.id);
+                const discountPct = hasDiscount ? item.discount! : isFlash ? content.flashSale.discountPercentage : 0;
+                const salePrice = discountPct > 0 ? Number((item.price * ((100 - discountPct) / 100)).toFixed(2)) : item.price;
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/products/${item.slug}`}
+                    className="group relative flex w-36 shrink-0 flex-col overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:w-44"
+                  >
+                    {discountPct > 0 && (
+                      <span className="absolute left-2 top-2 z-10 rounded-lg bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white leading-none">
+                        -{discountPct}%
+                      </span>
+                    )}
+                    {item.badge && item.badge !== "Featured" && (
+                      <span className="absolute right-2 top-2 z-10 rounded-lg bg-[var(--brand)] px-1.5 py-0.5 text-[10px] font-black text-white leading-none">
+                        {item.badge}
+                      </span>
+                    )}
+                    <div className="aspect-square w-full overflow-hidden bg-[var(--surface)]">
+                      {item.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      ) : (
+                        <div className="h-full w-full" style={{ background: "linear-gradient(135deg,#f3f4f6,#e5e7eb)" }} />
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-1 p-2.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">{item.category}</p>
+                      <h3 className="line-clamp-2 text-xs font-black leading-tight text-[var(--ink)] sm:text-sm">{item.name}</h3>
+                      <div className="mt-auto flex items-baseline gap-1.5 pt-1">
+                        <span className="text-sm font-black text-[var(--brand-deep)] sm:text-base">GHS {salePrice.toFixed(2)}</span>
+                        {discountPct > 0 && (
+                          <span className="text-[10px] text-[var(--ink-soft)] line-through">GHS {item.price.toFixed(2)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section id="products-grid" className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
         {paginatedProducts.flatMap((item, index) => {
-          // Product-specific discount takes priority
+          // ── Vendor product card ──────────────────────────────────
+          if (item._isVendor) {
+            const card = (
+              <article key={item.id} className="product-card">
+                <div className="product-card__shine" />
+                <div className="product-card__glow" />
+                <div className="product-card__content">
+                  {item.image ? (
+                    <div className="product-card__img-wrap">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.image} alt={item.name} className="product-card__img" />
+                    </div>
+                  ) : (
+                    <div className="product-card__image" aria-hidden="true" />
+                  )}
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
+                      {item.category ?? "Vendor"}
+                    </p>
+                  </div>
+                  <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
+                    <Link href={`/products/vendor/${item.id}`}>{item.name}</Link>
+                  </h2>
+                  <p className="text-[10px] font-bold text-purple-600 sm:text-xs">by {item.vendor_name}</p>
+                  <div className="flex items-end justify-between gap-1">
+                    <p className="text-sm font-black leading-none sm:text-base product-card__price">
+                      GHS {(item.price ?? 0).toFixed(2)}
+                    </p>
+                    {item.stock !== undefined && (
+                      <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {item.stock}</p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
+                    {content.features.cart ? (
+                      <button
+                        onClick={() => {
+                          addToCart(item.id);
+                          setAddedId(item.id);
+                          setTimeout(() => setAddedId(""), 1200);
+                        }}
+                        className="product-card__action rounded-full bg-[var(--brand)] px-2 py-1.5 text-[11px] font-bold text-white hover:bg-[var(--brand-deep)] sm:px-4 sm:py-2 sm:text-sm"
+                      >
+                        {addedId === item.id ? "Added" : "Add to Cart"}
+                      </button>
+                    ) : null}
+                    <Link
+                      href={`/products/vendor/${item.id}`}
+                      className="inline-flex items-center justify-center rounded-full border border-[var(--brand)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:hidden"
+                    >
+                      View
+                    </Link>
+                    <Link
+                      href={`/products/vendor/${item.id}`}
+                      className="hidden rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:inline-flex"
+                    >
+                      View Details
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            );
+            if (enabledStores.length > 0 && (index + 1) % 4 === 0 && index < paginatedProducts.length - 1) {
+              const bannerIndex = Math.floor(index / 4);
+              if (bannerIndex >= enabledStores.length) return [card];
+              const bannerStore = enabledStores[bannerIndex];
+              return [card, (
+                <Link
+                  key={`store-banner-${index}`}
+                  href={`/deals/store/${bannerStore.slug}`}
+                  className="col-span-full flex items-center justify-between gap-3 rounded-xl overflow-hidden px-4 h-14 transition-opacity hover:opacity-90"
+                  style={
+                    bannerStore.backgroundImage
+                      ? { backgroundImage: `url('${bannerStore.backgroundImage}')`, backgroundSize: "cover", backgroundPosition: "center" }
+                      : { background: `linear-gradient(135deg, ${bannerStore.bgColor}, ${bannerStore.bgColor}cc)` }
+                  }
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl">{bannerStore.emoji}</span>
+                    <div>
+                      <p className="text-xs font-black leading-none" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                        {bannerStore.name}
+                      </p>
+                      {bannerStore.description && (
+                        <p className="hidden sm:block text-[10px] opacity-75 leading-tight mt-0.5" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                          {bannerStore.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-xs font-bold" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                      Shop Now
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" style={{ color: bannerStore.backgroundImage ? "#fff" : bannerStore.textColor }}>
+                      <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </Link>
+              )];
+            }
+            return [card];
+          }
+
+          // ── Store product card ───────────────────────────────────
           const hasProductDiscount = item.discount && item.discount > 0;
           const discountPercent = hasProductDiscount ? item.discount : 0;
           
@@ -587,65 +779,6 @@ function ProductsPageContent() {
           }
           return [card];
         })}
-        {filteredVendorProducts.map((vp) => (
-          <article key={vp.id} className="product-card">
-            <div className="product-card__shine" />
-            <div className="product-card__glow" />
-            <div className="product-card__content">
-              {vp.image ? (
-                <div className="product-card__img-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={vp.image} alt={vp.name} className="product-card__img" />
-                </div>
-              ) : (
-                <div className="product-card__image" aria-hidden="true" />
-              )}
-              <div className="flex items-center justify-between gap-1">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-soft)] sm:text-xs md:text-[11px]">
-                  {vp.category ?? "Vendor"}
-                </p>
-              </div>
-              <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
-                <Link href={`/products/vendor/${vp.id}`}>{vp.name}</Link>
-              </h2>
-              <p className="text-[10px] font-bold text-purple-600 sm:text-xs">by {vp.vendor_name}</p>
-              <div className="flex items-end justify-between gap-1">
-                <p className="text-sm font-black leading-none sm:text-base product-card__price">
-                  GHS {(vp.price ?? 0).toFixed(2)}
-                </p>
-                {vp.stock !== undefined && (
-                  <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {vp.stock}</p>
-                )}
-              </div>
-              <div className="grid grid-cols-[1fr_auto] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
-                {content.features.cart ? (
-                  <button
-                    onClick={() => {
-                      addToCart(vp.id);
-                      setAddedId(vp.id);
-                      setTimeout(() => setAddedId(""), 1200);
-                    }}
-                    className="product-card__action rounded-full bg-[var(--brand)] px-2 py-1.5 text-[11px] font-bold text-white hover:bg-[var(--brand-deep)] sm:px-4 sm:py-2 sm:text-sm"
-                  >
-                    {addedId === vp.id ? "Added" : "Add to Cart"}
-                  </button>
-                ) : null}
-                <Link
-                  href={`/products/vendor/${vp.id}`}
-                  className="inline-flex items-center justify-center rounded-full border border-[var(--brand)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:hidden"
-                >
-                  View
-                </Link>
-                <Link
-                  href={`/products/vendor/${vp.id}`}
-                  className="hidden rounded-full border border-[var(--brand)] px-4 py-2 text-sm font-bold text-[var(--brand-deep)] hover:bg-[var(--brand)]/10 sm:inline-flex"
-                >
-                  View Details
-                </Link>
-              </div>
-            </div>
-          </article>
-        ))}
       </section>
 
       {/* Pagination */}
