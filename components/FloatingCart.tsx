@@ -158,9 +158,8 @@ export default function FloatingCart({
         aria-hidden="true"
       />
 
-      {/* Floating Cart Panel — h-screen (100vh) is the fallback for iOS < 16 which
-          does not support the dvh unit; h-[100dvh] overrides it on modern browsers */}
-      <div className="fixed right-0 top-0 h-screen h-[100dvh] w-full max-w-sm z-50 flex flex-col bg-white shadow-2xl rounded-l-xl overflow-hidden sm:rounded-l-2xl">
+      {/* Floating Cart Panel */}
+      <div className="fixed right-0 top-0 h-[100dvh] w-full max-w-sm z-50 flex flex-col bg-white shadow-2xl rounded-l-xl overflow-hidden sm:rounded-l-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-black/10 px-4 sm:px-6 py-4 bg-[var(--surface)]">
           <h2 className="text-lg font-black sm:text-xl">Shopping Cart</h2>
