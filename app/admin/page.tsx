@@ -270,6 +270,7 @@ type AdminSectionId =
   | "flash"
   | "black-friday"
   | "products"
+  | "featured-products"
   | "categories"
   | "delivery"
   | "payments"
@@ -300,6 +301,7 @@ const adminSections: Array<{ id: AdminSectionId; label: string }> = [
   { id: "flash", label: "Flash Sale" },
   { id: "black-friday", label: "Black Friday" },
   { id: "products", label: "Products" },
+  { id: "featured-products", label: "Featured Products" },
   { id: "categories", label: "Categories" },
   { id: "delivery", label: "Delivery" },
   { id: "payments", label: "Payments" },
@@ -3338,6 +3340,106 @@ export default function AdminPage() {
           })}
         </div>
 
+        </Section>
+      ) : null}
+
+      {activeSection === "featured-products" ? (
+        <Section title="Featured Products" description="Choose which products appear in the Featured Products strip on the products page. Selected products are shown first; products with a 'Featured' badge are always included automatically.">
+          {(() => {
+            const featuredIds: string[] = content.featuredProductIds ?? [];
+            const term = productSearch.trim().toLowerCase();
+            const allProds = content.products.filter((p) =>
+              term ? `${p.name} ${p.category}`.toLowerCase().includes(term) : true
+            );
+            return (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex-1 sm:min-w-72 lg:max-w-xl">
+                    <Field label="Search products">
+                      <input
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        placeholder="Filter by name or category"
+                        className={inputClassName()}
+                      />
+                    </Field>
+                  </div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)]">
+                    {featuredIds.length} product{featuredIds.length !== 1 ? "s" : ""} featured
+                  </p>
+                  {featuredIds.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setContent({ ...content, featuredProductIds: [] })}
+                      className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+
+                {/* Selected chips */}
+                {featuredIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {featuredIds.map((id) => {
+                      const prod = content.products.find((p) => p.id === id);
+                      if (!prod) return null;
+                      return (
+                        <span key={id} className="flex items-center gap-1.5 rounded-full bg-[var(--brand)]/10 px-3 py-1 text-xs font-bold text-[var(--brand-deep)]">
+                          {prod.name}
+                          <button
+                            type="button"
+                            aria-label={`Remove ${prod.name} from featured`}
+                            onClick={() => setContent({ ...content, featuredProductIds: featuredIds.filter((fid) => fid !== id) })}
+                            className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--brand-deep)] text-white hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Product checkbox grid */}
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {allProds.map((product) => {
+                    const checked = featuredIds.includes(product.id);
+                    return (
+                      <label
+                        key={product.id}
+                        className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 shadow-sm transition-colors ${
+                          checked
+                            ? "border-[var(--brand)] bg-[var(--brand)]/5"
+                            : "border-black/10 bg-white hover:border-[var(--brand)]/40"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...featuredIds, product.id]
+                              : featuredIds.filter((id) => id !== product.id);
+                            setContent({ ...content, featuredProductIds: next });
+                          }}
+                          className="mt-1 h-4 w-4 accent-[var(--brand)]"
+                        />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-[var(--brand-deep)]">{product.name}</p>
+                          <p className="text-xs text-[var(--ink-soft)]">{product.category}{product.badge ? ` · ${product.badge}` : ""}</p>
+                          <p className="text-xs font-bold text-[var(--ink)]">GHS {product.price.toFixed(2)}</p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                  {allProds.length === 0 && (
+                    <p className="col-span-full text-sm text-[var(--ink-soft)]">No products match your search.</p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </Section>
       ) : null}
 

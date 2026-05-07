@@ -196,6 +196,13 @@ function ProductsPageContent() {
 
   // Featured products: badge="Featured" first, then newest by dateAdded/rating
   const featuredProducts = useMemo(() => {
+    const ids = content.featuredProductIds ?? [];
+    if (ids.length > 0) {
+      const map = new Map(products.map((p) => [p.id, p]));
+      const pinned = ids.map((id) => map.get(id)).filter(Boolean) as Product[];
+      if (pinned.length > 0) return pinned.slice(0, 10);
+    }
+    // Fallback: include any products with "Featured" badge, then fill with newest
     const badgeFeatured = products.filter((p) => p.badge === "Featured");
     if (badgeFeatured.length >= 4) return badgeFeatured.slice(0, 10);
     const sorted = [...products].sort((a, b) => {
@@ -205,7 +212,7 @@ function ProductsPageContent() {
       return b.rating - a.rating;
     });
     return sorted.slice(0, 10);
-  }, [products]);
+  }, [products, content.featuredProductIds]);
 
   // Reset to page 1 when filters change
   useEffect(() => {

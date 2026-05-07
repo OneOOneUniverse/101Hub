@@ -476,5 +476,6 @@ export type SiteContent = {
   announcementPopup?: AnnouncementPopup;
   discountCodes?: DiscountCode[];
   activityToastConfig?: ActivityToastConfig;
+  featuredProductIds?: string[];
   updatedAt: string;
 };

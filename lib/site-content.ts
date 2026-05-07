@@ -814,6 +814,9 @@ export function sanitizeSiteContent(value: unknown): SiteContent {
       discountCodes: candidate.discountCodes.map((c) => sanitizeDiscountCode(c)),
     }),
     activityToastConfig: sanitizeActivityToastConfig(candidate.activityToastConfig ?? {}),
+    ...(Array.isArray(candidate.featuredProductIds) && {
+      featuredProductIds: candidate.featuredProductIds.filter((id): id is string => typeof id === "string"),
+    }),
     updatedAt: resolveUpdatedAt(candidate, defaultContent),
   };
 }
