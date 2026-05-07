@@ -28,7 +28,7 @@ export default function FaqsLoading() {
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="overflow-hidden rounded-2xl border border-black/8 bg-white px-5 py-4">
               <div className="flex items-center justify-between gap-3">
-                <Sk className="h-4 flex-1" style={{ maxWidth: `${60 + (i % 4) * 10}%` } as React.CSSProperties} />
+                <Sk className={`h-4 ${["w-3/5", "w-2/3", "w-4/5", "w-3/4"][i % 4]}`} />
                 <Sk className="h-5 w-5 shrink-0 rounded" />
               </div>
             </div>
