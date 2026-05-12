@@ -17,9 +17,26 @@ export default function PromoSlider({ slides, compact = false }: Readonly<PromoS
   const normalizedIndex = slides.length ? activeIndex % slides.length : 0;
   const activeSlideIsVideo = slides[normalizedIndex]?.mediaType === "video";
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+  const touchStartX = useRef<number | null>(null);
 
   const advanceSlide = useCallback(() => {
     setActiveIndex((current) => (current + 1) % slides.length);
+  }, [slides.length]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || slides.length < 2) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(delta) < 40) return;
+    if (delta < 0) {
+      setActiveIndex((current) => (current + 1) % slides.length);
+    } else {
+      setActiveIndex((current) => (current - 1 + slides.length) % slides.length);
+    }
   }, [slides.length]);
 
   // Auto-advance timer only for image slides
@@ -52,7 +69,12 @@ export default function PromoSlider({ slides, compact = false }: Readonly<PromoS
   const isClickable = activeSlide?.actionUrl;
 
   return (
-    <section className="promo-slider slider-container relative mx-auto overflow-hidden rounded-xl" aria-label="Ongoing promos and offers">
+    <section
+      className="promo-slider slider-container relative mx-auto overflow-hidden rounded-xl"
+      aria-label="Ongoing promos and offers"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="relative w-full" style={{ aspectRatio: compact ? "4 / 1" : "3 / 1" }}>
         {slides.map((slide, index) => {
           const isActive = index === normalizedIndex;

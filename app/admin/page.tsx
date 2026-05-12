@@ -389,6 +389,7 @@ export default function AdminPage() {
   const [emailCtaUrl, setEmailCtaUrl] = useState("");
   const [emailCtaLabel, setEmailCtaLabel] = useState("");
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const [featuredEditId, setFeaturedEditId] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedFAQs, setExpandedFAQs] = useState<Set<string>>(new Set());
   const [expandedPromoSlides, setExpandedPromoSlides] = useState<Set<string>>(new Set());
@@ -3344,7 +3345,7 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "featured-products" ? (
-        <Section title="Featured Products" description="Choose which products appear in the Featured Products strip on the products page. Selected products are shown first; products with a 'Featured' badge are always included automatically.">
+        <Section title="Featured Products" description="Choose which products appear in the Featured Products strip on the products page. Use ↑↓ to reorder and Edit to update product details inline.">
           {(() => {
             const featuredIds: string[] = content.featuredProductIds ?? [];
             const term = productSearch.trim().toLowerCase();
@@ -3352,7 +3353,8 @@ export default function AdminPage() {
               term ? `${p.name} ${p.category}`.toLowerCase().includes(term) : true
             );
             return (
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Search + count */}
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex-1 sm:min-w-72 lg:max-w-xl">
                     <Field label="Search products">
@@ -3378,64 +3380,199 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                {/* Selected chips */}
+                {/* Selected featured products – sortable list with inline edit */}
                 {featuredIds.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {featuredIds.map((id) => {
-                      const prod = content.products.find((p) => p.id === id);
-                      if (!prod) return null;
-                      return (
-                        <span key={id} className="flex items-center gap-1.5 rounded-full bg-[var(--brand)]/10 px-3 py-1 text-xs font-bold text-[var(--brand-deep)]">
-                          {prod.name}
-                          <button
-                            type="button"
-                            aria-label={`Remove ${prod.name} from featured`}
-                            onClick={() => setContent({ ...content, featuredProductIds: featuredIds.filter((fid) => fid !== id) })}
-                            className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--brand-deep)] text-white hover:bg-red-600"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      );
-                    })}
+                  <div>
+                    <h3 className="mb-2 text-sm font-bold text-[var(--ink)]">Featured order (shown left → right on the strip)</h3>
+                    <div className="space-y-2">
+                      {featuredIds.map((id, idx) => {
+                        const prod = content.products.find((p) => p.id === id);
+                        if (!prod) return null;
+                        const isEditing = featuredEditId === id;
+                        const prodIdx = content.products.findIndex((p) => p.id === id);
+                        return (
+                          <div key={id} className={`overflow-hidden rounded-2xl border shadow-sm transition-colors ${isEditing ? "border-[var(--brand)]" : "border-black/10 bg-white"}`}>
+                            {/* header row */}
+                            <div className="flex items-center gap-3 px-3 py-2">
+                              {/* thumbnail */}
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-black/10 bg-[var(--surface)]">
+                                {prod.image ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={prod.image} alt={prod.name} className="h-full w-full object-contain p-0.5" />
+                                ) : (
+                                  <span className="text-lg text-[var(--ink-soft)]">📦</span>
+                                )}
+                              </div>
+                              {/* info */}
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-bold text-[var(--brand-deep)]">{prod.name}</p>
+                                <p className="text-xs text-[var(--ink-soft)]">GHS {prod.price.toFixed(2)}{prod.badge ? ` · ${prod.badge}` : ""}</p>
+                              </div>
+                              {/* reorder + edit + remove */}
+                              <div className="flex shrink-0 items-center gap-1">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => {
+                                    const next = [...featuredIds];
+                                    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                                    setContent({ ...content, featuredProductIds: next });
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full border border-black/10 text-xs hover:bg-[var(--brand)]/10 disabled:opacity-30"
+                                  aria-label="Move up"
+                                >↑</button>
+                                <button
+                                  type="button"
+                                  disabled={idx === featuredIds.length - 1}
+                                  onClick={() => {
+                                    const next = [...featuredIds];
+                                    [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+                                    setContent({ ...content, featuredProductIds: next });
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full border border-black/10 text-xs hover:bg-[var(--brand)]/10 disabled:opacity-30"
+                                  aria-label="Move down"
+                                >↓</button>
+                                <button
+                                  type="button"
+                                  onClick={() => setFeaturedEditId(isEditing ? null : id)}
+                                  className={`rounded-full border px-2.5 py-1 text-xs font-bold transition-colors ${isEditing ? "border-[var(--brand)] bg-[var(--brand)]/10 text-[var(--brand-deep)]" : "border-black/10 text-[var(--ink)] hover:border-[var(--brand)]/40"}`}
+                                >{isEditing ? "Done" : "Edit"}</button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (featuredEditId === id) setFeaturedEditId(null);
+                                    setContent({ ...content, featuredProductIds: featuredIds.filter((fid) => fid !== id) });
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full border border-red-200 text-xs font-bold text-red-600 hover:bg-red-50"
+                                  aria-label={`Remove ${prod.name} from featured`}
+                                >×</button>
+                              </div>
+                            </div>
+                            {/* inline edit form */}
+                            {isEditing && prodIdx >= 0 && (
+                              <div className="border-t border-black/10 bg-[var(--surface)] p-3">
+                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                  <Field label="Name">
+                                    <input
+                                      value={prod.name}
+                                      onChange={(e) => {
+                                        const products = [...content.products];
+                                        products[prodIdx] = { ...prod, name: e.target.value };
+                                        setContent({ ...content, products });
+                                      }}
+                                      className={inputClassName()}
+                                    />
+                                  </Field>
+                                  <Field label="Price (GHS)">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={prod.price}
+                                      onChange={(e) => {
+                                        const products = [...content.products];
+                                        products[prodIdx] = { ...prod, price: parseFloat(e.target.value) || 0 };
+                                        setContent({ ...content, products });
+                                      }}
+                                      className={inputClassName()}
+                                    />
+                                  </Field>
+                                  <Field label="Badge">
+                                    <input
+                                      value={prod.badge ?? ""}
+                                      onChange={(e) => {
+                                        const products = [...content.products];
+                                        products[prodIdx] = { ...prod, badge: e.target.value || undefined };
+                                        setContent({ ...content, products });
+                                      }}
+                                      className={inputClassName()}
+                                      placeholder="e.g. New, Hot"
+                                    />
+                                  </Field>
+                                  <Field label="Stock">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={prod.stock}
+                                      onChange={(e) => {
+                                        const products = [...content.products];
+                                        products[prodIdx] = { ...prod, stock: parseInt(e.target.value) || 0 };
+                                        setContent({ ...content, products });
+                                      }}
+                                      className={inputClassName()}
+                                    />
+                                  </Field>
+                                  <div className="sm:col-span-2 lg:col-span-4">
+                                    <Field label="Image URL">
+                                      <input
+                                        value={prod.image ?? ""}
+                                        onChange={(e) => {
+                                          const products = [...content.products];
+                                          products[prodIdx] = { ...prod, image: e.target.value || undefined };
+                                          setContent({ ...content, products });
+                                        }}
+                                        className={inputClassName()}
+                                        placeholder="https://..."
+                                      />
+                                    </Field>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-                {/* Product checkbox grid */}
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {allProds.map((product) => {
-                    const checked = featuredIds.includes(product.id);
-                    return (
-                      <label
-                        key={product.id}
-                        className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 shadow-sm transition-colors ${
-                          checked
-                            ? "border-[var(--brand)] bg-[var(--brand)]/5"
-                            : "border-black/10 bg-white hover:border-[var(--brand)]/40"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => {
-                            const next = e.target.checked
-                              ? [...featuredIds, product.id]
-                              : featuredIds.filter((id) => id !== product.id);
-                            setContent({ ...content, featuredProductIds: next });
-                          }}
-                          className="mt-1 h-4 w-4 accent-[var(--brand)]"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-[var(--brand-deep)]">{product.name}</p>
-                          <p className="text-xs text-[var(--ink-soft)]">{product.category}{product.badge ? ` · ${product.badge}` : ""}</p>
-                          <p className="text-xs font-bold text-[var(--ink)]">GHS {product.price.toFixed(2)}</p>
-                        </div>
-                      </label>
-                    );
-                  })}
-                  {allProds.length === 0 && (
-                    <p className="col-span-full text-sm text-[var(--ink-soft)]">No products match your search.</p>
-                  )}
+                {/* Product checkbox grid to add/remove */}
+                <div>
+                  <h3 className="mb-2 text-sm font-bold text-[var(--ink)]">Add to featured</h3>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {allProds.map((product) => {
+                      const checked = featuredIds.includes(product.id);
+                      return (
+                        <label
+                          key={product.id}
+                          className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-2.5 shadow-sm transition-colors ${
+                            checked
+                              ? "border-[var(--brand)] bg-[var(--brand)]/5"
+                              : "border-black/10 bg-white hover:border-[var(--brand)]/40"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...featuredIds, product.id]
+                                : featuredIds.filter((id) => id !== product.id);
+                              setContent({ ...content, featuredProductIds: next });
+                            }}
+                            className="h-4 w-4 shrink-0 accent-[var(--brand)]"
+                          />
+                          {/* thumbnail */}
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-black/10 bg-[var(--surface)]">
+                            {product.image ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={product.image} alt={product.name} className="h-full w-full object-contain p-0.5" />
+                            ) : (
+                              <span className="text-base text-[var(--ink-soft)]">📦</span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-bold text-[var(--brand-deep)]">{product.name}</p>
+                            <p className="text-xs text-[var(--ink-soft)]">{product.category}{product.badge ? ` · ${product.badge}` : ""}</p>
+                            <p className="text-xs font-bold text-[var(--ink)]">GHS {product.price.toFixed(2)}</p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                    {allProds.length === 0 && (
+                      <p className="col-span-full text-sm text-[var(--ink-soft)]">No products match your search.</p>
+                    )}
+                  </div>
                 </div>
               </div>
             );
