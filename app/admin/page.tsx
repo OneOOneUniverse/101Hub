@@ -508,9 +508,9 @@ export default function AdminPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
 
-  // Load vendor products whenever the products section is opened
+  // Load vendor products whenever the products or featured-products section is opened
   useEffect(() => {
-    if (activeSection === "products") {
+    if (activeSection === "products" || activeSection === "featured-products") {
       void loadAdminVendorProducts();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3423,7 +3423,22 @@ export default function AdminPage() {
           {(() => {
             const featuredIds: string[] = content.featuredProductIds ?? [];
             const term = productSearch.trim().toLowerCase();
-            const allProds = content.products.filter((p) =>
+            // Convert vendor products to a shape compatible with Product for display
+            const vendorAsProducts = adminVendorProducts.map((vp) => ({
+              id: vp.id,
+              slug: `vendor-${vp.id}`,
+              name: vp.name,
+              category: (vp.category ?? "Other Categories") as string,
+              description: vp.description,
+              price: vp.price,
+              stock: vp.stock ?? 0,
+              rating: vp.rating ?? 0,
+              badge: vp.badge ?? "Vendor",
+              image: vp.image ?? undefined,
+              discount: vp.discount,
+            }));
+            const combinedProducts = [...content.products, ...vendorAsProducts.filter((vp) => !content.products.some((p) => p.id === vp.id))];
+            const allProds = combinedProducts.filter((p) =>
               term ? `${p.name} ${p.category}`.toLowerCase().includes(term) : true
             );
             return (
@@ -3460,7 +3475,8 @@ export default function AdminPage() {
                     <h3 className="mb-2 text-sm font-bold text-[var(--ink)]">Featured order (shown left → right on the strip)</h3>
                     <div className="space-y-2">
                       {featuredIds.map((id, idx) => {
-                        const prod = content.products.find((p) => p.id === id);
+                        const prod = content.products.find((p) => p.id === id)
+                          ?? vendorAsProducts.find((p) => p.id === id);
                         if (!prod) return null;
                         const isEditing = featuredEditId === id;
                         const prodIdx = content.products.findIndex((p) => p.id === id);
