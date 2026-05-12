@@ -910,3 +910,88 @@ export async function sendVendorStatusEmail(opts: {
     });
   }
 }
+
+/** Notify admin(s) about a new vendor application */
+export async function sendVendorApplicationEmail(opts: {
+  applicantName: string;
+  applicantEmail: string;
+  businessName: string;
+  category: string;
+  phone: string;
+  location: string;
+  description: string;
+  website?: string;
+}) {
+  const { applicantName, applicantEmail, businessName, category, phone, location, description, website } = opts;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop';
+  const primaryEmail = process.env.STORE_EMAIL ?? 'josephsakyi247@gmail.com';
+  const extraEmails = (process.env.ADMIN_NOTIFICATION_EMAILS ?? '')
+    .split(',').map((e) => e.trim()).filter(Boolean);
+  const adminRecipients = [...new Set([primaryEmail, ...extraEmails])];
+
+  const infoRow = (label: string, value: string) =>
+    `<tr>
+      <td style="padding:7px 10px;font-size:13px;color:#888;white-space:nowrap;vertical-align:top">${label}</td>
+      <td style="padding:7px 10px;font-size:13px;color:#222;font-weight:600">${value}</td>
+    </tr>`;
+
+  const html = wrapLayout(`
+    <div style="background:#fff7ed;border:2px solid ${BRAND_COLOR};border-radius:10px;padding:14px 18px;margin-bottom:20px">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#c2410c">🏪 New Vendor Application</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#9a3412">Review and approve or reject in the Admin Panel</p>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border-radius:8px;margin-bottom:20px;overflow:hidden">
+      ${infoRow('Name', applicantName || '—')}
+      ${infoRow('Email', `<a href="mailto:${applicantEmail}" style="color:${BRAND_COLOR}">${applicantEmail}</a>`)}
+      ${infoRow('Business', businessName)}
+      ${infoRow('Category', category)}
+      ${infoRow('Phone', phone)}
+      ${infoRow('Location', location)}
+      ${website ? infoRow('Website', `<a href="${website}" style="color:${BRAND_COLOR}">${website}</a>`) : ''}
+    </table>
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#111">Description</p>
+    <p style="margin:0 0 20px;font-size:13px;color:#555;line-height:1.6">${description}</p>
+    <div style="text-align:center;margin:24px 0 8px">
+      <a href="${appUrl}/admin" style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+        Review in Admin Panel →
+      </a>
+    </div>
+  `);
+
+  for (const recipient of adminRecipients) {
+    await safeSend({
+      from: `"${STORE_NAME} Vendors" <${process.env.SMTP_USER}>`,
+      to: recipient,
+      subject: `🏪 New Vendor Application — ${businessName}`,
+      html,
+    });
+  }
+}
+
+/** Send confirmation email to the vendor applicant after they submit */
+export async function sendVendorApplicationConfirmationEmail(opts: {
+  applicantEmail: string;
+  applicantName?: string;
+  businessName: string;
+}) {
+  const { applicantEmail, applicantName, businessName } = opts;
+  const name = applicantName || businessName;
+
+  await safeSend({
+    from: fromAddress(),
+    to: applicantEmail,
+    subject: `We received your ${STORE_NAME} vendor application!`,
+    html: wrapLayout(`
+      <h2 style="margin:0 0 16px;color:#111;font-size:20px">Application Received 📬</h2>
+      <p style="margin:0 0 12px;font-size:14px;color:#333">Hi <strong>${name}</strong>,</p>
+      <p style="margin:0 0 12px;font-size:14px;color:#555">
+        Thank you for applying to become a vendor on <strong>${STORE_NAME}</strong>!
+        We have received your application for <strong>${businessName}</strong> and our team will review it shortly.
+      </p>
+      <p style="margin:0 0 12px;font-size:14px;color:#555">
+        You will receive another email once a decision has been made. This usually takes 1–3 business days.
+      </p>
+      <p style="margin:16px 0 0;font-size:13px;color:#888">If you have any questions, feel free to contact us.</p>
+    `),
+  });
+}
