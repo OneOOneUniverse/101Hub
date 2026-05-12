@@ -49,6 +49,7 @@ export type Product = {
   stock: number;
   rating: number;
   badge?: string;
+  vendorName?: string; // Set for vendor-uploaded products
   image?: string;
   images?: string[];
   videos?: string[]; // Optional product videos (shown in gallery)

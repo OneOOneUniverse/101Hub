@@ -24,6 +24,7 @@ export async function GET() {
     stock: Number(vp.stock) || 0,
     rating: 0,
     badge: "Vendor",
+    vendorName: (vp.vendor_name as string) || undefined,
     image: vp.image as string | undefined ?? undefined,
     images: Array.isArray(vp.images) ? (vp.images as string[]) : undefined,
     videos: Array.isArray(vp.videos) ? (vp.videos as string[]) : undefined,

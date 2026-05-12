@@ -17,23 +17,6 @@ import { emitCartUpdate } from "@/lib/use-cart-count";
 
 type CartLine = { productId: string; qty: number };
 
-type VendorProduct = {
-  id: string;
-  vendor_name: string;
-  name: string;
-  description: string;
-  price: number;
-  category?: string;
-  stock?: number;
-  image?: string | null;
-  status?: string | null;
-  created_at?: string;
-};
-
-type CombinedProduct =
-  | (Product & { _isVendor?: false })
-  | (VendorProduct & { _isVendor: true });
-
 const STORAGE_KEY = "101hub-cart";
 
 function addToCart(productId: string) {
@@ -48,8 +31,6 @@ function addToCart(productId: string) {
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-  
-  // Emit events for cart updates
   emitCartUpdate();
   window.dispatchEvent(new Event("101hub:product-added"));
 }
@@ -72,17 +53,6 @@ function ProductsPageContent() {
   const [reviewSummaryByProduct, setReviewSummaryByProduct] = useState<
     Record<string, { average: number; count: number }>
   >({});
-  const [vendorProducts, setVendorProducts] = useState<VendorProduct[]>([]);
-
-  useEffect(() => {
-    fetch("/api/public/vendor-products")
-      .then((r) => {
-        if (!r.ok) throw new Error(`vendor-products API ${r.status}`);
-        return r.json();
-      })
-      .then((d: { items?: VendorProduct[] }) => setVendorProducts(d.items ?? []))
-      .catch((err) => console.error("[vendor-products] fetch error:", err));
-  }, []);
 
   useEffect(() => {
     setQuery(searchQuery);
@@ -129,16 +99,13 @@ function ProductsPageContent() {
     };
   }, [products]);
 
-  const filtered = useMemo((): CombinedProduct[] => {
+  const filtered = useMemo((): Product[] => {
     const term = query.trim().toLowerCase();
 
-    const storeItems: CombinedProduct[] = products.filter((item) => {
-      // Skip vendor products (badge === "Vendor") — they are shown via vendorItems below
-      if (item.badge === "Vendor") return false;
-
-      // Handle "New Drops" special category
+    const result = products.filter((item) => {
+      // Vendor products are excluded from "New Drops"
       if (category === "New Drops") {
-        // Show products with dateAdded or products with "New" badge
+        if (item.badge === "Vendor") return false;
         const isNew = item.dateAdded || item.badge === "New";
         const text = `${item.name} ${item.description}`.toLowerCase();
         const searchMatch = term ? text.includes(term) : true;
@@ -150,29 +117,18 @@ function ProductsPageContent() {
       const text = `${item.name} ${item.description}`.toLowerCase();
       const searchMatch = term ? text.includes(term) : true;
       return categoryMatch && subCategoryMatch && searchMatch;
-    }).map((item) => ({ ...item, _isVendor: false as const }));
+    });
 
-    // Vendor products are excluded from "New Drops" and subcategory filtering
-    const vendorItems: CombinedProduct[] = category === "New Drops" ? [] : vendorProducts.filter((vp) => {
-      if (vp.status === "rejected") return false;
-      const categoryMatch = category === "All" || vp.category === category;
-      const text = `${vp.name} ${(vp.description ?? "")}`.toLowerCase();
-      return categoryMatch && (term ? text.includes(term) : true);
-    }).map((vp) => ({ ...vp, _isVendor: true as const }));
-
-    const combined: CombinedProduct[] = [...storeItems, ...vendorItems];
-
-    // Sort the combined list — use created_at for vendor products, dateAdded for store products
-    combined.sort((a, b) => {
-      const dateA = a._isVendor ? (a.created_at ?? "") : (a.dateAdded ?? "");
-      const dateB = b._isVendor ? (b.created_at ?? "") : (b.dateAdded ?? "");
+    // Sort using dateAdded for all products (vendor products have dateAdded set from created_at)
+    result.sort((a, b) => {
+      const dateA = a.dateAdded ?? "";
+      const dateB = b.dateAdded ?? "";
       switch (sortBy) {
         case "price-asc":
           return a.price - b.price;
         case "price-desc":
           return b.price - a.price;
         case "name-asc":
-          return a.name.localeCompare(b.name);
         case "brand-asc":
           return a.name.localeCompare(b.name);
         case "oldest":
@@ -185,17 +141,14 @@ function ProductsPageContent() {
           if (dateA && dateB) return new Date(dateB).getTime() - new Date(dateA).getTime();
           if (dateA) return -1;
           if (dateB) return 1;
-          // Among items with no date, "New" badge comes first
-          if (!a._isVendor && !b._isVendor) {
-            if (a.badge === "New" && b.badge !== "New") return -1;
-            if (a.badge !== "New" && b.badge === "New") return 1;
-          }
+          if (a.badge === "New" && b.badge !== "New") return -1;
+          if (a.badge !== "New" && b.badge === "New") return 1;
           return 0;
       }
     });
 
-    return combined;
-  }, [category, subCategory, products, vendorProducts, query, sortBy]);
+    return result;
+  }, [category, subCategory, products, query, sortBy]);
 
   // Featured products: badge="Featured" first, then newest by dateAdded/rating
   const featuredProducts = useMemo(() => {
@@ -490,7 +443,7 @@ function ProductsPageContent() {
       <section id="products-grid" className="grid grid-cols-2 items-start gap-3 sm:gap-4 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
         {paginatedProducts.flatMap((item, index) => {
           // ── Vendor product card ──────────────────────────────────
-          if (item._isVendor) {
+          if (item.badge === "Vendor") {
             const card = (
               <article key={item.id} className="product-card">
                 <div className="product-card__shine" />
@@ -512,7 +465,9 @@ function ProductsPageContent() {
                   <h2 className="text-xs font-black leading-tight product-card__title sm:text-sm md:text-base">
                     <Link href={`/products/vendor/${item.id}`}>{item.name}</Link>
                   </h2>
-                  <p className="text-[10px] font-bold text-purple-600 sm:text-xs">by {item.vendor_name}</p>
+                  {item.vendorName && (
+                    <p className="text-[10px] font-bold text-purple-600 sm:text-xs">by {item.vendorName}</p>
+                  )}
                   <div className="flex items-end justify-between gap-1">
                     <p className="text-sm font-black leading-none sm:text-base product-card__price">
                       GHS {(item.price ?? 0).toFixed(2)}
