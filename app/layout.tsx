@@ -11,6 +11,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
 import AnnouncementPopup from "@/components/AnnouncementPopup";
 import FeaturesTour from "@/components/FeaturesTour";
+import AppToaster from "@/components/AppToaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -170,6 +171,7 @@ export default async function RootLayout({
               </LayoutWrapper>
             </div>
           </NotificationProvider>
+          <AppToaster />
           </ThemeProvider>
           <Script
             id="sw-register"

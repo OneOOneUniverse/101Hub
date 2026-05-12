@@ -5,6 +5,7 @@ import Link from "next/link";
 import WishlistButton from "@/components/WishlistButton";
 import SocialShareButton from "@/components/SocialShareButton";
 import type { ProductVariant } from "@/lib/site-content-types";
+import { toast } from "@/lib/toast-store";
 
 export default function ProductDetailActions({
   productId,
@@ -76,11 +77,11 @@ export default function ProductDetailActions({
   function handleAddToCart() {
     if (variants && variants.length > 0 && !selectedVariantId) {
       const attr = variants[0]?.attribute ?? "option";
-      alert(`Please select a ${attr} before adding to cart.`);
+      toast.warning(`Please select a ${attr} before adding to cart.`);
       return;
     }
     if (sizes && sizes.length > 0 && !selectedSize) {
-      alert("Please select a size before adding to cart.");
+      toast.warning("Please select a size before adding to cart.");
       return;
     }
     if (colors && colors.length > 0 && !selectedColor) {

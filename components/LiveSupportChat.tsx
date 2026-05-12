@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef, useCallback, FormEvent } from "react";
 import { supabase } from "@/lib/supabase";
-import { sanitizeLine, isValidEmail, isValidGhanaPhone, isValidName, hasMaxLength } from "@/lib/validation";
+import { sanitizeLine, isValidEmail, isValidInternationalPhone, isValidName, hasMaxLength } from "@/lib/validation";
+import PhoneInput from "@/components/PhoneInput";
 
 // ── Types ──
 
@@ -156,8 +157,8 @@ export default function LiveSupportChat() {
       setFormError("Please enter a valid email address (e.g. you@example.com).");
       return;
     }
-    if (!isValidGhanaPhone(phone)) {
-      setFormError("Enter a valid Ghana phone number (e.g. 0241234567 or +233241234567).");
+    if (!isValidInternationalPhone(phone)) {
+      setFormError("Enter a valid phone number with country code (e.g. +233241234567).");
       return;
     }
     const info: UserInfo = { name, email, phone };
@@ -341,14 +342,13 @@ export default function LiveSupportChat() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Phone / WhatsApp</label>
-                <input
+                <PhoneInput
+                  id="support-phone"
                   required
-                  type="tel"
                   value={formPhone}
-                  onChange={(e) => setFormPhone(e.target.value)}
-                  placeholder="+233 548 656 980"
-                  maxLength={20}
-                  className="w-full text-sm rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--brand)]/40 bg-white"
+                  onChange={(fullNumber) => setFormPhone(fullNumber)}
+                  defaultCountry="GH"
+                  className="text-sm"
                 />
               </div>
 

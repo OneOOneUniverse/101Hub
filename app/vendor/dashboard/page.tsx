@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/lib/toast-store";
 
 type VendorStatus = "none" | "pending" | "approved" | "rejected";
 
@@ -356,13 +357,13 @@ export default function VendorDashboard() {
   }
 
   async function handleDeleteProduct(id: string) {
-    if (!confirm("Delete this product?")) return;
+    if (!(await toast.confirm("Delete this product?"))) return;
     const res = await fetch(`/api/vendor/products?id=${encodeURIComponent(id)}`, { method: "DELETE" });
     if (res.ok) setProducts((prev) => prev.filter((p) => p.id !== id));
   }
 
   async function handleDeleteService(id: string) {
-    if (!confirm("Delete this service?")) return;
+    if (!(await toast.confirm("Delete this service?"))) return;
     const res = await fetch(`/api/vendor/services?id=${encodeURIComponent(id)}`, { method: "DELETE" });
     if (res.ok) setServices((prev) => prev.filter((s) => s.id !== id));
   }

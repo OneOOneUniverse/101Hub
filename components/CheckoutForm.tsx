@@ -8,11 +8,13 @@ import { useStoreContent } from "@/lib/use-store-content";
 import AnimatedPaymentModal from "@/components/AnimatedPaymentModal";
 import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 import { saveOrderToLocal } from "@/lib/order-status";
+import PhoneInput from "@/components/PhoneInput";
+import FormProgress from "@/components/FormProgress";
 import {
   sanitizeLine,
   sanitizeText,
   isValidEmail,
-  isValidGhanaPhone,
+  isValidInternationalPhone,
   isValidName,
   isValidImageFile,
   hasMinLength,
@@ -207,7 +209,7 @@ export default function CheckoutForm() {
     if (!userLoaded || !user) return;
     const clerkEmail = user.primaryEmailAddress?.emailAddress ?? "";
     const clerkName = user.username ?? [user.firstName, user.lastName].filter(Boolean).join(" ") ?? "";
-    const clerkPhone = (user.primaryPhoneNumber?.phoneNumber ?? "").replace(/\D/g, "");
+    const clerkPhone = user.primaryPhoneNumber?.phoneNumber ?? "";
     if (clerkEmail) setEmail(clerkEmail);
     if (clerkName) setCustomerName((prev) => prev || clerkName);
     if (clerkPhone) setPhone((prev) => prev || clerkPhone);
@@ -389,8 +391,8 @@ export default function CheckoutForm() {
     const safePhone = sanitizeLine(phone);
     if (!safePhone) {
       errors.phone = "Phone number is required.";
-    } else if (!isValidGhanaPhone(safePhone)) {
-      errors.phone = "Enter a valid Ghana phone number (e.g. 0241234567 or +233241234567).";
+    } else if (!isValidInternationalPhone(safePhone)) {
+      errors.phone = "Enter a valid phone number (e.g. +233241234567).";
     }
 
     const safeAddress = sanitizeText(address);
@@ -784,6 +786,25 @@ export default function CheckoutForm() {
       <form onSubmit={handleSubmit} className="form-styled space-y-5 p-5 sm:p-6 lg:order-1">
         <h1 className="text-2xl font-black">Checkout</h1>
 
+        {/* Form progress */}
+        <FormProgress
+          steps={[
+            {
+              label: "Contact",
+              complete: Boolean(customerName.trim() && email.trim() && phone.trim()),
+            },
+            {
+              label: "Delivery",
+              complete: Boolean(address.trim() && region.trim()),
+            },
+            {
+              label: "Payment",
+              complete: Boolean(selectedProvider),
+            },
+          ]}
+          className="mb-2"
+        />
+
         {/* Invalid products warning */}
         {invalidProducts.length > 0 && (
           <div className="rounded-lg bg-red-50 border border-red-200 p-4 space-y-2">
@@ -860,21 +881,17 @@ export default function CheckoutForm() {
               <label htmlFor="phone" className="mb-1 block text-sm font-semibold">
                 Phone Number <span className="text-red-500">*</span>
               </label>
-              <input
+              <PhoneInput
                 id="phone"
-                type="tel"
                 required
-                placeholder="+233 ..."
                 value={phone}
-                onChange={(event) => {
-                  setPhone(event.target.value);
+                onChange={(fullNumber) => {
+                  setPhone(fullNumber);
                   if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: "" }));
                 }}
-                className={`input-styled${fieldErrors.phone ? " border-red-400" : ""}`}
+                error={fieldErrors.phone}
+                defaultCountry="GH"
               />
-              {fieldErrors.phone && (
-                <p className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>
-              )}
             </div>
           </div>
         </div>

@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import FeatureUnavailable from "@/components/FeatureUnavailable";
 import { useStoreContent } from "@/lib/use-store-content";
+import PhoneInput from "@/components/PhoneInput";
 import {
   sanitizeLine,
   sanitizeText,
   isValidName,
   isValidEmail,
-  isValidGhanaPhone,
+  isValidInternationalPhone,
   hasMinLength,
   hasMaxLength,
 } from "@/lib/validation";
@@ -129,8 +130,8 @@ export default function BookServiceClient() {
       setSubmitError("Phone number is required.");
       return;
     }
-    if (!isValidGhanaPhone(safePhone)) {
-      setSubmitError("Enter a valid Ghana phone number (e.g. 0241234567 or +233241234567).");
+    if (!isValidInternationalPhone(safePhone)) {
+      setSubmitError("Enter a valid phone number with country code (e.g. +233241234567).");
       return;
     }
     if (!hasMinLength(safeIssue, 10)) {
@@ -453,7 +454,13 @@ export default function BookServiceClient() {
             {/* Phone */}
             <div>
               <label htmlFor="phone" className="mb-1 block text-xs font-semibold sm:text-sm">Phone Number <span className="text-red-500">*</span></label>
-              <input id="phone" type="tel" required maxLength={20} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+233 548656980" className="input-styled text-sm" />
+              <PhoneInput
+                id="phone"
+                required
+                value={phone}
+                onChange={(fullNumber) => setPhone(fullNumber)}
+                defaultCountry="GH"
+              />
             </div>
 
             {/* Issue */}
@@ -500,8 +507,8 @@ export default function BookServiceClient() {
                   setSubmitError("Please enter a valid email address.");
                   return;
                 }
-                if (!isValidGhanaPhone(safePhone)) {
-                  setSubmitError("Enter a valid Ghana phone number (e.g. 0241234567).");
+                if (!isValidInternationalPhone(safePhone)) {
+                  setSubmitError("Enter a valid phone number with country code (e.g. +233241234567).");
                   return;
                 }
                 if (!hasMinLength(safeIssue, 10)) {

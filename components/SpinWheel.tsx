@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import type { SpinWheelSlice } from "@/lib/site-content-types";
+import { toast } from "@/lib/toast-store";
 
 type Props = {
   slices: SpinWheelSlice[];
@@ -28,7 +29,7 @@ export default function SpinWheel({ slices, onResult, disabled }: Props) {
       const data = (await res.json()) as { prize?: SpinWheelSlice; error?: string; cooldown?: boolean };
 
       if (!res.ok || !data.prize) {
-        alert(data.error ?? "Something went wrong");
+        toast.error(data.error ?? "Something went wrong");
         setSpinning(false);
         return;
       }
@@ -55,7 +56,7 @@ export default function SpinWheel({ slices, onResult, disabled }: Props) {
       }, 4200);
     } catch {
       setSpinning(false);
-      alert("Network error — please try again");
+      toast.error("Network error — please try again");
     }
   }, [spinning, disabled, slices, rotation, onResult]);
 

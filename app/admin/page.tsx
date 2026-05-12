@@ -38,6 +38,7 @@ import VideoUploadButton from "@/components/VideoUploadButton";
 import GalleryImageManager from "@/components/GalleryImageManager";
 import AdminSupportChats from "@/components/AdminSupportChats";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import { toast } from "@/lib/toast-store";
 
 import type { AdminRole } from "@/lib/auth";
 
@@ -594,7 +595,7 @@ export default function AdminPage() {
   }
 
   async function deleteVendorProductFromTab(id: string) {
-    if (!window.confirm("Delete this vendor product? This cannot be undone.")) return;
+    if (!(await toast.confirm("Delete this vendor product? This cannot be undone."))) return;
     setVendorProductDeleting(id);
     setMessage("");
     try {
@@ -3065,8 +3066,8 @@ export default function AdminPage() {
                     {(product.videos?.length ?? 0) > 0 && (
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm("Remove all product videos?")) {
+                        onClick={async () => {
+                          if (await toast.confirm("Remove all product videos?")) {
                             const products = [...content.products];
                             products[index] = { ...product, videos: undefined };
                             setContent({ ...content, products });

@@ -48,6 +48,20 @@ export function isValidGhanaPhone(phone: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Phone (international — E.164)
+// ---------------------------------------------------------------------------
+
+/**
+ * Validates a full E.164-style phone number (with dial code already prepended).
+ * Accepts "+[1-3 digit country code][7-12 local digits]".
+ * Use this when collecting numbers via PhoneInput (which always prepends the dial code).
+ */
+export function isValidInternationalPhone(phone: string): boolean {
+  const cleaned = phone.replace(/[\s\-()]/g, "");
+  return /^\+\d{8,15}$/.test(cleaned);
+}
+
+// ---------------------------------------------------------------------------
 // Names
 // ---------------------------------------------------------------------------
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 import ImageUploadButton from "@/components/ImageUploadButton";
+import PhoneInput from "@/components/PhoneInput";
 
 type WinData = { id: number; title: string; amount: number; image: string };
 
@@ -43,7 +44,7 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
     if (!isLoaded || !user) return;
     const n = user.username ?? [user.firstName, user.lastName].filter(Boolean).join(" ") ?? "";
     const e = user.primaryEmailAddress?.emailAddress ?? "";
-    const p = (user.primaryPhoneNumber?.phoneNumber ?? "").replace(/\D/g, "");
+    const p = user.primaryPhoneNumber?.phoneNumber ?? "";
     if (n) setName(n);
     if (e) setEmail(e);
     if (p) setPhone(p);
@@ -176,12 +177,12 @@ export default function AuctionClaimPage({ params }: { params: Promise<{ id: str
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--ink)]">Phone Number <span className="text-red-500">*</span></label>
-              <input
+              <PhoneInput
+                id="claim-phone"
+                required
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="024XXXXXXX"
-                required maxLength={20}
-                className="input-styled text-sm"
+                onChange={(fullNumber) => setPhone(fullNumber)}
+                defaultCountry="GH"
               />
             </div>
             <div>

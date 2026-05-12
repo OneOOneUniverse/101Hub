@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { SpinWheelSlice } from "@/lib/site-content-types";
+import { toast } from "@/lib/toast-store";
 
 function FrownIcon() {
   return (
@@ -188,13 +189,13 @@ export default function ScratchCard({ onResult, disabled }: Props) {
       const data = (await res.json()) as { prize?: SpinWheelSlice; error?: string };
 
       if (!res.ok || !data.prize) {
-        alert(data.error ?? "Something went wrong");
+        toast.error(data.error ?? "Something went wrong");
         return;
       }
 
       setPrize(data.prize);
     } catch {
-      alert("Network error — try again");
+      toast.error("Network error — try again");
     } finally {
       setLoading(false);
     }
