@@ -13,6 +13,7 @@ type VendorProduct = {
   name: string;
   description: string;
   price: number;
+  discount?: number;
   category?: string;
   stock?: number;
   image?: string | null;
@@ -133,7 +134,23 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
               <p className="mt-1 text-sm text-[var(--ink-soft)]">by {product.vendor_name}</p>
             </div>
 
-            <p className="text-3xl font-black text-[var(--brand-deep)]">GHS {(product.price ?? 0).toFixed(2)}</p>
+            {(() => {
+              const discPct = product.discount && product.discount > 0 ? product.discount : 0;
+              const saleP = discPct > 0 ? Number((product.price * ((100 - discPct) / 100)).toFixed(2)) : null;
+              return (
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <p className="text-3xl font-black text-[var(--brand-deep)]">
+                    GHS {(saleP ?? product.price ?? 0).toFixed(2)}
+                  </p>
+                  {saleP !== null && (
+                    <>
+                      <p className="text-lg text-[var(--ink-soft)] line-through">GHS {(product.price ?? 0).toFixed(2)}</p>
+                      <span className="rounded-full bg-purple-600 px-2 py-0.5 text-xs font-black text-white">-{discPct}%</span>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
 
             {product.stock !== undefined && (
               <p className="text-sm text-[var(--ink-soft)]">
@@ -146,11 +163,15 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={addToCart}
+                onClick={product.stock === 0 ? undefined : addToCart}
                 disabled={product.stock === 0}
-                className="flex-1 rounded-full bg-[var(--brand)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className={`flex-1 rounded-full px-6 py-3 text-sm font-bold text-white transition ${
+                  product.stock === 0
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[var(--brand)] hover:bg-[var(--brand-deep)]"
+                }`}
               >
-                {added ? "Added to Cart ✓" : "Add to Cart"}
+                {product.stock === 0 ? "Add to Waitlist" : added ? "Added to Cart ✓" : "Add to Cart"}
               </button>
               <div className="relative">
                 <button

@@ -8,7 +8,7 @@ export async function GET() {
     getSiteContent(),
     supabaseAdmin
       .from("vendor_products")
-      .select("id, vendor_id, vendor_name, name, description, price, category, stock, image, images, videos, status, created_at")
+      .select("id, vendor_id, vendor_name, name, description, price, discount, category, stock, image, images, videos, status, created_at")
       .or("status.eq.approved,status.is.null")
       .order("created_at", { ascending: false }),
   ]);
@@ -24,6 +24,7 @@ export async function GET() {
     stock: Number(vp.stock) || 0,
     rating: 0,
     badge: "Vendor",
+    ...(vp.discount != null && Number(vp.discount) > 0 ? { discount: Number(vp.discount) } : {}),
     vendorName: (vp.vendor_name as string) || undefined,
     image: vp.image as string | undefined ?? undefined,
     images: Array.isArray(vp.images) ? (vp.images as string[]) : undefined,

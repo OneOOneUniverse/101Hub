@@ -444,11 +444,24 @@ function ProductsPageContent() {
         {paginatedProducts.flatMap((item, index) => {
           // ── Vendor product card ──────────────────────────────────
           if (item.badge === "Vendor") {
+            const vIsSoldOut = (item.stock ?? 0) === 0;
+            const vDiscountPct = item.discount && item.discount > 0 ? item.discount : 0;
+            const vSalePrice = vDiscountPct > 0 ? Number((item.price * ((100 - vDiscountPct) / 100)).toFixed(2)) : item.price;
             const card = (
-              <article key={item.id} className="product-card">
+              <article key={item.id} className={`product-card${vIsSoldOut ? " opacity-60 grayscale-[40%]" : ""}`}>
                 <div className="product-card__shine" />
                 <div className="product-card__glow" />
                 <div className="product-card__content">
+                  {/* Discount badge + sold-out badge */}
+                  {vIsSoldOut ? (
+                    <span className="absolute left-2 top-2 z-10 rounded-lg bg-gray-700 px-1.5 py-0.5 text-[10px] font-black text-white leading-none">
+                      Sold Out
+                    </span>
+                  ) : vDiscountPct > 0 ? (
+                    <span className="absolute left-2 top-2 z-10 rounded-lg bg-purple-600 px-1.5 py-0.5 text-[10px] font-black text-white leading-none">
+                      -{vDiscountPct}%
+                    </span>
+                  ) : null}
                   {item.image ? (
                     <div className="product-card__img-wrap">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -469,15 +482,31 @@ function ProductsPageContent() {
                     <p className="text-[10px] font-bold text-purple-600 sm:text-xs">by {item.vendorName}</p>
                   )}
                   <div className="flex items-end justify-between gap-1">
-                    <p className="text-sm font-black leading-none sm:text-base product-card__price">
-                      GHS {(item.price ?? 0).toFixed(2)}
-                    </p>
-                    {item.stock !== undefined && (
+                    <div>
+                      <div className="flex items-baseline gap-1.5">
+                        <p className="text-sm font-black leading-none sm:text-base product-card__price">
+                          GHS {vSalePrice.toFixed(2)}
+                        </p>
+                        {vDiscountPct > 0 && (
+                          <p className="text-[10px] text-[var(--ink-soft)] line-through sm:text-xs">
+                            GHS {(item.price ?? 0).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {item.stock !== undefined && !vIsSoldOut && (
                       <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {item.stock}</p>
                     )}
                   </div>
                   <div className="grid grid-cols-[1fr_auto] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
-                    {content.features.cart ? (
+                    {vIsSoldOut ? (
+                      <button
+                        disabled
+                        className="product-card__action rounded-full bg-gray-400 px-2 py-1.5 text-[11px] font-bold text-white cursor-not-allowed sm:px-4 sm:py-2 sm:text-sm"
+                      >
+                        Add to Waitlist
+                      </button>
+                    ) : content.features.cart ? (
                       <button
                         onClick={() => {
                           addToCart(item.id);
@@ -563,15 +592,26 @@ function ProductsPageContent() {
           const displayPrice = salePrice;
           const savings = item.price - salePrice;
           const isOnSale = totalDiscount > 0;
-          const discountSource = hasProductDiscount ? "product" : isFlashSale ? "flash" : null;
+          const isSoldOut = item.stock === 0;
 
           const card = (
-            <article key={item.id} className="product-card">
+            <article key={item.id} className={`product-card${isSoldOut ? " opacity-60 grayscale-[40%]" : ""}`}>
               <div className="product-card__shine" />
               <div className="product-card__glow" />
               <div className="product-card__content">
-                {/* Show discount badge if on sale */}
-                {isOnSale ? (
+                {/* Show sold-out or discount badge */}
+                {isSoldOut ? (
+                  <div className="absolute inset-x-3 top-3 z-10">
+                    <div className="flex items-end justify-between gap-2">
+                      <p className="rounded-lg px-2 py-1 text-[10px] font-black text-white bg-gray-700">
+                        Sold Out
+                      </p>
+                      {item.badge ? (
+                        <p className="product-card__badge">{item.badge}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : isOnSale ? (
                   <div className="absolute inset-x-3 top-3 z-10">
                     <div className="flex items-end justify-between gap-2">
                       <p className={`rounded-lg px-2 py-1 text-[10px] font-black text-white ${hasProductDiscount ? "bg-purple-600" : "bg-red-600"}`}>
@@ -649,20 +689,20 @@ function ProductsPageContent() {
                       <p className={`text-sm font-black leading-none sm:text-base ${isFlashSale ? "text-red-600" : "product-card__price"}`}>
                         GHS {displayPrice.toFixed(2)}
                       </p>
-                      {isFlashSale && (
+                      {isOnSale && (
                         <p className="text-[10px] text-[var(--ink-soft)] line-through sm:text-xs">
                           GHS {item.price.toFixed(2)}
                         </p>
                       )}
                     </div>
-                    {isFlashSale && (
+                    {isOnSale && (
                       <p className="text-[10px] font-bold text-green-700 sm:text-xs">
                         Save GHS {savings.toFixed(2)}
                       </p>
                     )}
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {item.stock}</p>
+                    {!isSoldOut && <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">Qty: {item.stock}</p>}
                     {content.features.reviews ? (
                       <p className="text-[10px] text-[var(--ink-soft)] sm:text-xs">
                         ★ {((reviewSummaryByProduct[item.id]?.average ?? item.rating)).toFixed(1)}
@@ -673,7 +713,14 @@ function ProductsPageContent() {
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
-                  {content.features.cart ? (
+                  {isSoldOut ? (
+                    <button
+                      disabled
+                      className="product-card__action rounded-full bg-gray-400 px-2 py-1.5 text-[11px] font-bold text-white cursor-not-allowed sm:px-4 sm:py-2 sm:text-sm"
+                    >
+                      Add to Waitlist
+                    </button>
+                  ) : content.features.cart ? (
                     <button
                       onClick={() => {
                         addToCart(item.id);
