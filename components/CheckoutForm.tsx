@@ -10,7 +10,6 @@ import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 import { saveOrderToLocal } from "@/lib/order-status";
 import PhoneInput from "@/components/PhoneInput";
 import FormProgress from "@/components/FormProgress";
-import { useVendorProductsMap } from "@/lib/use-vendor-products";
 import {
   sanitizeLine,
   sanitizeText,
@@ -134,23 +133,19 @@ export default function CheckoutForm() {
   const [codeLoading, setCodeLoading] = useState(false);
   // Per-field validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // products from useStoreContent already includes vendor products (merged server-side in /api/store)
   const products = useMemo(() => content?.products ?? [], [content?.products]);
-  const { map: vendorProductsMap, loading: vendorProductsLoading } = useVendorProductsMap();
 
-  // Validate cart items only after BOTH admin and vendor products are loaded
-  // to avoid incorrectly removing vendor items before they arrive
+  // Validate cart items when products load — skip items not in catalog
   useEffect(() => {
-    if (products.length === 0 || vendorProductsLoading) return;
-
-    const adminIds = new Set(products.map((p) => p.id));
-    const invalid = items.filter((line) => !adminIds.has(line.productId) && !vendorProductsMap[line.productId]);
-
+    if (products.length === 0) return;
+    const productIds = new Set(products.map((p) => p.id));
+    const invalid = items.filter((line) => !productIds.has(line.productId));
     if (invalid.length > 0) {
       setInvalidProducts(invalid);
-      const validItems = items.filter((line) => adminIds.has(line.productId) || Boolean(vendorProductsMap[line.productId]));
-      setItems(validItems);
+      setItems(items.filter((line) => productIds.has(line.productId)));
     }
-  }, [products, vendorProductsMap, vendorProductsLoading, items]);
+  }, [products]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch active reward and check if applied from cart
   useEffect(() => {
@@ -255,7 +250,7 @@ export default function CheckoutForm() {
     const deliverySettings = content?.deliverySettings;
     const totalQty = items.reduce((sum, line) => sum + line.qty, 0);
     const subtotal = items.reduce((sum, line) => {
-      const product = products.find((item) => item.id === line.productId) ?? vendorProductsMap[line.productId];
+      const product = products.find((item) => item.id === line.productId);
       return sum + (product ? product.price * line.qty : 0);
     }, 0);
 
@@ -268,8 +263,6 @@ export default function CheckoutForm() {
         // Check if all items in cart are free delivery
         const allFree = items.every((line) => {
           const product = products.find((p) => p.id === line.productId);
-          // Vendor products have standard delivery (not free by default)
-          if (!product && vendorProductsMap[line.productId]) return false;
           return product?.noDeliveryFee === true;
         });
 
@@ -310,7 +303,7 @@ export default function CheckoutForm() {
     const total = Math.max(0, subtotal - rewardDiscount - dealsDiscount - codeDiscount + effectiveDelivery + processingFee);
 
     return { subtotal, delivery, processingFee, total, rewardDiscount, dealsDiscount, codeDiscount, effectiveDelivery };
-  }, [items, products, vendorProductsMap, location, region, town, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward, appliedCode]);
+  }, [items, products, location, region, town, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward, appliedCode]);
 
   // Payment amount is the full total
   const paymentAmount = totals.total;
@@ -1616,7 +1609,7 @@ export default function CheckoutForm() {
 
         <div className="mt-4 space-y-2 text-sm">
           {items.map((line) => {
-            const product = products.find((item) => item.id === line.productId) ?? vendorProductsMap[line.productId];
+            const product = products.find((item) => item.id === line.productId);
             if (!product) return null;
 
             return (

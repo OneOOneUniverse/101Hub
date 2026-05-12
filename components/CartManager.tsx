@@ -7,7 +7,6 @@ import { useStoreContent } from "@/lib/use-store-content";
 import { readWishlist } from "@/lib/product-feedback";
 import { getRelatedProducts } from "@/lib/store-data";
 import WishlistButton from "@/components/WishlistButton";
-import { useVendorProducts } from "@/lib/use-vendor-products";
 
 function SparkleIcon({ size = 16 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
@@ -48,34 +47,15 @@ function writeCart(lines: CartLine[]) {
   }
 }
 
-type VendorProduct = { id: string; name: string; price: number; category?: string; stock?: number; vendor_name?: string };
-
 export default function CartManager() {
   const { content, loading, error } = useStoreContent();
   const [lines, setLines] = useState<CartLine[]>(() => readCart());
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
   const [rewardApplied, setRewardApplied] = useState(false);
-  const { items: vendorProductsList, loading: vendorLoading } = useVendorProducts();
+  // products from useStoreContent already includes vendor products (merged server-side in /api/store)
   const products = useMemo(() => content?.products ?? [], [content?.products]);
-
-  // Merge admin + vendor products into a unified lookup map
-  const allProducts = useMemo(() => {
-    const normalized = vendorProductsList.map((vp) => ({
-      id: vp.id,
-      name: vp.name,
-      price: vp.price,
-      category: vp.category ?? "Vendor Product",
-      stock: vp.stock ?? 99,
-      slug: `vendor/${vp.id}`,
-      badge: undefined as string | undefined,
-      description: undefined as string | undefined,
-      image: undefined as string | undefined,
-      noDeliveryFee: false,
-      deliveryFee: undefined as number | undefined,
-    }));
-    return [...products, ...normalized];
-  }, [products, vendorProductsList]);
+  const allProducts = products;
 
   useEffect(() => {
     const sync = () => setWishlistIds(readWishlist());
@@ -190,7 +170,7 @@ export default function CartManager() {
     return [...wishlistNotInCart, ...relatedFromCart].slice(0, 6);
   }, [lines, products, wishlistIds, details.items]);
 
-  if (loading || (vendorLoading && lines.length > 0)) {
+  if (loading) {
     return (
       <section className="panel p-4 sm:p-6">
         <h1 className="text-xl font-black sm:text-2xl">Shopping Cart</h1>
