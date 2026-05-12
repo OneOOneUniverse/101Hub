@@ -398,10 +398,13 @@ function ProductsPageContent() {
                 const isFlash = !hasDiscount && content.features.flashSale && content.flashSale.featuredProductIds.includes(item.id);
                 const discountPct = hasDiscount ? item.discount! : isFlash ? content.flashSale.discountPercentage : 0;
                 const salePrice = discountPct > 0 ? Number((item.price * ((100 - discountPct) / 100)).toFixed(2)) : item.price;
+                const featuredHref = item.badge === "Vendor"
+                  ? `/products/vendor/${item.id}`
+                  : `/products/${item.slug}`;
                 return (
                   <Link
                     key={item.id}
-                    href={`/products/${item.slug}`}
+                    href={featuredHref}
                     className="group relative flex w-36 shrink-0 flex-col overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:w-44"
                   >
                     {discountPct > 0 && (
