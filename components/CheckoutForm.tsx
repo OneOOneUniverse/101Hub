@@ -21,7 +21,7 @@ import {
   hasMaxLength,
 } from "@/lib/validation";
 
-type CartLine = { productId: string; qty: number };
+type CartLine = { productId: string; qty: number; size?: string; color?: string; variantId?: string; unitPriceOverride?: number };
 
 type ActiveReward = {
   id: number;

@@ -6,6 +6,14 @@ import { use } from "react";
 import ProductGallery from "@/components/ProductGallery";
 import { copyToClipboard, shareablePlatforms, type ShareOptions } from "@/lib/social-share";
 
+type ProductVariant = {
+  id: string;
+  label: string;
+  attribute: string;
+  priceAdjustment?: number;
+  priceOverride?: number;
+};
+
 type VendorProduct = {
   id: string;
   vendor_id: string;
@@ -19,11 +27,14 @@ type VendorProduct = {
   image?: string | null;
   images?: string[];
   videos?: string[];
+  sizes?: string[];
+  colors?: string[];
+  variants?: ProductVariant[];
   status: string;
   created_at: string;
 };
 
-type CartLine = { productId: string; qty: number };
+type CartLine = { productId: string; qty: number; size?: string; color?: string; variantId?: string; unitPriceOverride?: number };
 const STORAGE_KEY = "101hub-cart";
 
 export default function VendorProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +44,9 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
   const [added, setAdded] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedVariantId, setSelectedVariantId] = useState("");
 
   useEffect(() => {
     fetch(`/api/public/vendor-products`)
@@ -47,11 +61,47 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
 
   function addToCart() {
     if (!product) return;
+    if (product.variants && product.variants.length > 0 && !selectedVariantId) {
+      alert(`Please select a ${product.variants[0]?.attribute ?? "option"} before adding to cart.`);
+      return;
+    }
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+      alert("Please select a size before adding to cart.");
+      return;
+    }
+    if (product.colors && product.colors.length > 0 && !selectedColor) {
+      alert("Please select a color before adding to cart.");
+      return;
+    }
+    const discPct = product.discount && product.discount > 0 ? product.discount : 0;
+    const basePrice = discPct > 0 ? Number((product.price * ((100 - discPct) / 100)).toFixed(2)) : product.price;
+    let effectivePrice = basePrice;
+    if (selectedVariantId && product.variants) {
+      const v = product.variants.find((vv) => vv.id === selectedVariantId);
+      if (v) {
+        effectivePrice = v.priceOverride !== undefined ? v.priceOverride : Math.max(0, basePrice + (v.priceAdjustment ?? 0));
+      }
+    }
     const raw = localStorage.getItem(STORAGE_KEY);
     const existing = raw ? (JSON.parse(raw) as CartLine[]) : [];
-    const idx = existing.findIndex((l) => l.productId === product.id);
-    if (idx >= 0) existing[idx] = { ...existing[idx], qty: existing[idx].qty + 1 };
-    else existing.push({ productId: product.id, qty: 1 });
+    const idx = existing.findIndex(
+      (l) => l.productId === product.id &&
+        l.size === (selectedSize || undefined) &&
+        l.color === (selectedColor || undefined) &&
+        l.variantId === (selectedVariantId || undefined)
+    );
+    if (idx >= 0) {
+      existing[idx] = { ...existing[idx], qty: existing[idx].qty + 1 };
+    } else {
+      existing.push({
+        productId: product.id,
+        qty: 1,
+        ...(selectedSize && { size: selectedSize }),
+        ...(selectedColor && { color: selectedColor }),
+        ...(selectedVariantId && { variantId: selectedVariantId }),
+        ...(selectedVariantId && effectivePrice !== basePrice && { unitPriceOverride: effectivePrice }),
+      });
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
     window.dispatchEvent(new Event("101hub:cart-updated"));
     window.dispatchEvent(new Event("101hub:product-added"));
@@ -159,6 +209,99 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
             )}
 
             <p className="text-sm text-[var(--ink)] leading-relaxed whitespace-pre-line">{product.description}</p>
+
+            {/* Variant picker */}
+            {product.variants && product.variants.length > 0 && (() => {
+              const discPct = product.discount && product.discount > 0 ? product.discount : 0;
+              const basePrice = discPct > 0 ? Number((product.price * ((100 - discPct) / 100)).toFixed(2)) : product.price;
+              return (
+                <div>
+                  <p className="mb-2 text-sm font-semibold text-[var(--ink)]">
+                    {product.variants[0]?.attribute ?? "Option"} <span className="text-red-500">*</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {product.variants.map((v) => {
+                      const vPrice = v.priceOverride !== undefined ? v.priceOverride : Math.max(0, basePrice + (v.priceAdjustment ?? 0));
+                      const diff = vPrice - basePrice;
+                      const isSelected = selectedVariantId === v.id;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setSelectedVariantId(v.id === selectedVariantId ? "" : v.id)}
+                          className={`rounded-xl border px-3 py-2 text-xs font-semibold transition text-left ${
+                            isSelected
+                              ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                              : "border-black/20 bg-white text-[var(--ink)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                          }`}
+                        >
+                          <span className="block">{v.label}</span>
+                          <span className={`block text-[10px] font-bold mt-0.5 ${isSelected ? "text-white/80" : "text-[var(--brand)]"}`}>
+                            {v.priceOverride !== undefined
+                              ? `GHS ${vPrice.toFixed(2)}`
+                              : diff === 0
+                                ? `GHS ${basePrice.toFixed(2)}`
+                                : diff > 0
+                                  ? `+GHS ${diff.toFixed(2)}`
+                                  : `−GHS ${Math.abs(diff).toFixed(2)}`}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Size picker */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-[var(--ink)]">
+                  Size <span className="text-red-500">*</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setSelectedSize(size === selectedSize ? "" : size)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                        selectedSize === size
+                          ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                          : "border-black/20 bg-white text-[var(--ink)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Color picker */}
+            {product.colors && product.colors.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-[var(--ink)]">
+                  Color <span className="text-red-500">*</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setSelectedColor(color === selectedColor ? "" : color)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                        selectedColor === color
+                          ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                          : "border-black/20 bg-white text-[var(--ink)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-2">
               <button

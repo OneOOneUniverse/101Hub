@@ -8,7 +8,7 @@ export async function GET() {
     getSiteContent(),
     supabaseAdmin
       .from("vendor_products")
-      .select("id, vendor_id, vendor_name, name, description, price, discount, category, stock, image, images, videos, status, created_at")
+      .select("id, vendor_id, vendor_name, name, description, price, discount, category, stock, image, images, videos, sizes, colors, variants, status, created_at")
       .or("status.eq.approved,status.is.null")
       .order("created_at", { ascending: false }),
   ]);
@@ -29,6 +29,9 @@ export async function GET() {
     image: vp.image as string | undefined ?? undefined,
     images: Array.isArray(vp.images) ? (vp.images as string[]) : undefined,
     videos: Array.isArray(vp.videos) ? (vp.videos as string[]) : undefined,
+    sizes: Array.isArray(vp.sizes) && (vp.sizes as string[]).length > 0 ? (vp.sizes as string[]) : undefined,
+    colors: Array.isArray(vp.colors) && (vp.colors as string[]).length > 0 ? (vp.colors as string[]) : undefined,
+    variants: Array.isArray(vp.variants) && (vp.variants as object[]).length > 0 ? (vp.variants as import("@/lib/site-content-types").ProductVariant[]) : undefined,
     dateAdded: vp.created_at as string | undefined ?? undefined,
   }));
 

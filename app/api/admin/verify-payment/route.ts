@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   try {
     const { data: order, error: fetchError } = await supabaseAdmin
       .from("orders")
-      .select("customer_email, customer_name, customer_phone, order_ref, total, clerk_user_id")
+      .select("customer_email, customer_name, customer_phone, order_ref, total, clerk_user_id, items")
       .eq("order_ref", body.orderRef)
       .single();
 
@@ -50,6 +50,48 @@ export async function POST(request: Request) {
     if (updateError) {
       console.error("[verify-payment] Supabase update error:", updateError);
       return NextResponse.json({ error: "Could not update order status" }, { status: 500 });
+    }
+
+    // ── Reduce product stock when payment is approved ──
+    if (body.action === 'approve') {
+      void (async () => {
+        try {
+          type StoredOrderLine = { productId?: string; qty: number; isVendorProduct?: boolean };
+          const orderItems = (order.items as StoredOrderLine[] ?? []).filter((i) => i.productId && i.qty > 0);
+
+          const vendorItems = orderItems.filter((i) => i.isVendorProduct);
+          const adminItems = orderItems.filter((i) => !i.isVendorProduct);
+
+          // Reduce vendor product stock
+          for (const item of vendorItems) {
+            const { data: vp } = await supabaseAdmin
+              .from("vendor_products")
+              .select("stock")
+              .eq("id", item.productId!)
+              .single();
+            if (vp) {
+              await supabaseAdmin
+                .from("vendor_products")
+                .update({ stock: Math.max(0, (Number(vp.stock) || 0) - item.qty), updated_at: new Date().toISOString() })
+                .eq("id", item.productId!);
+            }
+          }
+
+          // Reduce admin product stock via site-content
+          if (adminItems.length > 0) {
+            const { getSiteContent } = await import("@/lib/site-content");
+            const { saveSiteContentToDb } = await import("@/lib/site-content-db");
+            const content = await getSiteContent();
+            const updatedProducts = content.products.map((p) => {
+              const item = adminItems.find((i) => i.productId === p.id);
+              return item ? { ...p, stock: Math.max(0, p.stock - item.qty) } : p;
+            });
+            await saveSiteContentToDb({ ...content, products: updatedProducts });
+          }
+        } catch (e) {
+          console.error('[verify-payment] stock reduction failed:', e);
+        }
+      })();
     }
 
     const customerEmail = order.customer_email as string;

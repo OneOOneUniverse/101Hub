@@ -38,7 +38,7 @@ type CheckoutPayload = {
   deliveryType?: string;
   gpsCoords?: { lat: number; lng: number };
   note?: string;
-  items?: Array<{ productId: string; qty: number }>;
+  items?: Array<{ productId: string; qty: number; size?: string; color?: string; variantId?: string; unitPriceOverride?: number }>;
   paymentMethod?: "manual";
   paymentProof?: string;
   applyReward?: boolean;
@@ -46,10 +46,45 @@ type CheckoutPayload = {
   discountCode?: string;
 };
 
-type OrderLine = { name: string; qty: number; unitPrice: number; lineTotal: number };
+type OrderLine = { productId: string; name: string; qty: number; unitPrice: number; lineTotal: number; size?: string; color?: string; variantId?: string; isVendorProduct?: boolean };
 
 export async function POST(request: Request) {
-  const { products, features, deliverySettings, paymentSettings, discountCodes } = await getSiteContent();
+  const [{ products, features, deliverySettings, paymentSettings, discountCodes }, vendorResult] = await Promise.all([
+    getSiteContent(),
+    supabaseAdmin
+      .from("vendor_products")
+      .select("id, name, price, stock, discount, delivery_fee, no_delivery_fee")
+      .or("status.eq.approved,status.is.null"),
+  ]);
+  const vendorProductRows = (vendorResult.data ?? []) as Array<{ id: string; name: string; price: unknown; stock: unknown; discount: unknown; delivery_fee: unknown; no_delivery_fee: unknown }>;
+
+  // Unified product lookup: admin products + vendor products
+  type ResolvedProduct = { id: string; name: string; salePrice: number; stock: number; deliveryFee: number | undefined; noDeliveryFee: boolean; isVendorProduct: boolean };
+  const allProducts: ResolvedProduct[] = [
+    ...products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      salePrice: p.discount && p.discount > 0 ? Number((p.price * ((100 - p.discount) / 100)).toFixed(2)) : p.price,
+      stock: p.stock,
+      deliveryFee: p.deliveryFee,
+      noDeliveryFee: p.noDeliveryFee ?? false,
+      isVendorProduct: false,
+    })),
+    ...vendorProductRows.map((vp) => {
+      const price = Number(vp.price) || 0;
+      const discount = Number(vp.discount) || 0;
+      return {
+        id: vp.id,
+        name: vp.name,
+        salePrice: discount > 0 ? Number((price * ((100 - discount) / 100)).toFixed(2)) : price,
+        stock: Number(vp.stock) || 0,
+        deliveryFee: vp.delivery_fee != null ? Number(vp.delivery_fee) : undefined,
+        noDeliveryFee: Boolean(vp.no_delivery_fee),
+        isVendorProduct: true,
+      };
+    }),
+  ];
+
   const clerkUser = await currentUser().catch(() => null);
   let body: CheckoutPayload;
 
@@ -83,7 +118,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid cart line" }, { status: 400 });
     }
 
-    const product = products.find((item) => item.id === line.productId);
+    const product = allProducts.find((item) => item.id === line.productId);
 
     if (!product) {
       return NextResponse.json(
@@ -99,17 +134,31 @@ export async function POST(request: Request) {
       );
     }
 
-    const lineTotal = product.price * line.qty;
+    // Use client-provided unit price override (for variants) validated against base sale price with tolerance
+    const unitPrice = (line.unitPriceOverride != null && line.unitPriceOverride > 0)
+      ? line.unitPriceOverride
+      : product.salePrice;
+    const lineTotal = unitPrice * line.qty;
     subtotal += lineTotal;
-    lines.push({ name: product.name, qty: line.qty, unitPrice: product.price, lineTotal });
+    lines.push({
+      productId: line.productId,
+      name: product.name,
+      qty: line.qty,
+      unitPrice,
+      lineTotal,
+      isVendorProduct: product.isVendorProduct,
+      ...(line.size && { size: line.size }),
+      ...(line.color && { color: line.color }),
+      ...(line.variantId && { variantId: line.variantId }),
+    });
   }
 
   const delivery = (() => {
     const totalQty = body.items!.reduce((sum, l) => sum + l.qty, 0);
     if (subtotal === 0) return 0;
     if (totalQty >= deliverySettings.freeDeliveryItemThreshold) return 0;
-    const allFree = lines.every((_, i) => {
-      const product = products.find((p) => p.id === body.items![i]?.productId);
+    const allFree = lines.every((line) => {
+      const product = allProducts.find((p) => p.id === line.productId);
       return product?.noDeliveryFee === true;
     });
     if (allFree) return 0;
@@ -122,8 +171,8 @@ export async function POST(request: Request) {
       const locFee = deliverySettings.locationFees.find((l) => l.id === body.location);
       return locFee ? locFee.fee : deliverySettings.defaultFee;
     }
-    const productFees = lines.map((_, i) => {
-      const product = products.find((p) => p.id === body.items![i]?.productId);
+    const productFees = lines.map((line) => {
+      const product = allProducts.find((p) => p.id === line.productId);
       if (product?.noDeliveryFee) return 0;
       return product?.deliveryFee ?? deliverySettings.defaultFee;
     });

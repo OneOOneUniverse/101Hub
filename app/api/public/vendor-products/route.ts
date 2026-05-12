@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
 const SELECT_FIELDS =
-  "id, vendor_id, vendor_name, name, description, price, discount, category, stock, image, images, videos, status, created_at";
+  "id, vendor_id, vendor_name, name, description, price, discount, category, stock, image, images, videos, sizes, colors, variants, status, created_at";
 
 /** GET /api/public/vendor-products — returns all approved (or legacy null-status) vendor products */
 export async function GET() {
