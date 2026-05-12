@@ -10,6 +10,7 @@ import PaymentDetailsCard from "@/components/PaymentDetailsCard";
 import { saveOrderToLocal } from "@/lib/order-status";
 import PhoneInput from "@/components/PhoneInput";
 import FormProgress from "@/components/FormProgress";
+import { useVendorProductsMap } from "@/lib/use-vendor-products";
 import {
   sanitizeLine,
   sanitizeText,
@@ -134,35 +135,22 @@ export default function CheckoutForm() {
   // Per-field validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const products = useMemo(() => content?.products ?? [], [content?.products]);
-  const [vendorProductsMap, setVendorProductsMap] = useState<Record<string, { id: string; name: string; price: number; category?: string }>>({});
+  const { map: vendorProductsMap, loading: vendorProductsLoading } = useVendorProductsMap();
 
-  // Fetch vendor products so they are not incorrectly removed from checkout
+  // Validate cart items only after BOTH admin and vendor products are loaded
+  // to avoid incorrectly removing vendor items before they arrive
   useEffect(() => {
-    fetch("/api/public/vendor-products")
-      .then((r) => r.json())
-      .then((d: { items?: { id: string; name: string; price: number; category?: string }[] }) => {
-        const map: Record<string, { id: string; name: string; price: number; category?: string }> = {};
-        (d.items ?? []).forEach((vp) => { map[vp.id] = vp; });
-        setVendorProductsMap(map);
-      })
-      .catch(() => {});
-  }, []);
+    if (products.length === 0 || vendorProductsLoading) return;
 
-  // Validate cart items on mount and when products change
-  useEffect(() => {
-    if (products.length === 0) return;
-    
     const adminIds = new Set(products.map((p) => p.id));
-    // Only mark items as invalid if they are neither admin nor vendor products
     const invalid = items.filter((line) => !adminIds.has(line.productId) && !vendorProductsMap[line.productId]);
-    
+
     if (invalid.length > 0) {
       setInvalidProducts(invalid);
-      // Auto-remove truly invalid items from checkout
       const validItems = items.filter((line) => adminIds.has(line.productId) || Boolean(vendorProductsMap[line.productId]));
       setItems(validItems);
     }
-  }, [products, vendorProductsMap, items]);
+  }, [products, vendorProductsMap, vendorProductsLoading, items]);
 
   // Fetch active reward and check if applied from cart
   useEffect(() => {

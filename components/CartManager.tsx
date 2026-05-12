@@ -7,6 +7,7 @@ import { useStoreContent } from "@/lib/use-store-content";
 import { readWishlist } from "@/lib/product-feedback";
 import { getRelatedProducts } from "@/lib/store-data";
 import WishlistButton from "@/components/WishlistButton";
+import { useVendorProducts } from "@/lib/use-vendor-products";
 
 function SparkleIcon({ size = 16 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
@@ -55,20 +56,12 @@ export default function CartManager() {
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
   const [rewardApplied, setRewardApplied] = useState(false);
-  const [vendorProducts, setVendorProducts] = useState<VendorProduct[]>([]);
+  const { items: vendorProductsList } = useVendorProducts();
   const products = useMemo(() => content?.products ?? [], [content?.products]);
-
-  // Fetch vendor products so their cart items can be resolved
-  useEffect(() => {
-    fetch("/api/public/vendor-products")
-      .then((r) => r.json())
-      .then((d: { items?: VendorProduct[] }) => setVendorProducts(d.items ?? []))
-      .catch(() => {});
-  }, []);
 
   // Merge admin + vendor products into a unified lookup map
   const allProducts = useMemo(() => {
-    const normalized = vendorProducts.map((vp) => ({
+    const normalized = vendorProductsList.map((vp) => ({
       id: vp.id,
       name: vp.name,
       price: vp.price,
@@ -82,7 +75,7 @@ export default function CartManager() {
       deliveryFee: undefined as number | undefined,
     }));
     return [...products, ...normalized];
-  }, [products, vendorProducts]);
+  }, [products, vendorProductsList]);
 
   useEffect(() => {
     const sync = () => setWishlistIds(readWishlist());

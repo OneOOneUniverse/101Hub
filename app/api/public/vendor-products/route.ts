@@ -31,6 +31,6 @@ export async function GET() {
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return NextResponse.json({ items }, {
-    headers: { "Cache-Control": "no-store" },
+    headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
   });
 }
