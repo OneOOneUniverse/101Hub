@@ -1209,61 +1209,134 @@ export default function AdminPage() {
         </Section>
 
         {/* ActivityToast detailed config */}
-        <Section title="Activity Toast Settings" description="Fine-tune the social proof toast that shows recent purchases, signups and activity to visitors.">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <Field label="Display duration (ms)">
-              <input
-                type="number"
-                min={1000}
-                max={30000}
-                step={500}
-                value={content.activityToastConfig?.displayDuration ?? 5000}
-                onChange={(e) => setContent({ ...content, activityToastConfig: { ...(content.activityToastConfig ?? { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } }), displayDuration: Math.max(1000, Number(e.target.value) || 5000) } })}
-                className={inputClassName()}
-              />
-            </Field>
-            <Field label="Min interval (seconds)">
-              <input
-                type="number"
-                min={3}
-                max={300}
-                value={content.activityToastConfig?.minInterval ?? 12}
-                onChange={(e) => setContent({ ...content, activityToastConfig: { ...(content.activityToastConfig ?? { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } }), minInterval: Math.max(3, Number(e.target.value) || 12) } })}
-                className={inputClassName()}
-              />
-            </Field>
-            <Field label="Max interval (seconds)">
-              <input
-                type="number"
-                min={5}
-                max={600}
-                value={content.activityToastConfig?.maxInterval ?? 30}
-                onChange={(e) => setContent({ ...content, activityToastConfig: { ...(content.activityToastConfig ?? { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } }), maxInterval: Math.max(5, Number(e.target.value) || 30) } })}
-                className={inputClassName()}
-              />
-            </Field>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-[var(--brand-deep)] mb-3">Toast types to show</p>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-              {(["purchase", "signup", "service", "review", "view", "wishlist", "bid"] as const).map((type) => {
-                const cfg = content.activityToastConfig;
-                const isOn = cfg?.types?.[type] ?? true;
-                const defaultCfg: ActivityToastConfig = { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } };
-                return (
-                  <label key={type} className="flex items-center justify-between rounded-xl border border-black/10 bg-white px-3 py-2 shadow-sm">
-                    <span className="text-sm font-semibold capitalize text-[var(--ink)]">{type}</span>
+        <Section title="Activity Toast Settings" description="Fine-tune the social proof toast that shows recent purchases, signups and activity to visitors. Customise the names, cities, products and services that appear in the messages.">
+          {(() => {
+            const defaultCfg: ActivityToastConfig = { enabled: true, displayDuration: 5000, minInterval: 12, maxInterval: 30, types: { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true } };
+            const cfg = content.activityToastConfig ?? defaultCfg;
+            function updateCfg(patch: Partial<ActivityToastConfig>) {
+              setContent((prev) => prev ? { ...prev, activityToastConfig: { ...(prev.activityToastConfig ?? defaultCfg), ...patch } } : prev);
+            }
+            return (
+              <div className="space-y-6">
+                {/* Timing */}
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <Field label="Display duration (ms)">
                     <input
-                      type="checkbox"
-                      checked={isOn}
-                      onChange={(e) => setContent({ ...content, activityToastConfig: { ...(cfg ?? defaultCfg), types: { ...(cfg?.types ?? defaultCfg.types), [type]: e.target.checked } } })}
-                      className="h-4 w-4 accent-[var(--brand)]"
+                      type="number"
+                      min={1000}
+                      max={30000}
+                      step={500}
+                      value={cfg.displayDuration}
+                      onChange={(e) => updateCfg({ displayDuration: Math.max(1000, Number(e.target.value) || 5000) })}
+                      className={inputClassName()}
                     />
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+                  </Field>
+                  <Field label="Min interval (seconds)">
+                    <input
+                      type="number"
+                      min={3}
+                      max={300}
+                      value={cfg.minInterval}
+                      onChange={(e) => updateCfg({ minInterval: Math.max(3, Number(e.target.value) || 12) })}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                  <Field label="Max interval (seconds)">
+                    <input
+                      type="number"
+                      min={5}
+                      max={600}
+                      value={cfg.maxInterval}
+                      onChange={(e) => updateCfg({ maxInterval: Math.max(5, Number(e.target.value) || 30) })}
+                      className={inputClassName()}
+                    />
+                  </Field>
+                </div>
+
+                {/* Toast type toggles */}
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)] mb-3">Toast types to show</p>
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    {(["purchase", "signup", "service", "review", "view", "wishlist", "bid"] as const).map((type) => {
+                      const isOn = cfg.types?.[type] ?? true;
+                      return (
+                        <label key={type} className="flex items-center justify-between rounded-xl border border-black/10 bg-white px-3 py-2 shadow-sm">
+                          <span className="text-sm font-semibold capitalize text-[var(--ink)]">{type}</span>
+                          <input
+                            type="checkbox"
+                            checked={isOn}
+                            onChange={(e) => updateCfg({ types: { ...(cfg.types ?? defaultCfg.types), [type]: e.target.checked } })}
+                            className="h-4 w-4 accent-[var(--brand)]"
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom lists */}
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)] mb-1">Custom names</p>
+                  <p className="text-xs text-[var(--ink-soft)] mb-2">One name per line (e.g. "Kofi A."). Leave empty to use built-in defaults.</p>
+                  <textarea
+                    rows={6}
+                    value={(cfg.customNames ?? []).join("\n")}
+                    onChange={(e) => {
+                      const lines = e.target.value.split("\n").map((l) => l.trim()).filter(Boolean);
+                      updateCfg({ customNames: lines });
+                    }}
+                    placeholder={"Kwame A.\nAma O.\nKofi B."}
+                    className={inputClassName(true)}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)] mb-1">Custom cities / locations</p>
+                  <p className="text-xs text-[var(--ink-soft)] mb-2">One city per line. Leave empty to use built-in defaults.</p>
+                  <textarea
+                    rows={5}
+                    value={(cfg.customCities ?? []).join("\n")}
+                    onChange={(e) => {
+                      const lines = e.target.value.split("\n").map((l) => l.trim()).filter(Boolean);
+                      updateCfg({ customCities: lines });
+                    }}
+                    placeholder={"Accra\nKumasi\nTakoradi"}
+                    className={inputClassName(true)}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)] mb-1">Custom product names</p>
+                  <p className="text-xs text-[var(--ink-soft)] mb-2">One product per line — shown in purchase, review and wishlist toasts. Leave empty to use built-in defaults.</p>
+                  <textarea
+                    rows={6}
+                    value={(cfg.customProducts ?? []).join("\n")}
+                    onChange={(e) => {
+                      const lines = e.target.value.split("\n").map((l) => l.trim()).filter(Boolean);
+                      updateCfg({ customProducts: lines });
+                    }}
+                    placeholder={"iPhone 15 Pro\nSamsung Galaxy S24\nAirPods Pro"}
+                    className={inputClassName(true)}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold text-[var(--brand-deep)] mb-1">Custom service names</p>
+                  <p className="text-xs text-[var(--ink-soft)] mb-2">One service per line — shown in service booking toasts. Leave empty to use built-in defaults.</p>
+                  <textarea
+                    rows={5}
+                    value={(cfg.customServices ?? []).join("\n")}
+                    onChange={(e) => {
+                      const lines = e.target.value.split("\n").map((l) => l.trim()).filter(Boolean);
+                      updateCfg({ customServices: lines });
+                    }}
+                    placeholder={"Phone Screen Repair\nLaptop Battery Replacement\nSmart TV Setup"}
+                    className={inputClassName(true)}
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </Section>
         </>
       ) : null}

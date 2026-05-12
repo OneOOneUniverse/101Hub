@@ -61,25 +61,25 @@ function GavelIcon() {
   );
 }
 
-// ── Data ─────────────────────────────────────────────────────────────────────
-const NAMES = [
+// ── Data (built-in defaults) ─────────────────────────────────────────────────
+const DEFAULT_NAMES = [
   "Kwame A.", "Ama O.", "Kofi B.", "Abena M.", "Yaw D.", "Akosua T.",
   "Kojo P.", "Adwoa S.", "Kwesi F.", "Efua K.", "Nana Y.", "Akua N.",
   "Kweku L.", "Maame R.", "Kwabena E.", "Fiifi A.", "Araba C.", "Mansa G.",
   "Emmanuel T.", "Gifty A.", "Daniel K.", "Priscilla O.", "Samuel B.", "Agnes F.",
   "Michael A.", "Lydia N.", "Benjamin K.", "Grace A.", "Philip T.", "Ruth M.",
 ];
-const CITIES = [
+const DEFAULT_CITIES = [
   "Accra", "Kumasi", "Takoradi", "Cape Coast", "Tamale",
   "Tema", "Sunyani", "Ho", "Koforidua", "Wa",
 ];
-const PRODUCTS = [
+const DEFAULT_PRODUCTS = [
   "iPhone 15 Pro", "Samsung Galaxy S24", "AirPods Pro", "JBL Charge 5",
   "HP Pavilion Laptop", "Samsung Smart TV", "PlayStation 5", "Canon EOS Camera",
   "iPad Air", "Xiaomi Redmi Note 13", "Dell XPS 15", "Sony WH-1000XM5",
   "MacBook Air M3", "Nintendo Switch", "GoPro Hero 12",
 ];
-const SERVICES = [
+const DEFAULT_SERVICES = [
   "Phone Screen Repair", "Laptop Battery Replacement",
   "Smart TV Setup", "CCTV Installation", "AC Servicing",
 ];
@@ -122,6 +122,11 @@ export default function ActivityToast({ config }: { config?: ActivityToastConfig
   const minInterval = (config?.minInterval ?? 12) * 1000;
   const maxInterval = (config?.maxInterval ?? 30) * 1000;
   const enabledTypes = config?.types ?? { purchase: true, signup: true, service: true, review: true, view: true, wishlist: true, bid: true };
+
+  const NAMES   = (config?.customNames?.length   ? config.customNames   : DEFAULT_NAMES);
+  const CITIES  = (config?.customCities?.length  ? config.customCities  : DEFAULT_CITIES);
+  const PRODUCTS = (config?.customProducts?.length ? config.customProducts : DEFAULT_PRODUCTS);
+  const SERVICES = (config?.customServices?.length ? config.customServices : DEFAULT_SERVICES);
 
   const [toast, setToast] = useState<Activity | null>(null);
   const [visible, setVisible] = useState(false);

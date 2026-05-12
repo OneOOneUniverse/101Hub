@@ -174,6 +174,14 @@ export type ActivityToastConfig = {
     wishlist: boolean;
     bid: boolean;
   };
+  /** Custom names shown in toast messages (overrides built-in defaults) */
+  customNames?: string[];
+  /** Custom city/location names shown in toasts */
+  customCities?: string[];
+  /** Custom product names shown in toasts */
+  customProducts?: string[];
+  /** Custom service names shown in toasts */
+  customServices?: string[];
 };
 
 export type SiteFeatures = {
