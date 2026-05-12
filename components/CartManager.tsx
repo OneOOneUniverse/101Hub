@@ -47,13 +47,42 @@ function writeCart(lines: CartLine[]) {
   }
 }
 
+type VendorProduct = { id: string; name: string; price: number; category?: string; stock?: number; vendor_name?: string };
+
 export default function CartManager() {
   const { content, loading, error } = useStoreContent();
   const [lines, setLines] = useState<CartLine[]>(() => readCart());
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
   const [rewardApplied, setRewardApplied] = useState(false);
+  const [vendorProducts, setVendorProducts] = useState<VendorProduct[]>([]);
   const products = useMemo(() => content?.products ?? [], [content?.products]);
+
+  // Fetch vendor products so their cart items can be resolved
+  useEffect(() => {
+    fetch("/api/public/vendor-products")
+      .then((r) => r.json())
+      .then((d: { items?: VendorProduct[] }) => setVendorProducts(d.items ?? []))
+      .catch(() => {});
+  }, []);
+
+  // Merge admin + vendor products into a unified lookup map
+  const allProducts = useMemo(() => {
+    const normalized = vendorProducts.map((vp) => ({
+      id: vp.id,
+      name: vp.name,
+      price: vp.price,
+      category: vp.category ?? "Vendor Product",
+      stock: vp.stock ?? 99,
+      slug: `vendor/${vp.id}`,
+      badge: undefined as string | undefined,
+      description: undefined as string | undefined,
+      image: undefined as string | undefined,
+      noDeliveryFee: false,
+      deliveryFee: undefined as number | undefined,
+    }));
+    return [...products, ...normalized];
+  }, [products, vendorProducts]);
 
   useEffect(() => {
     const sync = () => setWishlistIds(readWishlist());
@@ -124,12 +153,12 @@ export default function CartManager() {
   const details = useMemo(() => {
     const resolved = lines
       .map((line) => {
-        const product = products.find((p) => p.id === line.productId);
+        const product = allProducts.find((p) => p.id === line.productId);
         if (!product) return null;
         const unitPrice = line.overridePrice !== undefined ? line.overridePrice : product.price;
         return { product, qty: line.qty, unitPrice, lineTotal: line.qty * unitPrice, size: line.size, color: line.color, overridePrice: line.overridePrice };
       })
-      .filter(Boolean) as { product: (typeof products)[number]; qty: number; unitPrice: number; lineTotal: number; size?: string; color?: string; overridePrice?: number }[];
+      .filter(Boolean) as { product: (typeof allProducts)[number]; qty: number; unitPrice: number; lineTotal: number; size?: string; color?: string; overridePrice?: number }[];
 
     const subtotal = resolved.reduce((sum, item) => sum + item.lineTotal, 0);
     const delivery = subtotal > 250 ? 0 : subtotal > 0 ? 12 : 0;
@@ -140,12 +169,12 @@ export default function CartManager() {
       delivery,
       total: subtotal + delivery,
     };
-  }, [lines, products]);
+  }, [lines, allProducts]);
 
   const suggestedProducts = useMemo(() => {
     const cartProductIds = new Set(lines.map((line) => line.productId));
     
-    // First, get wishlist items not in cart
+    // First, get wishlist items not in cart (only suggest admin products)
     const wishlistNotInCart = products.filter(
       (p) => wishlistIds.includes(p.id) && !cartProductIds.has(p.id)
     );

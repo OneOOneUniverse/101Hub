@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { use } from "react";
 import ProductGallery from "@/components/ProductGallery";
+import { copyToClipboard, shareablePlatforms, type ShareOptions } from "@/lib/social-share";
 
 type VendorProduct = {
   id: string;
@@ -29,6 +30,8 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
   const [product, setProduct] = useState<VendorProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch(`/api/public/vendor-products`)
@@ -53,6 +56,28 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
     window.dispatchEvent(new Event("101hub:product-added"));
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
+  }
+
+  function handleShare(platformId: string) {
+    if (!product) return;
+    const productUrl = `${window.location.origin}/products/vendor/${product.id}`;
+    const shareOptions: ShareOptions = {
+      url: productUrl,
+      title: product.name,
+      description: product.description,
+      price: `GHS ${product.price.toFixed(2)}`,
+    };
+    const platform = shareablePlatforms.find((p) => p.id === platformId);
+    if (!platform) return;
+    window.open(platform.getUrl(shareOptions), "_blank", "width=600,height=400");
+    setShareOpen(false);
+  }
+
+  async function handleCopyLink() {
+    if (!product) return;
+    const productUrl = `${window.location.origin}/products/vendor/${product.id}`;
+    const ok = await copyToClipboard(productUrl);
+    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 2000); }
   }
 
   if (loading) {
@@ -127,6 +152,36 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
               >
                 {added ? "Added to Cart ✓" : "Add to Cart"}
               </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShareOpen((v) => !v)}
+                  aria-label="Share product"
+                  className="rounded-full border border-black/15 px-4 py-3 text-sm font-bold hover:bg-black/5 transition"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="h-4 w-4"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+                {shareOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShareOpen(false)} />
+                    <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl border border-black/10 bg-white p-3 shadow-xl">
+                      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--ink-soft)]">Share product</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {["whatsapp", "facebook", "twitter", "telegram"].map((pid) => (
+                          <button key={pid} type="button" onClick={() => handleShare(pid)}
+                            className="rounded-lg border border-black/10 px-2 py-1.5 text-xs font-semibold capitalize hover:bg-black/5 transition">
+                            {pid === "twitter" ? "X (Twitter)" : pid.charAt(0).toUpperCase() + pid.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                      <button type="button" onClick={handleCopyLink}
+                        className="mt-2 w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs font-semibold hover:bg-black/5 transition">
+                        {copied ? "Link Copied ✓" : "Copy Link"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

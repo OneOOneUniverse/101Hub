@@ -134,21 +134,35 @@ export default function CheckoutForm() {
   // Per-field validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const products = useMemo(() => content?.products ?? [], [content?.products]);
+  const [vendorProductsMap, setVendorProductsMap] = useState<Record<string, { id: string; name: string; price: number; category?: string }>>({});
+
+  // Fetch vendor products so they are not incorrectly removed from checkout
+  useEffect(() => {
+    fetch("/api/public/vendor-products")
+      .then((r) => r.json())
+      .then((d: { items?: { id: string; name: string; price: number; category?: string }[] }) => {
+        const map: Record<string, { id: string; name: string; price: number; category?: string }> = {};
+        (d.items ?? []).forEach((vp) => { map[vp.id] = vp; });
+        setVendorProductsMap(map);
+      })
+      .catch(() => {});
+  }, []);
 
   // Validate cart items on mount and when products change
   useEffect(() => {
     if (products.length === 0) return;
     
-    const productIds = products.map((p) => p.id);
-    const invalid = items.filter((line) => !productIds.includes(line.productId));
+    const adminIds = new Set(products.map((p) => p.id));
+    // Only mark items as invalid if they are neither admin nor vendor products
+    const invalid = items.filter((line) => !adminIds.has(line.productId) && !vendorProductsMap[line.productId]);
     
     if (invalid.length > 0) {
       setInvalidProducts(invalid);
-      // Auto-remove invalid items from checkout
-      const validItems = items.filter((line) => productIds.includes(line.productId));
+      // Auto-remove truly invalid items from checkout
+      const validItems = items.filter((line) => adminIds.has(line.productId) || Boolean(vendorProductsMap[line.productId]));
       setItems(validItems);
     }
-  }, [products, items]);
+  }, [products, vendorProductsMap, items]);
 
   // Fetch active reward and check if applied from cart
   useEffect(() => {
@@ -253,7 +267,7 @@ export default function CheckoutForm() {
     const deliverySettings = content?.deliverySettings;
     const totalQty = items.reduce((sum, line) => sum + line.qty, 0);
     const subtotal = items.reduce((sum, line) => {
-      const product = products.find((item) => item.id === line.productId);
+      const product = products.find((item) => item.id === line.productId) ?? vendorProductsMap[line.productId];
       return sum + (product ? product.price * line.qty : 0);
     }, 0);
 
@@ -266,6 +280,8 @@ export default function CheckoutForm() {
         // Check if all items in cart are free delivery
         const allFree = items.every((line) => {
           const product = products.find((p) => p.id === line.productId);
+          // Vendor products have standard delivery (not free by default)
+          if (!product && vendorProductsMap[line.productId]) return false;
           return product?.noDeliveryFee === true;
         });
 
@@ -306,7 +322,7 @@ export default function CheckoutForm() {
     const total = Math.max(0, subtotal - rewardDiscount - dealsDiscount - codeDiscount + effectiveDelivery + processingFee);
 
     return { subtotal, delivery, processingFee, total, rewardDiscount, dealsDiscount, codeDiscount, effectiveDelivery };
-  }, [items, products, location, region, town, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward, appliedCode]);
+  }, [items, products, vendorProductsMap, location, region, town, deliveryType, content?.deliverySettings, rewardApplied, activeReward, dealsRewardApplied, dealsReward, appliedCode]);
 
   // Payment amount is the full total
   const paymentAmount = totals.total;
@@ -1612,7 +1628,7 @@ export default function CheckoutForm() {
 
         <div className="mt-4 space-y-2 text-sm">
           {items.map((line) => {
-            const product = products.find((item) => item.id === line.productId);
+            const product = products.find((item) => item.id === line.productId) ?? vendorProductsMap[line.productId];
             if (!product) return null;
 
             return (
