@@ -133,6 +133,9 @@ function ProductsPageContent() {
     const term = query.trim().toLowerCase();
 
     const storeItems: CombinedProduct[] = products.filter((item) => {
+      // Skip vendor products (badge === "Vendor") — they are shown via vendorItems below
+      if (item.badge === "Vendor") return false;
+
       // Handle "New Drops" special category
       if (category === "New Drops") {
         // Show products with dateAdded or products with "New" badge
