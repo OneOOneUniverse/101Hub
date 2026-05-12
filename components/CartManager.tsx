@@ -56,7 +56,7 @@ export default function CartManager() {
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [activeReward, setActiveReward] = useState<ActiveReward | null>(null);
   const [rewardApplied, setRewardApplied] = useState(false);
-  const { items: vendorProductsList } = useVendorProducts();
+  const { items: vendorProductsList, loading: vendorLoading } = useVendorProducts();
   const products = useMemo(() => content?.products ?? [], [content?.products]);
 
   // Merge admin + vendor products into a unified lookup map
@@ -190,7 +190,7 @@ export default function CartManager() {
     return [...wishlistNotInCart, ...relatedFromCart].slice(0, 6);
   }, [lines, products, wishlistIds, details.items]);
 
-  if (loading) {
+  if (loading || (vendorLoading && lines.length > 0)) {
     return (
       <section className="panel p-4 sm:p-6">
         <h1 className="text-xl font-black sm:text-2xl">Shopping Cart</h1>
