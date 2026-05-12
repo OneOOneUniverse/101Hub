@@ -860,3 +860,53 @@ export async function sendServiceRequestEmails(data: ServiceRequestEmailData) {
     });
   }
 }
+
+/** Send vendor application approval / rejection email */
+export async function sendVendorStatusEmail(opts: {
+  applicantEmail: string;
+  applicantName?: string;
+  businessName?: string;
+  status: "approved" | "rejected";
+  adminNotes?: string;
+}) {
+  const { applicantEmail, applicantName, businessName, status, adminNotes } = opts;
+  const name = applicantName || businessName || "Vendor";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.101hub.shop';
+
+  if (status === "approved") {
+    await safeSend({
+      from: fromAddress(),
+      to: applicantEmail,
+      subject: `🎉 Your ${STORE_NAME} vendor application has been approved!`,
+      html: wrapLayout(`
+        <h2 style="margin:0 0 16px;color:#16a34a;font-size:20px">Application Approved! 🎉</h2>
+        <p style="margin:0 0 12px;font-size:14px;color:#333">Hi <strong>${name}</strong>,</p>
+        <p style="margin:0 0 12px;font-size:14px;color:#555">
+          Congratulations! Your vendor application${businessName ? ` for <strong>${businessName}</strong>` : ''} has been <strong style="color:#16a34a">approved</strong>.
+          You can now log in and start listing your products on ${STORE_NAME}.
+        </p>
+        ${adminNotes ? `<div style="background:#f0fdf4;border:1px solid #86efac;padding:12px 16px;border-radius:8px;margin:12px 0"><p style="margin:0;font-size:13px;color:#166534"><strong>Note from admin:</strong> ${adminNotes}</p></div>` : ''}
+        <div style="text-align:center;margin:24px 0">
+          <a href="${appUrl}/vendor/dashboard" style="display:inline-block;padding:13px 32px;background:${BRAND_COLOR};color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px">
+            Go to Vendor Dashboard →
+          </a>
+        </div>
+      `),
+    });
+  } else {
+    await safeSend({
+      from: fromAddress(),
+      to: applicantEmail,
+      subject: `Update on your ${STORE_NAME} vendor application`,
+      html: wrapLayout(`
+        <h2 style="margin:0 0 16px;color:#dc2626;font-size:20px">Application Not Approved</h2>
+        <p style="margin:0 0 12px;font-size:14px;color:#333">Hi <strong>${name}</strong>,</p>
+        <p style="margin:0 0 12px;font-size:14px;color:#555">
+          Thank you for applying to become a vendor on ${STORE_NAME}. Unfortunately, your application${businessName ? ` for <strong>${businessName}</strong>` : ''} was not approved at this time.
+        </p>
+        ${adminNotes ? `<div style="background:#fef2f2;border:1px solid #fca5a5;padding:12px 16px;border-radius:8px;margin:12px 0"><p style="margin:0;font-size:13px;color:#991b1b"><strong>Reason:</strong> ${adminNotes}</p></div>` : ''}
+        <p style="margin:12px 0;font-size:14px;color:#555">If you believe this is an error or would like more information, please contact us.</p>
+      `),
+    });
+  }
+}
