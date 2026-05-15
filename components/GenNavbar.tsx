@@ -175,6 +175,7 @@ export default function GenNavbar({
           gap: 8px;
         }
         .gen-nav *, .gen-nav *::before, .gen-nav *::after { box-sizing: border-box; }
+        .gen-nav { overflow: hidden; }
         .gen-logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-right: auto; text-decoration: none; }
         .gen-logo-img { height: 40px; width: auto; max-width: 160px; object-fit: contain; display: block; }
         .gen-logo-text { color: #fff; font-size: 18px; font-weight: 600; white-space: nowrap; }
