@@ -5,7 +5,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-or-landscape",
+  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "categories": ["shopping"],
