@@ -299,6 +299,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           flex-direction: column;
           overflow-y: auto;
           overscroll-behavior: contain;
+          scrollbar-width: none;
+        }
+        .sidebar::-webkit-scrollbar {
+          display: none;
         }
         .sidebar--open {
           transform: translateX(0);
@@ -362,6 +366,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           flex: 1;
           padding: 8px 0;
           overflow-y: auto;
+          scrollbar-width: none;
+        }
+        .sidebar-nav::-webkit-scrollbar {
+          display: none;
         }
         .sidebar-section {
           padding: 4px 12px;

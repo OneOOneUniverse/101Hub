@@ -99,7 +99,7 @@ export default function LayoutWrapper({
           speed={storeData.marquee.speed}
         />
       ) : null}
-      <header className="sticky top-0 z-20 bg-transparent overflow-x-hidden">
+      <header className="sticky top-0 z-20 bg-transparent">
         <GenNavbar
           onSidebarToggle={() => setSidebarOpen((v) => !v)}
           logoUrl={storeData?.logoUrl}
