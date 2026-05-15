@@ -8,6 +8,7 @@ import type { Product } from "@/lib/site-content-types";
 import { defaultProductCategories, getProductCategories } from "@/lib/site-content-types";
 import { useStoreContent } from "@/lib/use-store-content";
 import WishlistButton from "@/components/WishlistButton";
+import WaitlistButton from "@/components/WaitlistButton";
 import ProductCardShare from "@/components/ProductCardShare";
 import PromoSlider from "@/components/PromoSlider";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
@@ -503,12 +504,7 @@ function ProductsPageContent() {
                   </div>
                   <div className="grid grid-cols-[1fr_auto] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
                     {vIsSoldOut ? (
-                      <button
-                        disabled
-                        className="product-card__action rounded-full bg-gray-400 px-2 py-1.5 text-[11px] font-bold text-white cursor-not-allowed sm:px-4 sm:py-2 sm:text-sm"
-                      >
-                        Add to Waitlist
-                      </button>
+                      <WaitlistButton productId={item.id} compact />
                     ) : content.features.cart ? (
                       <button
                         onClick={() => {
@@ -717,12 +713,7 @@ function ProductsPageContent() {
 
                 <div className="grid grid-cols-[1fr_auto] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
                   {isSoldOut ? (
-                    <button
-                      disabled
-                      className="product-card__action rounded-full bg-gray-400 px-2 py-1.5 text-[11px] font-bold text-white cursor-not-allowed sm:px-4 sm:py-2 sm:text-sm"
-                    >
-                      Add to Waitlist
-                    </button>
+                    <WaitlistButton productId={item.id} compact />
                   ) : content.features.cart ? (
                     <button
                       onClick={() => {

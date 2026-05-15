@@ -200,6 +200,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 Wishlist
               </Link>
             )}
+            <Link href="/waitlist" className={linkClass("/waitlist")} onClick={onClose}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Waitlist
+            </Link>
             {features.cart && (
               <Link href="/cart" className={linkClass("/cart")} onClick={onClose}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>

@@ -35,13 +35,15 @@ export async function GET() {
     dateAdded: vp.created_at as string | undefined ?? undefined,
   }));
 
-  // Deduplicate: admin products take precedence over vendor products with same id
-  const adminIds = new Set(content.products.map((p) => p.id));
+  // Deduplicate: strip any vendor-badged products that may have been saved into
+  // site_content so they are always driven exclusively by the vendor_products table.
+  const adminOnlyProducts = content.products.filter((p) => p.badge !== "Vendor");
+  const adminIds = new Set(adminOnlyProducts.map((p) => p.id));
   const newVendorProducts = vendorProducts.filter((vp) => !adminIds.has(vp.id));
 
   const merged = {
     ...content,
-    products: [...content.products, ...newVendorProducts],
+    products: [...adminOnlyProducts, ...newVendorProducts],
   };
 
   return NextResponse.json(merged, {

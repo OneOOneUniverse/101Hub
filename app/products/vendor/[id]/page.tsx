@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { use } from "react";
 import ProductGallery from "@/components/ProductGallery";
+import WaitlistButton from "@/components/WaitlistButton";
 import { copyToClipboard, shareablePlatforms, type ShareOptions } from "@/lib/social-share";
 
 type ProductVariant = {
@@ -304,18 +305,17 @@ export default function VendorProductPage({ params }: { params: Promise<{ id: st
             )}
 
             <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={product.stock === 0 ? undefined : addToCart}
-                disabled={product.stock === 0}
-                className={`flex-1 rounded-full px-6 py-3 text-sm font-bold text-white transition ${
-                  product.stock === 0
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[var(--brand)] hover:bg-[var(--brand-deep)]"
-                }`}
-              >
-                {product.stock === 0 ? "Add to Waitlist" : added ? "Added to Cart ✓" : "Add to Cart"}
-              </button>
+              {product.stock === 0 ? (
+                <WaitlistButton productId={product.id} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={addToCart}
+                  className="flex-1 rounded-full px-6 py-3 text-sm font-bold text-white transition bg-[var(--brand)] hover:bg-[var(--brand-deep)]"
+                >
+                  {added ? "Added to Cart ✓" : "Add to Cart"}
+                </button>
+              )}
               <div className="relative">
                 <button
                   type="button"

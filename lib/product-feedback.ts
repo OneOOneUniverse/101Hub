@@ -9,6 +9,7 @@ export type ProductReview = {
 type ProductReviewsByProduct = Record<string, ProductReview[]>;
 
 const WISHLIST_KEY = "101hub-wishlist";
+const WAITLIST_KEY = "101hub-waitlist";
 const REVIEWS_KEY = "101hub-reviews";
 
 function readJson<T>(key: string, fallback: T): T {
@@ -49,6 +50,32 @@ export function toggleWishlist(productId: string): boolean {
   const next = Array.from(current);
   writeJson(WISHLIST_KEY, next);
   window.dispatchEvent(new Event("101hub:wishlist-updated"));
+  return next.includes(productId);
+}
+
+// ── Waitlist ──────────────────────────────────────────────────────────────────
+
+export function readWaitlist(): string[] {
+  const data = readJson<unknown>(WAITLIST_KEY, []);
+  return Array.isArray(data) ? data.filter((item) => typeof item === "string") : [];
+}
+
+export function isInWaitlist(productId: string): boolean {
+  return readWaitlist().includes(productId);
+}
+
+export function toggleWaitlist(productId: string): boolean {
+  const current = new Set(readWaitlist());
+
+  if (current.has(productId)) {
+    current.delete(productId);
+  } else {
+    current.add(productId);
+  }
+
+  const next = Array.from(current);
+  writeJson(WAITLIST_KEY, next);
+  window.dispatchEvent(new Event("101hub:waitlist-updated"));
   return next.includes(productId);
 }
 
